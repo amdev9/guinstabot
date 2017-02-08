@@ -1,0 +1,115 @@
+[21:10:27] ratm922: Парсинг аудитории
+[21:28:51] ratm922: Парсинг аудитории
+[22:17:29] ratm922: Парсинг аудитории
+[22:28:12] ratm922: Парсинг аудитории
+[14:32:35] ratm922: Парсинг аудитории
+[14:34:58] ratm922: Парсинг аудитории
+[14:38:39] ratm922: Парсинг аудитории
+[14:39:06] ratm922: Парсинг аудитории
+[14:39:27] ratm922: Парсинг аудитории
+[14:40:09] ratm922: Парсинг аудитории
+[14:41:46] ratm922: Фильтрация аудитории
+[14:41:47] ratm922: IGAccountNotFoundError
+[14:41:48] ratm922: IGAccountNotFoundError
+[14:41:48] ratm922: IGAccountNotFoundError
+[14:41:48] ratm922: IGAccountNotFoundError
+[14:41:48] ratm922: IGAccountNotFoundError
+[14:43:13] ratm922: Парсинг аудитории
+[14:43:14] ratm922: Работа завершена
+[14:43:25] ratm922: Парсинг аудитории
+[14:43:26] ratm922: Работа завершена
+[14:43:32] ratm922: Парсинг аудитории
+[14:43:33] ratm922: Работа завершена
+[14:44:10] ratm922: Парсинг аудитории
+[14:44:11] ratm922: Работа завершена
+[14:50:15] ratm922: Парсинг аудитории
+[14:50:16] ratm922: Работа завершена
+[14:50:26] ratm922: Парсинг аудитории
+[14:50:27] ratm922: Работа завершена
+[17:29:39] ratm922: Парсинг аудитории
+[17:29:41] ratm922: Работа завершена
+[18:51:13] ratm922: Парсинг аудитории
+[18:51:14] ratm922: Работа завершена
+[18:54:23] ratm922: Парсинг аудитории
+[18:54:24] ratm922: Работа завершена
+[18:54:42] ratm922: Парсинг аудитории
+[18:54:44] ratm922: Работа завершена
+[18:55:57] ratm922: Парсинг аудитории
+[18:55:58] ratm922: Работа завершена
+[18:57:02] ratm922: Парсинг аудитории
+[18:57:04] ratm922: Работа завершена
+[19:01:22] ratm922: Парсинг аудитории
+[19:01:24] ratm922: Работа завершена
+[19:02:08] ratm922: Парсинг аудитории
+[19:02:10] ratm922: Работа завершена
+[19:03:18] ratm922: Парсинг аудитории
+[19:04:36] ratm922: Парсинг аудитории
+[19:05:01] ratm922: Парсинг аудитории
+[19:05:28] ratm922: Парсинг аудитории
+[19:06:03] ratm922: Парсинг аудитории
+[19:06:08] ratm922: Работа завершена
+[19:14:50] ratm922: Парсинг аудитории
+[19:18:26] ratm922: Парсинг аудитории
+[19:23:30] ratm922: Парсинг аудитории
+[19:24:31] ratm922: Парсинг аудитории
+[19:25:21] ratm922: Парсинг аудитории
+[19:26:07] ratm922: Парсинг аудитории
+[19:26:36] ratm922: Парсинг аудитории
+[19:26:57] ratm922: Парсинг аудитории
+[19:27:11] ratm922: Парсинг аудитории
+[19:29:07] ratm922: Парсинг аудитории
+[19:39:38] ratm922: Парсинг аудитории
+[20:15:29] ratm922: Парсинг аудитории
+[01:29:18] ratm922: Фильтрация аудитории
+[01:34:21] ratm922: RequestsLimitError
+[01:34:24] ratm922: RequestsLimitError
+[01:34:27] ratm922: RequestsLimitError
+[01:34:30] ratm922: RequestsLimitError
+[01:34:33] ratm922: RequestsLimitError
+[01:34:36] ratm922: RequestsLimitError
+[01:34:39] ratm922: RequestsLimitError
+[01:34:41] ratm922: RequestsLimitError
+[01:34:45] ratm922: RequestsLimitError
+[01:34:48] ratm922: RequestsLimitError
+[01:34:51] ratm922: RequestsLimitError
+[01:34:53] ratm922: RequestsLimitError
+[01:34:57] ratm922: RequestsLimitError
+[01:35:38] ratm922: RequestsLimitError
+[01:35:42] ratm922: RequestsLimitError
+[01:35:45] ratm922: RequestsLimitError
+[01:35:48] ratm922: RequestsLimitError
+[01:35:51] ratm922: RequestsLimitError
+[01:35:53] ratm922: RequestsLimitError
+[01:35:57] ratm922: RequestsLimitError
+[01:40:21] ratm922: RequestsLimitError
+[01:40:24] ratm922: RequestsLimitError
+[01:40:27] ratm922: RequestsLimitError
+[01:40:30] ratm922: RequestsLimitError
+[01:40:33] ratm922: RequestsLimitError
+[01:40:36] ratm922: RequestsLimitError
+[01:40:39] ratm922: RequestsLimitError
+[01:40:42] ratm922: RequestsLimitError
+[01:40:45] ratm922: RequestsLimitError
+[01:40:48] ratm922: RequestsLimitError
+[01:40:51] ratm922: RequestsLimitError
+[01:40:54] ratm922: RequestsLimitError
+[01:40:57] ratm922: RequestsLimitError
+[01:41:39] ratm922: RequestsLimitError
+[01:41:42] ratm922: RequestsLimitError
+[01:41:45] ratm922: RequestsLimitError
+[01:41:48] ratm922: RequestsLimitError
+[01:41:51] ratm922: RequestsLimitError
+[01:41:54] ratm922: RequestsLimitError
+[01:41:56] ratm922: RequestsLimitError
+[01:44:05] ratm922: IGAccountNotFoundError
+[01:44:18] ratm922: Работа завершена
+[01:59:46] ratm922: Парсинг аудитории
+[04:21:54] ratm922: Парсинг аудитории
+[04:21:57] ratm922: Работа завершена
+[00:53:45] ratm922: Парсинг аудитории
+[09:16:59] ratm922: Парсинг аудитории
+[21:55:20] ratm922: Парсинг аудитории
+[22:51:53] ratm922: Парсинг аудитории
+[22:51:53] ratm922: Файл подготовлен
+[22:53:26] ratm922: Парсинг аудитории
+[22:53:26] ratm922: Файл подготовлен
