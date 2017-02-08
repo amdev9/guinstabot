@@ -4,7 +4,7 @@
 
 'use strict';
 
-const path = require('path');
+var path = require('path');
 const url = require('url');
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;

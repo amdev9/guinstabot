@@ -1,7 +1,7 @@
 'use strict';
 
 const ipc = require('electron').ipcRenderer;
-var PouchDB = require('pouchdb');
+
 
 /////////////////////////////////////
 ////////////// EVENTS ///////////////

@@ -5,14 +5,17 @@
 'use strict';
 
 // const debug = require('debug');
-// var PouchDB = require('pouchdb');
+var PouchDB = require('pouchdb');
 var Promise = require('bluebird');
 var readFilePromise = Promise.promisify(require("fs").readFile);
+var path = require('path');
+
+var levelpath = path.join('/Users/alex/dev/nodejs/from_gui_instabot', 'levdb'); 
+//'/Users/alex/dev/nodejs/guinstabot/app/levdb';
+var db = new PouchDB( levelpath , {adapter: 'leveldb'});
 
 // PouchDB.debug.enable('*');
-var db = new PouchDB('levdb', {adapter: 'leveldb'});
 // PouchDB.debug.disable();
-
 // db.destroy().then(function (response) {
 //     console.log(response);
 // }).catch(function (err) {
