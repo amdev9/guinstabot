@@ -22,6 +22,7 @@ function editUserController(user) {
     });
   } else if (user.length == 1) {
     let editView = new BrowserWindow({width: 600, height: 300, frame: true});
+    editView.setMenu(null)
     editView.loadURL(url.format({
       pathname: path.join(__dirname, 'edit.html'),
       protocol: 'file:',
@@ -40,6 +41,7 @@ function editUserController(user) {
 
 function tasksController(action, rows) {
   let taskView = new BrowserWindow({width: 600, height: 500, frame: true});
+  taskView.setMenu(null)
   taskView.loadURL(url.format({
     pathname: path.join(__dirname, 'task.html'),
     protocol: 'file:',
@@ -47,7 +49,7 @@ function tasksController(action, rows) {
   }))
   taskView.on('closed', function() {
     taskView = null;
-    deleteUserTaskDb();
+    // deleteUserTaskDb(); 
   });
   taskView.webContents.on('did-finish-load', () => {
 
@@ -68,6 +70,7 @@ function showLogsController(rows) {
     var l_filepath = __dirname + "/logs/" +  row_id + ".txt";
     if (fs.existsSync(l_filepath) ) {
     let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
+    loggerView.setMenu(null)
     loggerView.loadURL(url.format({
       pathname: path.join(__dirname, 'log.html'),
       protocol: 'file:',
@@ -92,6 +95,7 @@ function showLogsController(rows) {
 
 function addUsersController() {
   let addView = new BrowserWindow({width: 600, height: 300,frame: true})
+  addView.setMenu(null)
   addView.loadURL(url.format({
     pathname: path.join(__dirname, 'add.html'),
     protocol: 'file:',

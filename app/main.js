@@ -8,6 +8,10 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 
+const autoUpdater = require("electron-updater").autoUpdater;
+autoUpdater.logger = require("electron-log")
+autoUpdater.logger.transports.file.level = "info"
+
 var mainWindow = null;
 
 ipc.on('user_add', (event, user) => {
@@ -33,8 +37,8 @@ app.on('window-all-closed', function() {
 });
 
 app.on('ready', function() {
-  mainWindow = new BrowserWindow({width: 800, height: 600
-  });
+  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow.setMenu(null)
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
