@@ -6,6 +6,21 @@
 
 window.$ = window.jQuery = require('jquery');
 
+$(document).ready(function () {
+  $('#memberModal').modal({backdrop: 'static', keyboard: false});
+  checkSecurityController(function(result) {
+    if(result == 'success') {
+      console.log(result);
+      $('#memberModal').on('shown.bs.modal', function (e) {
+        $('#memberModal').modal('hide');
+      });
+    } else {
+      $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
+      console.log(result);
+    }
+  });
+});
+
 $(function() {
   $('#table1').multiSelect({
     actcls: 'table-info',  

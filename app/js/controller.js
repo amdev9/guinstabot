@@ -9,6 +9,14 @@ const url = require('url');
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
 
+function checkSecurityController(cb) {
+  if (1 != 1) {
+    cb("success");
+  } else {
+    cb("failure");
+  }
+}
+
 function editUserController(user) { 
   if (user.length == 0) {
     dialog.showMessageBox({ 
