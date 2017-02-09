@@ -9,9 +9,14 @@ var PouchDB = require('pouchdb');
 var Promise = require('bluebird');
 var readFilePromise = Promise.promisify(require("fs").readFile);
 var path = require('path');
+const os = require('os');
 
-var levelpath = path.join('/Users/alex/dev/nodejs/from_gui_instabot', 'levdb'); 
-//'/Users/alex/dev/nodejs/guinstabot/app/levdb';
+if (os.type() == "Windows_NT") {
+  var levelpath = path.join('C:','Users','alex','levdb'); 
+} else if (os.type() == 'Darwin') {
+  var levelpath = path.join('/Users/alex/dev/nodejs/from_gui_instabot', 'levdb'); //'/Users/alex/dev/nodejs/guinstabot/app/levdb';
+}
+
 var db = new PouchDB( levelpath , {adapter: 'leveldb'});
 
 // PouchDB.debug.enable('*');

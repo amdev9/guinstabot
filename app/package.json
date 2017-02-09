@@ -1,5 +1,7 @@
 {
   "name": "guinstabot",
+  "private": true,
+  "productName": "InstaBOT",
   "version": "0.0.1",
   "description": "GUI application for private instagram api",   
   "author": "Alex <alexpro@mail.gnu>",
@@ -22,11 +24,7 @@
     "electron-rebuild": "^1.5.7"
   },
   "build": {
-    "appId": "gnu.alexpro",
-    "mac": {
-      "category": "private.app-category.productivity"
-    },
-    "win": {
+    "win32": {
       "iconUrl": "http://eatodo.s3.amazonaws.com/icon.ico"
     }
   }
