@@ -68,17 +68,16 @@ function check(cb) {
     });
 
 
-  // hex to dec 
-  // parseInt("abcd", 16); -> 43981
-  // dec to hex
-  // (43981).toString(16) -> 'abcd'
+  // sha256 for hashing license key
+   
 
-  // sha-1
+  // sha-1 for checking and comparing
   // var crypto = require('crypto')
   // , shasum = crypto.createHash('sha1');
   // shasum.update("foo");
   // console.log(shasum.digest('hex'));
 
+    // aes 192 to send data to server
     // const crypto = require('crypto');
     // const cipher = crypto.createCipher('aes192', 'a password');
     // var encrypted = '';
