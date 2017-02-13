@@ -87,7 +87,7 @@ function winreestr() {
 
   // 1)
   console.log("1) -------------------<");
-  
+
   // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
   // -> 0
   // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
@@ -100,8 +100,11 @@ function winreestr() {
   if (err)
     console.log('ERROR: '+err);
   else
-    for (var i=0; i<items.length; i++)
-      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+    for (var i=0; i<items.length; i++) {
+      if (items[i].name == '0') {
+        console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+      }
+    }
   }); 
 
   // 2)
@@ -116,8 +119,12 @@ function winreestr() {
   if (err)
     console.log('ERROR: '+err);
   else
-    for (var i=0; i<items.length; i++)
-      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+    for (var i=0; i<items.length; i++) {
+      if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' ) {
+        console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+      }
+    }
+        
   }); 
 
   // 3)
