@@ -54,7 +54,7 @@ function check(cb) {
     });
   }
 
- 
+  
   winreestr(function(key, value) {
     console.log(key + ": " + value);
   });
@@ -79,7 +79,7 @@ function winreestr(cb) {
   }
   return getDeviceParams()
   .then(function(resHex) {
-     
+
     // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
     regKeyDisk = new Registry({                                       
       hive: Registry.HKLM,                                       
@@ -97,31 +97,28 @@ function winreestr(cb) {
       }
     });
 
+    // 2)
+    regKeyBIOS = new Registry({                                       
+      hive: Registry.HKLM,                                       
+      key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+    })
+    regKeyBIOS.values(function (err, items ) {
+    if (err)
+      console.log('ERROR: '+err);
+    else
+      for (var i=0; i<items.length; i++) {
+        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' ) {
+          cb('key2', 'ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+        }
+      }
+    }); 
+
+
     
   });
 
 
 
-
-  // // 2)
-  // console.log("2) -------------------<");
-  // // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  // // BaseBoardManufacturer  BaseBoardProduct  BIOSVendor  BIOSReleaseDate 
-  // regKeyBIOS = new Registry({                                       
-  //   hive: Registry.HKLM,                                       
-  //   key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  // })
-  // regKeyBIOS.values(function (err, items ) {
-  // if (err)
-  //   console.log('ERROR: '+err);
-  // else
-  //   for (var i=0; i<items.length; i++) {
-  //     if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' ) {
-
-  //       console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-  //     }
-  //   }
-  // }); 
 
   // // 3)
   // var exec = require('child_process').exec;
