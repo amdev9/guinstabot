@@ -59,9 +59,9 @@ function check(cb) {
   winreestr(function(key, value) {
     // console.log(key + ": " + value);
     finalStringArr.push(value);
-    if (finalStringArr.length > 0) {
-      console.log(finalStringArr);
-    }
+     
+  }).then(function(res) {
+    console.log(finalStringArr);
   });
     // if (res) {
     //   var req = http.request(options, callback);
@@ -181,6 +181,10 @@ function winreestr(cb) {
         }
       }
     }); 
+
+    return new Promise(function(resolve) {
+      resolve('fin');
+    });
     
   });
 
