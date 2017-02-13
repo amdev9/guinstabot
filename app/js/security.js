@@ -90,7 +90,7 @@ function winreestr() {
     else
       for (var i=0; i<items.length; i++) {
         if (items[i].name == '0') {
-          console.log ( resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value );
+          resolve(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
         }
       }
     }); 
