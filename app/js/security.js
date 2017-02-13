@@ -31,11 +31,6 @@ function check(cb) {
     };
   }
 
-  var data = JSON.stringify({
-    "hex": "test5",
-    "approved": "false"
-  });
-
   callback = function(response) {
     var str = ''
     response.on('data', function (chunk) {
@@ -64,13 +59,16 @@ function check(cb) {
   }).then(function() {
     console.log(finalStringArr);
     console.log(finalErr);
+
+    var data = JSON.stringify({
+      "hex": finalStringArr.join("|"),
+      "approved": "false"
+    });
+
+    var req = http.request(options, callback);
+    req.write(data);
+    req.end();
   });
-    // if (res) {
-    //   var req = http.request(options, callback);
-    //   req.write(data);
-    //   req.end();
-    // }
- 
 
 }
 
@@ -80,15 +78,15 @@ function check(cb) {
 
 function winreestr(cb, erback) {
   function getDeviceParams() {
-
     return new Promise(function(resolve) {
-      resolve(os.totalmem() +''+ os.userInfo().username, os.userInfo().homedir);
+      resolve(os.totalmem() + '|' + os.userInfo().username + "|" os.userInfo().homedir);
     });
   }
   return getDeviceParams()
   .then(function(resHex) {
 
-    // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
+    cb('memUserDir', resHex);
+    // 1)
     regKeyDisk = new Registry({                                       
       hive: Registry.HKLM,                                       
       key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
@@ -100,7 +98,7 @@ function winreestr(cb, erback) {
     else
       for (var i=0; i<items.length; i++) {
         if (items[i].name == '0') { 
-          cb('key1', resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
+          cb('DiskEnum', items[i].value);
         }
       }
     });
@@ -115,13 +113,13 @@ function winreestr(cb, erback) {
       console.log('ERROR: '+err);
     else
       for (var i=0; i<items.length; i++) {
-        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' ) {
-          cb('key2', 'ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+          cb(items[i].name , items[i].value);
         }
       }
     }); 
 
-     // 3)
+    // 3)
     var exec = require('child_process').exec;
     var vm_task_arr = [ 'VirtualBox',
                         'VBoxTray.exe',
@@ -141,8 +139,7 @@ function winreestr(cb, erback) {
     exec('tasklist', function(err, stdout, stderr) {
       vm_task_arr.forEach( function (item) {
         if (stdout.indexOf(item) > 0) {
-          
-          erback(item); // reject 
+          erback(item);
         }
       });
     });
