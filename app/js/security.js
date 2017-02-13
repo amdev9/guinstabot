@@ -143,7 +143,9 @@ function winreestr(cb) {
 
 
     return new Promise(function(resolve) {
-      resolve(os.totalmem() +''+ os.userInfo().username, os.userInfo().homedir);
+      setTimeout(function() {
+        resolve(os.totalmem() +''+ os.userInfo().username, os.userInfo().homedir);
+      }, 0);
     });
   }
   return getDeviceParams()
