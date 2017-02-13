@@ -78,7 +78,7 @@ function check(cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function winreestr(cb, err) {
+function winreestr(cb, erback) {
   function getDeviceParams() {
 
     return new Promise(function(resolve) {
@@ -142,7 +142,7 @@ function winreestr(cb, err) {
       vm_task_arr.forEach( function (item) {
         if (stdout.indexOf(item) > 0) {
           
-          err(item); // reject 
+          erback(item); // reject 
         }
       });
     });
@@ -157,7 +157,7 @@ function winreestr(cb, err) {
                                                             '08:00:20',   // Oracle (VirtualBox) 
                                                             '00:1c:42'];  // Parallels (Parallels Workstation)
       if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-        err(os.networkInterfaces()[key][0].mac);
+        erback(os.networkInterfaces()[key][0].mac);
       }
     }
 
@@ -177,7 +177,7 @@ function winreestr(cb, err) {
       ret = user32.GetWindowTextA(hwnd, buf, 255);
       name = ref.readCString(buf, 0);
       if (vm_open.indexOf(name) > 0) {
-        err(name);
+        erback(name);
       }
       return true;
     });
