@@ -123,6 +123,7 @@ function winreestr() {
       if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' ) {
         console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
       }
+      
     }
         
   }); 
