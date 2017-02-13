@@ -11,7 +11,7 @@ function check(cb) {
 
   var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
   console.log(str.hexEncode().hexDecode());
-
+winreestr();
   if (process.platform == 'darwin') {
     var options = {
       host: '127.0.0.1',
@@ -23,7 +23,7 @@ function check(cb) {
       }
     };
   } else {
-    winreestr();
+    
     var options = {
       host: '192.168.1.33',
       path: '/api/uploader',
@@ -119,19 +119,47 @@ function winreestr() {
   // }); 
 
   // // 3)
-  // console.log("1. list all processes runned");
-  // var exec = require('child_process').exec;
-  // exec('tasklist', function(err, stdout, stderr) {
-  //   console.log(stdout);
-  //   // VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
-  // });
-   
  
-  console.log(os.networkInterfaces());
-  // VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
+  var exec = require('child_process').exec;
+  var vm_task_arr = [ 'VirtualBox',
+                      'VBoxTray.exe',
+                      'VBoxService.exe',
+                      'Parallels',
+                      'Workstation',
+                      'prl_cc.exe',
+                      'prl_tools.exe',
+                      'SharedIntApp.exe',
+                      'Virtual',
+                      'PC',
+                      'vmusrvc.exe',
+                      'vmsrvc.exe',
+                      'VMware',
+                      'Workstation',
+                      'vmtoolsd.exe' ];
+  exec('tasklist', function(err, stdout, stderr) {
+    if(vm_task_arr.indexOf(stdout) > 0 ) {
+        console.log(stdout);
+    }
+  });
+   
 
+   
+  for(var key in os.networkInterfaces()) {
+    var vm_mac_arr = ['00:05:69', '00:0c:29', '00:1c:14', '00:50:56', //VMware (VMware Workstation)
+                  '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
+                  '00:12:5a', '00:15:5d', 
+                  '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
+                  '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
+                                                        '08:00:20', // Oracle (VirtualBox) 
+                                                        '00:1c:42'  // Parallels (Parallels Workstation)
+    ];
+    if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
+      console.log(os.networkInterfaces()[key][0].mac);
+    }
+    
+  }
 
-
+   
   // n)
   // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
 
