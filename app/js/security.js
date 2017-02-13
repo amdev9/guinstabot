@@ -87,6 +87,7 @@ function winreestr() {
 
   // 1)
   console.log("1) -------------------<");
+  
   // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
   // -> 0
   // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
