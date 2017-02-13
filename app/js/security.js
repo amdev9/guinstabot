@@ -2,7 +2,6 @@
 //// SECURITY CHECK //////////
 //////////////////////////////
 
-'use strict';
 
 var http = require('http');
 var Registry = require('winreg');
@@ -108,7 +107,7 @@ function winreestr() {
   /// VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
 
   //3. mac mask detection
-  console.log(os.networkInterfaces())
+  // console.log(os.networkInterfaces())
   //// VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
 
 
