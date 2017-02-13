@@ -138,6 +138,7 @@ function winreestr() {
                       'vmtoolsd.exe' ];
   exec('tasklist', function(err, stdout, stderr) {
     // if(vm_task_arr.indexOf(stdout) > 0 ) {
+      console.log("--------->");
         console.log(stdout);
     // }
   });
