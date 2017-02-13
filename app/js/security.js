@@ -60,6 +60,8 @@ function check(cb) {
     finalStringArr.push(value);
   }, function(errValue) {
     console.log(errValue);
+  }).then(function() {
+    console.log(finalStringArr);
   });
     // if (res) {
     //   var req = http.request(options, callback);
@@ -146,9 +148,7 @@ function winreestr(cb, erback) {
     // 4)
     for(var key in os.networkInterfaces()) {
       var vm_mac_arr = ['00:05:69', '00:0c:29', '00:1c:14', '00:50:56',   // VMware (VMware Workstation)
-                        '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
-                        '00:12:5a', '00:15:5d', 
-                        '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
+                        '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', '00:12:5a', '00:15:5d', '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
                         '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
                                                             '08:00:20',   // Oracle (VirtualBox) 
                                                             '00:1c:42'];  // Parallels (Parallels Workstation)
@@ -178,10 +178,6 @@ function winreestr(cb, erback) {
       return true;
     });
     user32.EnumWindows(windowProc, 0);
-
-    
-
-
 
   });
 
