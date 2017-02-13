@@ -6,15 +6,27 @@ var http = require('http');
 
 function check(cb) {
 
-  var options = {
-    host: '127.0.0.1',
-    path: '/api/uploader',
-    port: '5014',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  };
+  if (process.platform == 'darwin') {
+    var options = {
+      host: '127.0.0.1',
+      path: '/api/uploader',
+      port: '5014',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+  } else {
+    var options = {
+      host: '192.168.1.33',
+      path: '/api/uploader',
+      port: '5014',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+  }
 
 
   var data = JSON.stringify({
@@ -32,9 +44,9 @@ function check(cb) {
       
       var resp = JSON.parse(str);
 
-      if (process.platform == 'darwin') {
-        console.log(resp);
-      }
+      
+      console.log(resp);
+      
       
       if (resp.status == 'ok') {
       
