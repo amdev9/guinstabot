@@ -137,10 +137,15 @@ function winreestr() {
                       'Workstation',
                       'vmtoolsd.exe' ];
   exec('tasklist', function(err, stdout, stderr) {
-    // if(vm_task_arr.indexOf(stdout) > 0 ) {
+  
       console.log("--------->");
-        console.log(stdout);
-    // }
+      vm_task_arr.forEach(item) {
+        if (stdout.indexOf(item) > 0) {
+          console.log(item);
+        }
+      }
+      
+
   });
    
 
