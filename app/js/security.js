@@ -80,7 +80,9 @@ function check(cb) {
 
 function winreestr() {
 
- 
+  var execSync = require('child_process').execSync;
+  console.log(execSync('chcp').toString());
+  console.log(execSync('chcp 65001').toString());
 
   /// UNIQ DEVICE Checking
   // console.log("UNIQ DEVICE Checking");
@@ -92,7 +94,7 @@ function winreestr() {
     key: 'HKEY_LOCAL_MACHINE\\HARDWARE\\ACPI\\DSDT'
 
     // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
-    
+
     // key: '\\HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
     //key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
     // key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
