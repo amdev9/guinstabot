@@ -57,13 +57,14 @@ function check(cb) {
   
   var finalStringArr = [];
   winreestr(function(key, value) {
-    // console.log(key + ": " + value);
     finalStringArr.push(value);
-     
   }, function(errValue) {
-    console.log(errValue);
+    reject(errValue);
   }).then(function(res) {
+    
     console.log(finalStringArr);
+  }).catch(function(err) {
+    console.log(err);
   });
     // if (res) {
     //   var req = http.request(options, callback);
