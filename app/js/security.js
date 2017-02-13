@@ -80,9 +80,7 @@ function check(cb) {
 
 function winreestr() {
 
-  var execSync = require('child_process').execSync;
-  console.log(execSync('chcp').toString());
-  console.log(execSync('chcp 65001').toString());
+ 
 
   /// UNIQ DEVICE Checking
   // console.log("UNIQ DEVICE Checking");
@@ -100,6 +98,7 @@ function winreestr() {
     // key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
   })
 
+  console.log(regKey);
   // list autostart programs
   regKey.values(function (err, items ) {
   if (err)
