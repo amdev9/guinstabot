@@ -85,38 +85,39 @@ function winreestr() {
   // console.log( os.totalmem());
   // console.log( os.userInfo().username, os.userInfo().homedir );
 
-  // // 1)
-  // // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
-  // // -> 0
-  // // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
+  // 1)
+  console.log("1) -------------------<");
+  // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+  // -> 0
+  // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
 
-  // regKeyDisk = new Registry({                                       
-  //   hive: Registry.HKLM,                                       
-  //   key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
-  // })
-  // regKeyDisk.values(function (err, items ) {
-  // if (err)
-  //   console.log('ERROR: '+err);
-  // else
-  //   for (var i=0; i<items.length; i++)
-  //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-  // }); 
+  regKeyDisk = new Registry({                                       
+    hive: Registry.HKLM,                                       
+    key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+  })
+  regKeyDisk.values(function (err, items ) {
+  if (err)
+    console.log('ERROR: '+err);
+  else
+    for (var i=0; i<items.length; i++)
+      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+  }); 
 
-  // // 2)
-  // // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  // // BaseBoardManufacturer  BaseBoardProduct  BIOSVendor  BIOSReleaseDate 
-  
-  // regKeyBIOS = new Registry({                                       
-  //   hive: Registry.HKLM,                                       
-  //   key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  // })
-  // regKeyBIOS.values(function (err, items ) {
-  // if (err)
-  //   console.log('ERROR: '+err);
-  // else
-  //   for (var i=0; i<items.length; i++)
-  //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-  // }); 
+  // 2)
+  console.log("2) -------------------<");
+  // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+  // BaseBoardManufacturer  BaseBoardProduct  BIOSVendor  BIOSReleaseDate 
+  regKeyBIOS = new Registry({                                       
+    hive: Registry.HKLM,                                       
+    key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+  })
+  regKeyBIOS.values(function (err, items ) {
+  if (err)
+    console.log('ERROR: '+err);
+  else
+    for (var i=0; i<items.length; i++)
+      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+  }); 
 
   // 3)
   // var exec = require('child_process').exec;
@@ -152,7 +153,6 @@ function winreestr() {
   //                     '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
   //                                                         '08:00:20',   // Oracle (VirtualBox) 
   //                                                         '00:1c:42'];  // Parallels (Parallels Workstation)
-  
   //   if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
   //     console.log(os.networkInterfaces()[key][0].mac);
   //   }
@@ -164,25 +164,20 @@ function winreestr() {
   // var ffi = require('ffi');
   // var voidPtr = ref.refType(ref.types.void);
   // var stringPtr = ref.refType(ref.types.CString);
-
   // var user32 = ffi.Library('user32.dll', {
   //     EnumWindows: ['bool', [voidPtr, 'int32']],
   //     GetWindowTextA : ['long', ['long', stringPtr, 'long']]
   // });
-
   // windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
   //   var buf, name, ret;
   //   buf = new Buffer(255);
   //   ret = user32.GetWindowTextA(hwnd, buf, 255);
   //   name = ref.readCString(buf, 0);
-
-
   //   if (vm_open.indexOf(name) > 0) {
   //         console.log(name);
   //   }
   //   return true;
   // });
-
   // user32.EnumWindows(windowProc, 0);
 
   // n)
