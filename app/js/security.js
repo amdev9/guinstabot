@@ -84,7 +84,8 @@ function winreestr() {
       hive: Registry.HKLM,                                       
       key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
     })
-    regKeyDisk.values(function (err, items ) {
+    
+    return regKeyDisk.values(function (err, items ) {
     if (err)
       console.log('ERROR: '+err);
     else
@@ -94,7 +95,7 @@ function winreestr() {
           return new Promise(function(resolve) {
             resolve(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
           });
-          
+
         }
       }
     }); 
