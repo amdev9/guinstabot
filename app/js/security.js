@@ -101,8 +101,6 @@ function winreestr() {
   // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
 
 
-  console.log(regKey);
-  // list autostart programs
   regKey.values(function (err, items ) {
   if (err)
     console.log('ERROR: '+err);
@@ -112,7 +110,6 @@ function winreestr() {
   }); 
 
  
-
 
   /// VM DETECTION
   //1. list all processes runned
