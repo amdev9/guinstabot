@@ -118,83 +118,76 @@ function winreestr() {
   //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
   // }); 
 
-  // // 3)
- 
-  var exec = require('child_process').exec;
-  var vm_task_arr = [ 'VirtualBox',
-                      'VBoxTray.exe',
-                      'VBoxService.exe',
-                      'Parallels',
-                      'Workstation',
-                      'prl_cc.exe',
-                      'prl_tools.exe',
-                      'SharedIntApp.exe',
-                      'Virtual',
-                      'PC',
-                      'vmusrvc.exe',
-                      'vmsrvc.exe',
-                      'VMware',
-                      'Workstation',
-                      'vmtoolsd.exe' ];
-  exec('tasklist', function(err, stdout, stderr) {
+  // 3)
+  // var exec = require('child_process').exec;
+  // var vm_task_arr = [ 'VirtualBox',
+  //                     'VBoxTray.exe',
+  //                     'VBoxService.exe',
+  //                     'Parallels',
+  //                     'Workstation',
+  //                     'prl_cc.exe',
+  //                     'prl_tools.exe',
+  //                     'SharedIntApp.exe',
+  //                     'Virtual',
+  //                     'PC',
+  //                     'vmusrvc.exe',
+  //                     'vmsrvc.exe',
+  //                     'VMware',
+  //                     'Workstation',
+  //                     'vmtoolsd.exe' ];
+  // exec('tasklist', function(err, stdout, stderr) {
+  //   vm_task_arr.forEach( function (item) {
+  //     if (stdout.indexOf(item) > 0) {
+  //       console.log(item);
+  //     }
+  //   });
+  // });
   
-      console.log("--------->");
-      vm_task_arr.forEach( function (item) {
-        if (stdout.indexOf(item) > 0) {
-          console.log(item);
-        }
-      });
-      
+  // // 4)
+  // for(var key in os.networkInterfaces()) {
+  //   var vm_mac_arr = ['00:05:69', '00:0c:29', '00:1c:14', '00:50:56',   // VMware (VMware Workstation)
+  //                     '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
+  //                     '00:12:5a', '00:15:5d', 
+  //                     '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
+  //                     '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
+  //                                                         '08:00:20',   // Oracle (VirtualBox) 
+  //                                                         '00:1c:42'];  // Parallels (Parallels Workstation)
+  
+  //   if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
+  //     console.log(os.networkInterfaces()[key][0].mac);
+  //   }
+  // }
 
+   
+  
+
+  var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass'];
+  var ref = require('ref');
+  var ffi = require('ffi');
+  var voidPtr = ref.refType(ref.types.void);
+  var stringPtr = ref.refType(ref.types.CString);
+
+  var user32 = ffi.Library('user32.dll', {
+      EnumWindows: ['bool', [voidPtr, 'int32']],
+      GetWindowTextA : ['long', ['long', stringPtr, 'long']]
   });
-   
 
-   
-  for(var key in os.networkInterfaces()) {
-    var vm_mac_arr = ['00:05:69', '00:0c:29', '00:1c:14', '00:50:56', //VMware (VMware Workstation)
-                  '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
-                  '00:12:5a', '00:15:5d', 
-                  '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
-                  '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
-                                                        '08:00:20', // Oracle (VirtualBox) 
-                                                        '00:1c:42'  // Parallels (Parallels Workstation)
-    ];
-    if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      console.log(os.networkInterfaces()[key][0].mac);
+  windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
+    var buf, name, ret;
+    buf = new Buffer(255);
+    ret = user32.GetWindowTextA(hwnd, buf, 255);
+    name = ref.readCString(buf, 0);
+    if (vm_open.indexOf(name) > 0) {
+      console.log(name);
     }
-    
-  }
+    return true;
+  });
 
-   
+  user32.EnumWindows(windowProc, 0);
+
+
   // n)
   // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
-
-
-
-  //4. opened windows
-  // node-ffi
-  // VirtualBox VBoxTrayToolWndClass Parallels Workstation CPInterceptor DesktopUtilites Virtual PC {0843FD01-1D28-44a3-B11D-E3A93A85EA96} VMware Workstation VMSwitchUserControlClass
-
-  // var ref = require('ref');
-  // var ffi = require('ffi');
-  // var voidPtr = ref.refType(ref.types.void);
-  // var stringPtr = ref.refType(ref.types.CString);
-
-  // var user32 = ffi.Library('user32.dll', {
-  //     EnumWindows: ['bool', [voidPtr, 'int32']],
-  //     GetWindowTextA : ['long', ['long', stringPtr, 'long']]
-  // });
-
-  // windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-  //   var buf, name, ret;
-  //   buf = new Buffer(255);
-  //   ret = user32.GetWindowTextA(hwnd, buf, 255);
-  //   name = ref.readCString(buf, 0);
-  //   console.log(name);
-  //   return true;
-  // });
-
-  // user32.EnumWindows(windowProc, 0);
 
 
 }
