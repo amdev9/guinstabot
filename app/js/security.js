@@ -158,35 +158,32 @@ function winreestr() {
   //   }
   // }
 
-   
-  
+  // // 5)
+  // var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass', 'prl.tools.auxwnd', '0843FD01-1D28-44a3-B11D-E3A93A85EA96'];
+  // var ref = require('ref');
+  // var ffi = require('ffi');
+  // var voidPtr = ref.refType(ref.types.void);
+  // var stringPtr = ref.refType(ref.types.CString);
 
-  var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass', 'prl.tools.auxwnd'];
-  var ref = require('ref');
-  var ffi = require('ffi');
-  var voidPtr = ref.refType(ref.types.void);
-  var stringPtr = ref.refType(ref.types.CString);
+  // var user32 = ffi.Library('user32.dll', {
+  //     EnumWindows: ['bool', [voidPtr, 'int32']],
+  //     GetWindowTextA : ['long', ['long', stringPtr, 'long']]
+  // });
 
-  var user32 = ffi.Library('user32.dll', {
-      EnumWindows: ['bool', [voidPtr, 'int32']],
-      GetWindowTextA : ['long', ['long', stringPtr, 'long']]
-  });
-
-  windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-    var buf, name, ret;
-    buf = new Buffer(255);
-    ret = user32.GetWindowTextA(hwnd, buf, 255);
-    name = ref.readCString(buf, 0);
+  // windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
+  //   var buf, name, ret;
+  //   buf = new Buffer(255);
+  //   ret = user32.GetWindowTextA(hwnd, buf, 255);
+  //   name = ref.readCString(buf, 0);
 
 
-    if (vm_open.indexOf(name) > 0) {
-          console.log(name);
-    }
-    return true;
-  });
+  //   if (vm_open.indexOf(name) > 0) {
+  //         console.log(name);
+  //   }
+  //   return true;
+  // });
 
-  user32.EnumWindows(windowProc, 0);
-
+  // user32.EnumWindows(windowProc, 0);
 
   // n)
   // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
