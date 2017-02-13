@@ -93,14 +93,15 @@ function winreestr(cb) {
     else
       for (var i=0; i<items.length; i++) {
         if (items[i].name == '0') {
-          
-           
-            cb(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
-          
-
+          return new Promise(function(resolve) {
+            resolve(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
+          });
         }
       }
-    }); 
+    }).then(function(res) {
+      console.log(res);
+      
+    } ); 
 
     
   });
