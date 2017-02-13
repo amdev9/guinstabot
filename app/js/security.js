@@ -54,14 +54,16 @@ function check(cb) {
     });
   }
 
-  winreestr().then(function (res) {
+ 
+  winreestr(function(res) {
     console.log(res);
+  });
     // if (res) {
     //   var req = http.request(options, callback);
     //   req.write(data);
     //   req.end();
     // }
-  });
+ 
 
 }
 
@@ -69,7 +71,7 @@ function check(cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function winreestr() {
+function winreestr(cb) {
   var resultHex = '';
   function getDeviceParams() {
     return new Promise(function(resolve) {
@@ -85,16 +87,16 @@ function winreestr() {
       key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
     })
     
-    return regKeyDisk.values(function (err, items ) {
+    regKeyDisk.values(function (err, items ) {
     if (err)
       console.log('ERROR: '+err);
     else
       for (var i=0; i<items.length; i++) {
         if (items[i].name == '0') {
           
-          return new Promise(function(resolve) {
-            resolve(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
-          });
+           
+            cb(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
+          
 
         }
       }
