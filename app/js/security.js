@@ -59,12 +59,7 @@ function check(cb) {
   winreestr(function(key, value) {
     finalStringArr.push(value);
   }, function(errValue) {
-    reject(errValue);
-  }).then(function(res) {
-    
-    console.log(finalStringArr);
-  }).catch(function(err) {
-    console.log(err);
+    console.log(errValue);
   });
     // if (res) {
     //   var req = http.request(options, callback);
@@ -184,9 +179,7 @@ function winreestr(cb, erback) {
     });
     user32.EnumWindows(windowProc, 0);
 
-    return new Promise(function(resolve) {
-      resolve('fin');
-    });
+    
 
 
 
