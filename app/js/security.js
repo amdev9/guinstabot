@@ -80,56 +80,61 @@ function check(cb) {
 
 function winreestr() {
 
- 
-
-  /// UNIQ DEVICE Checking
+  // /// UNIQ DEVICE Checking
   // console.log("UNIQ DEVICE Checking");
   // console.log( os.totalmem());
   // console.log( os.userInfo().username, os.userInfo().homedir );
 
-  regKey = new Registry({                                       // new operator is optional
-    hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
-    key: '\\HARDWARE\\ACPI\\DSDT'
-  })
+  // // 1)
+  // // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+  // // -> 0
+  // // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
 
-  // 1)
-  // key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
-  // -> 0
-  // DiskVirtual для VirtualPC DiskVBOX_HARDDISK для Virtual Box Prod_VMware_Virtual для VMware Workstation
+  // regKeyDisk = new Registry({                                       
+  //   hive: Registry.HKLM,                                       
+  //   key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+  // })
+  // regKeyDisk.values(function (err, items ) {
+  // if (err)
+  //   console.log('ERROR: '+err);
+  // else
+  //   for (var i=0; i<items.length; i++)
+  //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+  // }); 
 
-  // 2)
-  // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  // BaseBoardManufacturer  BaseBoardProduct  BIOSVendor  BIOSReleaseDate 
+  // // 2)
+  // // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+  // // BaseBoardManufacturer  BaseBoardProduct  BIOSVendor  BIOSReleaseDate 
   
-  // 3)
-  // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
+  // regKeyBIOS = new Registry({                                       
+  //   hive: Registry.HKLM,                                       
+  //   key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+  // })
+  // regKeyBIOS.values(function (err, items ) {
+  // if (err)
+  //   console.log('ERROR: '+err);
+  // else
+  //   for (var i=0; i<items.length; i++)
+  //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+  // }); 
 
-
-  regKey.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: '+err);
-  else
-    for (var i=0; i<items.length; i++)
-      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-  }); 
-
- 
-
-  /// VM DETECTION
-  //1. list all processes runned
+  // // 3)
   // console.log("1. list all processes runned");
   // var exec = require('child_process').exec;
   // exec('tasklist', function(err, stdout, stderr) {
   //   console.log(stdout);
-  //   // stdout is a string containing the output of the command.
-  //   // parse it and look for the apache and mysql processes.
+  //   // VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
   // });
-  /// results to search:
-  /// VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
+   
+ 
+  console.log(os.networkInterfaces());
+  // VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
 
-  //3. mac mask detection
-  // console.log(os.networkInterfaces());
-  //// VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
+
+
+  // n)
+  // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
+
 
 
   //4. opened windows
