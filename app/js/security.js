@@ -161,7 +161,7 @@ function winreestr() {
    
   
 
-  var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass'];
+  var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass', 'prl.tools.auxwnd'];
   var ref = require('ref');
   var ffi = require('ffi');
   var voidPtr = ref.refType(ref.types.void);
@@ -178,7 +178,7 @@ function winreestr() {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
 
-console.log(name);
+    // console.log(name);
     if (vm_open.indexOf(name) > 0) {
      console.log("found");
     }
