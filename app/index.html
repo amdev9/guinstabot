@@ -9,28 +9,26 @@
 
 </head>
 <body>
+  <!-- Modal -->
+  <div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="memberModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> -->
+                  </button>
+                   <h4 class="modal-title" id="memberModalLabel">Спасибо за использование InstaBOT</h4>
 
-<!-- Modal -->
-<div class="modal fade" id="memberModal" tabindex="-1" role="dialog" aria-labelledby="memberModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> -->
-                </button>
-                 <h4 class="modal-title" id="memberModalLabel">Спасибо за использование InstaBOT</h4>
-
-            </div>
-            <div class="modal-body" id="memberModalBody">
-                <p>Выполняется проверка лицензии ...</p>
-            </div>
-            <!--
-            <div class="modal-footer"> 
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-            </div> -->
-        </div>
-    </div>
-</div>
-<!--  -->
+              </div>
+              <div class="modal-body" id="memberModalBody">
+                  <p>Выполняется проверка лицензии ...</p>
+              </div>
+              <!--
+              <div class="modal-footer"> 
+                  <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              </div> -->
+          </div>
+      </div>
+  </div>
 
   <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,6 +111,7 @@
 
 
 <script src="js/index.js"></script>
+<script src="js/security.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/model.js"></script>
 <script src="js/view.js"></script>
