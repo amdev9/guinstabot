@@ -55,11 +55,12 @@ function check(cb) {
   }
 
   winreestr().then(function (res) {
-    if (res) {
-      var req = http.request(options, callback);
-      req.write(data);
-      req.end();
-    }
+    console.log(res);
+    // if (res) {
+    //   var req = http.request(options, callback);
+    //   req.write(data);
+    //   req.end();
+    // }
   });
 
 }
