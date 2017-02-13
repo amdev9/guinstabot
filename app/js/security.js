@@ -55,14 +55,13 @@ function check(cb) {
   }
 
   
-  var finalHex = '';
+  var finalStringArr = [];
   winreestr(function(key, value) {
-    console.log(key + ": " + value);
-    if (key == 'key1') {
-      finalHex = finalHex + value;
+    // console.log(key + ": " + value);
+    finalStringArr.push(value);
+    if (finalStringArr.length > 0) {
+      console.log(finalStringArr);
     }
-  }).then(function () {
-    console.log(finalHex);
   });
     // if (res) {
     //   var req = http.request(options, callback);
