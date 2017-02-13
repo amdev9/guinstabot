@@ -53,6 +53,8 @@ function check(cb) {
   var finalStringArr = [];
   var finalErr = [];
   winreestr(function(key, value) {
+    // if key
+    // finalStringArr[0] = ..
     finalStringArr.push(value);
   }, function(errValue) {
     finalErr.push(errValue);
@@ -64,6 +66,52 @@ function check(cb) {
       "hex": finalStringArr.join("|"),
       "approved": "false"
     });
+
+
+  // hex to dec 
+  // parseInt("abcd", 16); -> 43981
+  // dec to hex
+  // (43981).toString(16) -> 'abcd'
+
+  // sha-1
+  // var crypto = require('crypto')
+  // , shasum = crypto.createHash('sha1');
+  // shasum.update("foo");
+  // console.log(shasum.digest('hex'));
+
+    // const crypto = require('crypto');
+    // const cipher = crypto.createCipher('aes192', 'a password');
+    // var encrypted = '';
+    // cipher.on('readable', () => {
+    //   const data = cipher.read();
+    //   if (data)
+    //     encrypted += data.toString('hex');
+    // });
+    // cipher.on('end', () => {
+    //   console.log(encrypted);
+    //   // Prints: ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504
+    // });
+    // cipher.write('some clear text data');
+    // cipher.end();
+     
+    // const decipher = crypto.createDecipher('aes192', 'a password');
+    // let decrypted = '';
+    // decipher.on('readable', () => {
+    //   const data = decipher.read();
+    //   if (data)
+    //     decrypted += data.toString('utf8');
+    // });
+    // decipher.on('end', () => {
+    //   console.log(decrypted);
+    //   // Prints: some clear text data
+    // });
+    // var encrypted = 'ca981be48e90867604588e75d04feabb63cc007a8f8ad89b10616ed84d815504';
+    // decipher.write(encrypted, 'hex');
+    // decipher.end();
+
+
+
+
 
     var req = http.request(options, callback);
     req.write(data);
