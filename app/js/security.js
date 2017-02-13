@@ -89,11 +89,14 @@ function winreestr() {
 
   regKey = new Registry({                                       // new operator is optional
     hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
-    key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-    // key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
+    key: '\\HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
   })
 
-  //key: '\\HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+
+   // key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+    // key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
+ 
+
   // key: 'HKEY_LOCAL_MACHINE\\HARDWARE\\ACPI\\DSDT'
   // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
 
