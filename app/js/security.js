@@ -55,8 +55,8 @@ function check(cb) {
   }
 
  
-  winreestr(function(res) {
-    console.log(res);
+  winreestr(function(key, value) {
+    console.log(key + ": " + value);
   });
     // if (res) {
     //   var req = http.request(options, callback);
@@ -72,7 +72,6 @@ function check(cb) {
 //////////////////////////////
 
 function winreestr(cb) {
-  var resultHex = '';
   function getDeviceParams() {
     return new Promise(function(resolve) {
       resolve(os.totalmem() +''+ os.userInfo().username, os.userInfo().homedir);
@@ -89,19 +88,14 @@ function winreestr(cb) {
     
     regKeyDisk.values(function (err, items ) {
     if (err)
-      console.log('ERROR: '+err);
+      console.log('ERROR: ' + err);
     else
       for (var i=0; i<items.length; i++) {
-        if (items[i].name == '0') {
-          return new Promise(function(resolve) {
-            resolve(resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
-          });
+        if (items[i].name == '0') { 
+          cb('key1', resHex + ' ITEM: '+items[i].name+' '+items[i].type+' '+items[i].value);
         }
       }
-    }).then(function(res) {
-      console.log(res);
-      
-    } ); 
+    });
 
     
   });
