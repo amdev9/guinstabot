@@ -2,6 +2,8 @@
 //// SECURITY CHECK //////////
 //////////////////////////////
 
+'use strict';
+
 var http = require('http');
 var Registry = require('winreg');
 
@@ -75,10 +77,9 @@ function check(cb) {
 
 function winreestr() {
   /// UNIQ DEVICE Checking
-  console.log("UNIQ DEVICE Checking");
-
-  console.log( os.totalmem());
-  console.log( os.userInfo().username, os.userInfo().homedir );
+  // console.log("UNIQ DEVICE Checking");
+  // console.log( os.totalmem());
+  // console.log( os.userInfo().username, os.userInfo().homedir );
 
   // regKey = new Registry({                                       // new operator is optional
   //   hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
@@ -96,15 +97,19 @@ function winreestr() {
   
   /// VM DETECTION
   //1. list all processes runned
-  console.log("1. list all processes runned");
-  var exec = require('child_process').exec;
-  exec('tasklist', function(err, stdout, stderr) {
-    console.log(stdout);
-    // stdout is a string containing the output of the command.
-    // parse it and look for the apache and mysql processes.
-  });
+  // console.log("1. list all processes runned");
+  // var exec = require('child_process').exec;
+  // exec('tasklist', function(err, stdout, stderr) {
+  //   console.log(stdout);
+  //   // stdout is a string containing the output of the command.
+  //   // parse it and look for the apache and mysql processes.
+  // });
   /// results to search:
   /// VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
+
+  //3. mac mask detection
+  console.log(os.networkInterfaces())
+  //// VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
 
 
 
@@ -122,9 +127,6 @@ function winreestr() {
 //2a. HKEY_LOCAL_MACHINE\HARDWARE\ACPI\DSDT
 // VirtualBox VBOX__ Parallels Workstation PRLS__ Virtual PC AMIBI VMware Workstation PTLTD__
 
-//3. mac mask detection
-//// os.networkInterfaces()
-//// VMware (VMware Workstation) 00:05:69 00:0c:29 00:1c:14 00:50:56 Microsoft (Virtual PC) 00:03:ff 00:0d:3a 00:50:f2 7c:1e:52 00:12:5a 00:15:5d 00:17:fa 28:18:78 7c:ed:8d 00:1d:d8 00:22:48 00:25:ae 60:45:bd Dc:b4:c4 Oracle (VirtualBox) 08:00:20 Parallels (Parallels Workstation) 00:1c:42
 
 
 //4. opened windows
