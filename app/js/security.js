@@ -3,6 +3,7 @@
 //////////////////////////////
 
 var http = require('http');
+var Registry = require('winreg');
 
 function check(cb) {
 
@@ -73,21 +74,38 @@ function check(cb) {
 //////////////////////////////
 
 function winreestr() {
-  var Registry = require('winreg')
-,   regKey = new Registry({                                       // new operator is optional
-      hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
-      key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
-    })
+  /// UNIQ DEVICE Checking
+  console.log("UNIQ DEVICE Checking");
 
- 
-// list autostart programs
- regKey.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: '+err);
-  else
-    for (var i=0; i<items.length; i++)
-      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-}); 
+  console.log( os.totalmem());
+  console.log( os.userInfo().username, os.userInfo().homedir );
+
+  // regKey = new Registry({                                       // new operator is optional
+  //   hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
+  //   key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
+  // })
+
+  // // list autostart programs
+  // regKey.values(function (err, items ) {
+  // if (err)
+  //   console.log('ERROR: '+err);
+  // else
+  //   for (var i=0; i<items.length; i++)
+  //     console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+  // }); 
+  
+  /// VM DETECTION
+  //1. list all processes runned
+  console.log("1. list all processes runned");
+  var exec = require('child_process').exec;
+  exec('tasklist', function(err, stdout, stderr) {
+    console.log(stdout);
+    // stdout is a string containing the output of the command.
+    // parse it and look for the apache and mysql processes.
+  });
+  /// results to search:
+  /// VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
+
 
 
 }
@@ -96,24 +114,6 @@ function winreestr() {
 /// HEX STRING 
 /// http://stackoverflow.com/questions/21647928/javascript-unicode-string-to-hex
 
-
-
-/// UNIQ DEVICE Checking
-/// 1) os.totalmem()
-/// 2) os.userInfo().username, os.userInfo().homedir
-
-/// VM DETECTION
-//1. list all processes runned
-
-var exec = require('child_process').exec;
-exec('tasklist', function(err, stdout, stderr) {
-  console.log(stdout);
-  // stdout is a string containing the output of the command.
-  // parse it and look for the apache and mysql processes.
-});
-
-/// results to search:
-/// VirtualBox VBoxTray.exe VBoxService.exe Parallels Workstation prl_cc.exe prl_tools.exe SharedIntApp.exe Virtual PC vmusrvc.exe vmsrvc.exe VMware Workstation vmtoolsd.exe
 
 //2.
 // HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Disk\Enum --> 0
@@ -133,8 +133,5 @@ exec('tasklist', function(err, stdout, stderr) {
 
  
 
-
- 
- 
 */
 
