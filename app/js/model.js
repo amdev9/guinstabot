@@ -4,7 +4,7 @@
 
 'use strict';
 
-// const debug = require('debug');
+const debug = require('debug');
 var PouchDB = require('pouchdb');
 var Promise = require('bluebird');
 var readFilePromise = Promise.promisify(require("fs").readFile);
@@ -20,7 +20,7 @@ if (os.type() == "Windows_NT") {
 var db = new PouchDB( levelpath , {adapter: 'leveldb'});
 
 // PouchDB.debug.enable('*');
-// PouchDB.debug.disable();
+PouchDB.debug.disable();
 // db.destroy().then(function (response) {
 //     console.log(response);
 // }).catch(function (err) {
