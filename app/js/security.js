@@ -139,11 +139,11 @@ function winreestr() {
   exec('tasklist', function(err, stdout, stderr) {
   
       console.log("--------->");
-      vm_task_arr.forEach(item) {
+      vm_task_arr.forEach( function (item) {
         if (stdout.indexOf(item) > 0) {
           console.log(item);
         }
-      }
+      });
       
 
   });
