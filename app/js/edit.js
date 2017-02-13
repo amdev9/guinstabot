@@ -1,5 +1,3 @@
-'use strict';
-
 ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
