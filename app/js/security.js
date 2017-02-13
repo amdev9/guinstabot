@@ -79,7 +79,7 @@ function check(cb) {
 function winreestr(cb, erback) {
   function getDeviceParams() {
     return new Promise(function(resolve) {
-      resolve(os.totalmem() + '|' + os.userInfo().username + "|" os.userInfo().homedir);
+      resolve(os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir);
     });
   }
   return getDeviceParams()
