@@ -178,9 +178,9 @@ function winreestr() {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
 
-    // console.log(name);
+
     if (vm_open.indexOf(name) > 0) {
-     console.log("found");
+          console.log(name);
     }
     return true;
   });
