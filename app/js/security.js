@@ -55,8 +55,14 @@ function check(cb) {
   }
 
   
+  var finalHex = '';
   winreestr(function(key, value) {
     console.log(key + ": " + value);
+    if (key == 'key1') {
+      finalHex = finalHex + value;
+    }
+  }).then(function () {
+    console.log(finalHex);
   });
     // if (res) {
     //   var req = http.request(options, callback);
@@ -113,7 +119,9 @@ function winreestr(cb) {
       }
     }); 
 
-
+    return new Promise(function(resolve) {
+      resolve('final');
+    });
     
   });
 
