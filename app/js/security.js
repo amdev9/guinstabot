@@ -44,12 +44,13 @@ function checkLicense(cb) {
   // openWin(cb);
 
   bios(function(obj) {
-    console.log(obj['DiskEnum']);
+    var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+      "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+    makePost(sendData, cb);
   });
- 
 }
 
-function makePost(cb) {
+function makePost(sendData, cb) {
   if (process.platform == 'darwin') {
     var options = {
       host: '127.0.0.1',
@@ -92,7 +93,6 @@ function makePost(cb) {
     });
   }
 
-  // if (sendData) {
   var serialKey = finalStringArr.slice(0,2).join("|");
   const secretSerial = 'abcdefg';
   const secretMessage = 'a password';
@@ -107,11 +107,6 @@ function makePost(cb) {
   console.log(postData);
   req.write(postData);
   req.end();
-
-  // } else {
-  // showLicenseTokenView();
-  // cb("vm");
-  // }
 
 }
 
