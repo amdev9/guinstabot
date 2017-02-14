@@ -6,16 +6,19 @@ var http = require('http');
 var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
-// var _ = require('lodash');
+var _ = require('lodash');
 const EventEmitter = require('events');
-
 class MyEmitter extends EventEmitter {}
-
 const myEmitter = new MyEmitter();
 
+var sendData = '';
+myEmitter.on('event', (res) => {
+  sendData = sendData + res + "|";
+  console.log(sendData);
+});
 
 
-String.prototype.hexEncode = function(){
+String.prototype.hexEncode = function() {
   var hex, i;
   var result = "";
   for (i = 0; i < this.length; i++) {
@@ -68,9 +71,14 @@ function checkLicense(cb) {
     });
   }
 
-  var finalString = '';
-  var finalErr = [];
- 
+
+  var serialKey = finalStringArr.slice(0,2).join("|");
+  const secretSerial = 'abcdefg';
+  const secretMessage = 'a password';
+  var token = sha256(serialKey, secretSerial);
+  showLicenseTokenView(token);
+  // aes 192 to send data to server
+
   winReestr(function(key, value) {
     myEmitter.emit('event', key + " " + value );
     // switch(key) {
@@ -93,48 +101,26 @@ function checkLicense(cb) {
     //     finalStringArr[5] = value;
     //     break;
     // }
-
-
   }, function(errValue) {
     finalErr.push(errValue);
-  }).then(function() {
-     
-
-    // if (finalErr.length == 0) {
-      // sha256 for hashing license key
-      // serialKey identificator && id uploader for db
-
-
-      // var serialKey = finalStringArr.slice(0,2).join("|");
-      // const secretSerial = 'abcdefg';
-      // const secretMessage = 'a password';
-      // var token = sha256(serialKey, secretSerial);
-      // showLicenseTokenView(token);
-      // // aes 192 to send data to server
-      // var sendData = '';
-      // var message = aes192Cipher(sendData, secretMessage);
-      // var postData = JSON.stringify({
-      //   "token": token,
-      //   "message": message
-      // });
-
-      // var req = http.request(options, callback);
-      // console.log(postData);
-      // req.write(postData);
-      // req.end();
-
-
-    // } else {
-    //   showLicenseTokenView();
-    //   cb("vm");
-    // }
   });
 
+  // if (sendData) {
+  //   var message = aes192Cipher(sendData, secretMessage);
+  //   var postData = JSON.stringify({
+  //     "token": token,
+  //     "message": message
+  //   });
+  //   var req = http.request(options, callback);
+  //   console.log(postData);
+  //   req.write(postData);
+  //   req.end();
+  // } else {
+  //   showLicenseTokenView();
+  //   cb("vm");
+  // }
 }
 
-myEmitter.on('event', (res) => {
-  console.log(res);
-});
 
 
 
