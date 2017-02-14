@@ -259,18 +259,25 @@ function sha256(serialKey, secret) {
 }
 
 function aes192Cipher(finalString, secret) {
+
   const cipher = crypto.createCipher('aes192', secret);
-  var encrypted = '';
-  cipher.on('readable', () => {
-    const data = cipher.read();
-    if (data)
-      encrypted += data.toString('hex');
-  });
-  cipher.on('end', () => {
-    return encrypted;
-  });
-  cipher.write(finalString);
-  cipher.end();
+
+  let encrypted = cipher.update(finalString, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return encrypted;
+
+  // const cipher = crypto.createCipher('aes192', secret);
+  // let encrypted = '';
+  // cipher.on('readable', () => {
+  //   const data = cipher.read();
+  //   if (data)
+  //     encrypted += data.toString('hex');
+  // });
+  // cipher.on('end', () => {
+  //   return encrypted;
+  // });
+  // cipher.write(finalString);
+  // cipher.end();
 }
 
 function sha1(toHashString) {
