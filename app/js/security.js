@@ -9,16 +9,33 @@ const crypto = require('crypto');
 var _ = require('lodash');
 
 function checkLicense(cb) {
-  networkInt(cb);
-  taskList(cb);
-  openWin(cb);
-
-  bios(function(obj) {
-    var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-      "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-    var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-    makePost(sendData, serialKey, cb);
+  
+  networkInt((res) => {
+    if(res == "vm") {
+      cb('vm');
+    } else {
+      taskList((res) => {
+        if(res == "vm") {
+          cb('vm');
+        } else {
+          openWin((res) => {
+            if(res == "vm") {
+              cb('vm');
+            } else {
+               bios(function(obj) {
+                var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+                  "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+                var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+                makePost(sendData, serialKey, cb);
+              });
+            }
+          });
+        }
+      });
+    }
   });
+
+ 
 }
 
 function makePost(sendData, serialKey, cb) {
@@ -143,7 +160,7 @@ function taskList(erback) {
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
-        return erback("vm");
+        erback("vm");
       }
     });
   });
@@ -158,7 +175,7 @@ function networkInt(erback) {
                                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
       // erback(os.networkInterfaces()[key][0].mac);
-      return erback("vm");
+      erback("vm");
     }
   }
 }
@@ -179,7 +196,7 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      return erback("vm");
+      erback("vm");
     }
     return true;
   });
