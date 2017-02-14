@@ -10,7 +10,7 @@ const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
 
 function checkSecurityController(cb) {
-  check(cb);
+  checkLicense(cb);
 }
 
 function editUserController(user) { 
@@ -98,7 +98,7 @@ function showLogsController(rows) {
 }
 
 function addUsersController() {
-  let addView = new BrowserWindow({width: 600, height: 300,frame: true})
+  let addView = new BrowserWindow({width: 600, height: 300, frame: true})
   addView.setMenu(null)
   addView.loadURL(url.format({
     pathname: path.join(__dirname, 'add.html'),

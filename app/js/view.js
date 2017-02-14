@@ -9,14 +9,18 @@ window.$ = window.jQuery = require('jquery');
 $(document).ready(function () {
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
   checkSecurityController(function(result) {
-    if(result == 'success') {
+    if(result == 'ok') {
       console.log(result);
       $('#memberModal').on('shown.bs.modal', function (e) {
         $('#memberModal').modal('hide');
       });
-    } else {
+    } else if (result == 'fail') {
       $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
       console.log(result);
+    } else if (result == 'vm') {
+      $("#memberModalBody > p").text("Виртуальные машины не поддерживаются") 
+    } else {
+      $("#memberModalBody > p").text("Произошла ошибка") 
     }
   });
 });

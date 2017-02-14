@@ -7,7 +7,7 @@ var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
 
-function check(cb) {
+function checkLicense(cb) {
   if (process.platform == 'darwin') {
     var options = {
       host: '127.0.0.1',
@@ -42,9 +42,9 @@ function check(cb) {
         // sha-1 for checking and comparing
         var hash = sha1(finalStringArr.join("|"));
         if (resp.message == hash) {
-          cb("success");
+          cb("ok");
         } else {
-          cb("failure");
+          cb("fail");
         }
       }
     });
@@ -53,7 +53,6 @@ function check(cb) {
   var finalStringArr = [];
   var finalErr = [];
   winReestr(function(key, value) {
-
     switch (key) {
       case 'memUserDir': 
         finalStringArr[0] = value;
@@ -74,28 +73,30 @@ function check(cb) {
         finalStringArr[5] = value;
         break;
     }
-
     // finalStringArr.push(value);
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
+    if (finalErr.length == 0) {
+      // sha256 for hashing license key
+      // serialKey identificator && id uploader for db
+      var serialKey = finalStringArr.slice(0,2).join("|");
+      const secretSerial = 'abcdefg';
+      const secretMessage = 'a password';
+      var token = sha256(serialKey, secretSerial);
+      // aes 192 to send data to server
+      var message = aes192Cipher(finalStringArr.join("|"), secretMessage);
+      var postData = JSON.stringify({
+        "token": token,
+        "message": message
+      });
 
-    // sha256 for hashing license key
-    // serialKey identificator && id uploader for db
-    var serialKey = finalStringArr.slice(0,2).join("|");
-    const secretSerial = 'abcdefg';
-    const secretMessage = 'a password';
-    var token = sha256(serialKey, secretSerial);
-    // aes 192 to send data to server
-    var message = aes192Cipher(finalStringArr.join("|"), secretMessage);
-    var postData = JSON.stringify({
-      "token": token,
-      "message": message
-    });
-
-    var req = http.request(options, callback);
-    req.write(postData);
-    req.end();
+      var req = http.request(options, callback);
+      req.write(postData);
+      req.end();
+    } else {
+      cb("vm");
+    }
   });
 }
 
@@ -127,9 +128,9 @@ function bios(cb) {
   })
   regKeyBIOS.values(function (err, items ) {
   if (err)
-    console.log('ERROR: '+err);
+    console.log('ERROR: ' + err);
   else
-    for (var i=0; i<items.length; i++) {
+    for (var i=0; i < items.length; i++) {
       if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
         cb(items[i].name , items[i].value);
       }
