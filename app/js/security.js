@@ -6,6 +6,7 @@ var http = require('http');
 var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
+var _ = require('lodash');
 
 function checkLicense(cb) {
   if (process.platform == 'darwin') {
@@ -77,30 +78,33 @@ function checkLicense(cb) {
     finalErr.push(errValue);
   }).then(function() {
     console.log(finalStringArr);
+
+    console.log (_.join(finalStringArr, "|") ); 
+
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
       // serialKey identificator && id uploader for db
-      var serialKey = finalStringArr.slice(0,2).join("|");
-      const secretSerial = 'abcdefg';
-      const secretMessage = 'a password';
-      var token = sha256(serialKey, secretSerial);
-      showLicenseTokenView(token);
-      // aes 192 to send data to server
-      var sendData = '';
-      finalStringArr.forEach( function(item, i, arr) {
-        console.log(item + " " + i + " " + arr);
-      });
-       
-      var message = aes192Cipher(sendData, secretMessage);
-      var postData = JSON.stringify({
-        "token": token,
-        "message": message
-      });
 
-      var req = http.request(options, callback);
-      console.log(postData);
-      req.write(postData);
-      req.end();
+
+      // var serialKey = finalStringArr.slice(0,2).join("|");
+      // const secretSerial = 'abcdefg';
+      // const secretMessage = 'a password';
+      // var token = sha256(serialKey, secretSerial);
+      // showLicenseTokenView(token);
+      // // aes 192 to send data to server
+      // var sendData = '';
+      // var message = aes192Cipher(sendData, secretMessage);
+      // var postData = JSON.stringify({
+      //   "token": token,
+      //   "message": message
+      // });
+
+      // var req = http.request(options, callback);
+      // console.log(postData);
+      // req.write(postData);
+      // req.end();
+
+
     // } else {
     //   showLicenseTokenView();
     //   cb("vm");
