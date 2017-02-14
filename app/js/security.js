@@ -94,7 +94,8 @@ function checkLicense(cb) {
     //     break;
     // }
   }, function(errValue) {
-    finalErr.push(errValue);
+    console.log(error);
+    // finalErr.push(errValue);
   });
 
     // if (sendData) {
