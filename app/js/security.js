@@ -7,28 +7,69 @@ var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
 var _ = require('lodash');
-const EventEmitter = require('events');
-class MyEmitter extends EventEmitter {}
-const myEmitter = new MyEmitter();
-
-var sendData = '';
-myEmitter.on('event', (res) => {
-  sendData = sendData + res + "|";
-  console.log(sendData);
-});
 
 
-String.prototype.hexEncode = function() {
-  var hex, i;
-  var result = "";
-  for (i = 0; i < this.length; i++) {
-      hex = this.charCodeAt(i).toString(16);
-      result += ("000"+hex).slice(-4);
-  }
-  return result
-}
+// const EventEmitter = require('events');
+// class MyEmitter extends EventEmitter {}
+// const myEmitter = new MyEmitter();
+
+// var finalStringArr = [];
+// myEmitter.on('event', (key, value) => {
+//   switch(key) {
+//     case 'memUserDir': 
+//       finalStringArr[0] = value;
+//       break;
+//     case 'BIOSVersion': 
+//       finalStringArr[1] = value;
+//       break;
+//     case 'DiskEnum': 
+//       finalStringArr[2] = value;
+//       break;
+//     case 'BIOSVendor': 
+//       finalStringArr[3] = value;
+//       break;
+//     case 'SystemManufacturer':
+//       finalStringArr[4] = value;
+//       break;
+//     case 'BaseBoardManufacturer':
+//       finalStringArr[5] = value;
+//       break;
+//   }
+// });
+
 
 function checkLicense(cb) {
+  taskList(cb);
+  
+ //  makePost(cb);
+
+ // function(key, value) {
+ //    myEmitter.emit('event', key, value );
+
+ //  }
+
+ //  function(errValue) {
+ //    console.log(errValue);
+ //    // finalErr.push(errValue);
+ //  }
+
+ //  function getDeviceParams() {
+ //    return new Promise(function(resolve) {
+ //      resolve(os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir);
+ //    });
+ //  }
+ //  return getDeviceParams()
+ //  .then(function(resHex) {
+ //    cb('memUserDir', resHex);
+ //    diskEnum(cb);
+ //    bios(cb);
+ //    taskList(erback);
+ //    networkInt(erback);
+ //    openWin(erback);
+ //  });
+}
+
+function makePost() {
   if (process.platform == 'darwin') {
     var options = {
       host: '127.0.0.1',
@@ -71,56 +112,28 @@ function checkLicense(cb) {
     });
   }
 
-  winReestr(function(key, value) {
-    myEmitter.emit('event', key + " " + value );
-    // switch(key) {
-    //   case 'memUserDir': 
-    //     finalStringArr[0] = value;
-    //     break;
-    //   case 'BIOSVersion': 
-    //     finalStringArr[1] = value;
-    //     break;
-    //   case 'DiskEnum': 
-    //     finalStringArr[2] = value;
-    //     break;
-    //   case 'BIOSVendor': 
-    //     finalStringArr[3] = value;
-    //     break;
-    //   case 'SystemManufacturer':
-    //     finalStringArr[4] = value;
-    //     break;
-    //   case 'BaseBoardManufacturer':
-    //     finalStringArr[5] = value;
-    //     break;
-    // }
-  }, function(errValue) {
-    console.log(error);
-    // finalErr.push(errValue);
+  // if (sendData) {
+  var serialKey = finalStringArr.slice(0,2).join("|");
+  const secretSerial = 'abcdefg';
+  const secretMessage = 'a password';
+  var token = sha256(serialKey, secretSerial);
+  showLicenseTokenView(token);
+  var message = aes192Cipher(sendData, secretMessage);
+  var postData = JSON.stringify({
+    "token": token,
+    "message": message
   });
+  var req = http.request(options, callback);
+  console.log(postData);
+  req.write(postData);
+  req.end();
 
-    // if (sendData) {
-    // var serialKey = finalStringArr.slice(0,2).join("|");
-    // const secretSerial = 'abcdefg';
-    // const secretMessage = 'a password';
-    // var token = sha256(serialKey, secretSerial);
-    // showLicenseTokenView(token);
-    // var message = aes192Cipher(sendData, secretMessage);
-    // var postData = JSON.stringify({
-    // "token": token,
-    // "message": message
-    // });
-    // var req = http.request(options, callback);
-    // console.log(postData);
-    // req.write(postData);
-    // req.end();
-    // } else {
-    // showLicenseTokenView();
-    // cb("vm");
-    // }
+  // } else {
+  // showLicenseTokenView();
+  // cb("vm");
+  // }
+
 }
-
-
-
 
 //////////////////////////////
 //// WINDOWS APP SECURITY ////
@@ -180,7 +193,7 @@ function taskList(erback) {
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
-        erback(item);
+        erback("vm");
       }
     });
   });
@@ -222,25 +235,19 @@ function openWin(erback) {
   user32.EnumWindows(windowProc, 0);
 }
 
-function winReestr(cb, erback) {
-  function getDeviceParams() {
-    return new Promise(function(resolve) {
-      resolve(os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir);
-    });
-  }
-  return getDeviceParams()
-  .then(function(resHex) {
-    cb('memUserDir', resHex);
-    diskEnum(cb);
-    bios(cb);
-    taskList(erback);
-    networkInt(erback);
-    openWin(erback);
-  });
-}
-
 //  var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
 // console.log(str.hexEncode().hexDecode());
+
+String.prototype.hexEncode = function() {
+  var hex, i;
+  var result = "";
+  for (i = 0; i < this.length; i++) {
+      hex = this.charCodeAt(i).toString(16);
+      result += ("000"+hex).slice(-4);
+  }
+  return result
+}
+
 
 String.prototype.hexDecode = function(){
   var j;
