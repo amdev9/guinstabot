@@ -92,6 +92,7 @@ function checkLicense(cb) {
       });
 
       var req = http.request(options, callback);
+      console.log(postData);
       req.write(postData);
       req.end();
     // } else {
