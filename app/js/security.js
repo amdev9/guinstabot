@@ -87,7 +87,7 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
- 
+    console.log(finalStringArr);
     var res = '';
     finalStringArr.forEach(function(item) {
       res = res + item.hexEncode() + "|";
