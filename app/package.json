@@ -10,7 +10,7 @@
     "postinstall": "electron-rebuild -p",
     "start": "electron .",
     "pack": "build --dir",
-    "dist": "build --ia32"
+    "dist": "build --ia32 --x64"
   },
   "dependencies": {
     "async": "^2.1.4",
