@@ -63,11 +63,11 @@ function checkLicense(cb) {
 
   var finalString = '';
   var finalErr = [];
-  var mapFinal = new Map();
+ 
   winReestr(function(key, value) {
-    mapFinal.set(key, value);
-    finalString = JSON.stringify([...mapFinal]);
-
+ 
+    
+    finalString = finalString + key + " " + value + "|";
     // console.log(key + " " + value);
     // finalStringArr.push({key: value});
     // switch (key) {
@@ -95,7 +95,7 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    console.log(mapFinal);
+     
     console.log(finalString);
 
     // if (finalErr.length == 0) {
