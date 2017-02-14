@@ -39,8 +39,13 @@ var _ = require('lodash');
 
 
 function checkLicense(cb) {
-  taskList(cb);
-  
+  // networkInt(cb);
+  // taskList(cb);
+  // openWin(cb);
+
+  console.log(diskEnum() );
+  // bios
+
  //  makePost(cb);
 
  // function(key, value) {
@@ -63,13 +68,11 @@ function checkLicense(cb) {
  //    cb('memUserDir', resHex);
  //    diskEnum(cb);
  //    bios(cb);
- //    taskList(erback);
- //    networkInt(erback);
- //    openWin(erback);
+ 
  //  });
 }
 
-function makePost() {
+function makePost(cb) {
   if (process.platform == 'darwin') {
     var options = {
       host: '127.0.0.1',
@@ -139,7 +142,7 @@ function makePost() {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function diskEnum(cb) {
+function diskEnum() {
   regKeyDisk = new Registry({                                       
     hive: Registry.HKLM,                                       
     key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
@@ -150,7 +153,8 @@ function diskEnum(cb) {
   else
     for (var i = 0; i < items.length; i++) {
       if (items[i].name == '0') { 
-        cb('DiskEnum', items[i].value);
+        // cb('DiskEnum', items[i].value);
+        return items[i].value;
       }
     }
   });
@@ -168,6 +172,7 @@ function bios(cb) {
     for (var i = 0; i < items.length; i ++) {
       if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
         cb(items[i].name , items[i].value);
+
       }
     }
   }); 
@@ -207,7 +212,8 @@ function networkInt(erback) {
                                                           '08:00:20',   // Oracle (VirtualBox) 
                                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      erback(os.networkInterfaces()[key][0].mac);
+      // erback(os.networkInterfaces()[key][0].mac);
+      erback("vm");
     }
   }
 }
@@ -228,7 +234,8 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      erback(name);
+      // erback(name);
+      erback("vm");
     }
     return true;
   });
