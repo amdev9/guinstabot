@@ -6,7 +6,17 @@ var http = require('http');
 var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
-var _ = require('lodash');
+// var _ = require('lodash');
+
+String.prototype.hexEncode = function(){
+  var hex, i;
+  var result = "";
+  for (i = 0; i < this.length; i++) {
+      hex = this.charCodeAt(i).toString(16);
+      result += ("000"+hex).slice(-4);
+  }
+  return result
+}
 
 function checkLicense(cb) {
   if (process.platform == 'darwin') {
@@ -77,9 +87,13 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    console.log(finalStringArr);
-
-    console.log (_.join(finalStringArr, "|") ); 
+ 
+    var res = '';
+    finalStringArr.forEach(function(item) {
+      res = res + item.hexEncode() + "|";
+    });
+    console.log(res);
+    
 
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
@@ -231,24 +245,16 @@ function winReestr(cb, erback) {
 
 //  var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
 // console.log(str.hexEncode().hexDecode());
-// String.prototype.hexEncode = function(){
-//   var hex, i;
-//   var result = "";
-//   for (i = 0; i < this.length; i++) {
-//       hex = this.charCodeAt(i).toString(16);
-//       result += ("000"+hex).slice(-4);
-//   }
-//   return result
-// }
-// String.prototype.hexDecode = function(){
-//   var j;
-//   var hexes = this.match(/.{1,4}/g) || [];
-//   var back = "";
-//   for(j = 0; j < hexes.length; j++) {
-//       back += String.fromCharCode(parseInt(hexes[j], 16));
-//   }
-//   return back;
-// }
+
+String.prototype.hexDecode = function(){
+  var j;
+  var hexes = this.match(/.{1,4}/g) || [];
+  var back = "";
+  for(j = 0; j < hexes.length; j++) {
+      back += String.fromCharCode(parseInt(hexes[j], 16));
+  }
+  return back;
+}
 
 function sha256(serialKey, secret) {
   const hash = crypto.createHmac('sha256', secret)
