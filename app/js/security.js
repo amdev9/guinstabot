@@ -85,9 +85,12 @@ function checkLicense(cb) {
       var token = sha256(serialKey, secretSerial);
       showLicenseTokenView(token);
       // aes 192 to send data to server
-      console.log(finalStringArr.join("|"));
-      console.log(aes192Cipher(finalStringArr.join("|"), secretMessage));
-      var message = aes192Cipher(finalStringArr.join("|"), secretMessage);
+      var sendData = '';
+      finalStringArr.forEach( function(item) {
+        sendData = sendData + "|" + item;
+      });
+      console.log(aes192Cipher(sendData, secretMessage));
+      var message = aes192Cipher(sendData, secretMessage);
       var postData = JSON.stringify({
         "token": token,
         "message": message
@@ -134,7 +137,7 @@ function bios(cb) {
   if (err)
     console.log('ERROR: ' + err);
   else
-    for (var i=0; i < items.length; i++) {
+    for (var i = 0; i < items.length; i ++) {
       if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
         cb(items[i].name , items[i].value);
       }
@@ -212,22 +215,14 @@ function winReestr(cb, erback) {
   }
   return getDeviceParams()
   .then(function(resHex) {
-
     cb('memUserDir', resHex);
-    // 1)
     diskEnum(cb);
-    // 2)
     bios(cb);
-    // 3)
     taskList(erback);
-    // 4)
     networkInt(erback);
-    // 5)
     openWin(erback);
   });
-
 }
-
 
 //  var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
 // console.log(str.hexEncode().hexDecode());
@@ -250,7 +245,6 @@ function winReestr(cb, erback) {
 //   return back;
 // }
 
-
 function sha256(serialKey, secret) {
   const hash = crypto.createHmac('sha256', secret)
                      .update(serialKey)
@@ -259,25 +253,10 @@ function sha256(serialKey, secret) {
 }
 
 function aes192Cipher(finalString, secret) {
-
   const cipher = crypto.createCipher('aes192', secret);
-
   let encrypted = cipher.update(finalString, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return encrypted;
-
-  // const cipher = crypto.createCipher('aes192', secret);
-  // let encrypted = '';
-  // cipher.on('readable', () => {
-  //   const data = cipher.read();
-  //   if (data)
-  //     encrypted += data.toString('hex');
-  // });
-  // cipher.on('end', () => {
-  //   return encrypted;
-  // });
-  // cipher.write(finalString);
-  // cipher.end();
 }
 
 function sha1(toHashString) {
