@@ -87,9 +87,9 @@ function checkLicense(cb) {
       // aes 192 to send data to server
       var sendData = '';
       finalStringArr.forEach( function(item) {
-        sendData = sendData + "|" + item;
+        console.log(item);
       });
-      console.log(aes192Cipher(sendData, secretMessage));
+       
       var message = aes192Cipher(sendData, secretMessage);
       var postData = JSON.stringify({
         "token": token,
