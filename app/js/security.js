@@ -64,37 +64,34 @@ function checkLicense(cb) {
   var finalStringArr = [];
   var finalErr = [];
   winReestr(function(key, value) {
-    console.log(key + " " + value);
+    // console.log(key + " " + value);
     // finalStringArr.push({key: value});
-    // switch (key) {
-    //   case 'memUserDir': 
-    //     finalStringArr[0] = value;
-    //     break;
-    //   case 'BIOSVersion': 
-    //     finalStringArr[1] = value;
-    //     break;
-    //   case 'DiskEnum': 
-    //     finalStringArr[2] = value;
-    //     break;
-    //   case 'BIOSVendor': 
-    //     finalStringArr[3] = value;
-    //     break;
-    //   case 'SystemManufacturer':
-    //     finalStringArr[4] = value;
-    //     break;
-    //   case 'BaseBoardManufacturer':
-    //     finalStringArr[5] = value;
-    //     break;
-    // }
+    switch (key) {
+      case 'memUserDir': 
+        finalStringArr[0] = value;
+        break;
+      case 'BIOSVersion': 
+        finalStringArr[1] = value;
+        break;
+      case 'DiskEnum': 
+        finalStringArr[2] = value;
+        break;
+      case 'BIOSVendor': 
+        finalStringArr[3] = value;
+        break;
+      case 'SystemManufacturer':
+        finalStringArr[4] = value;
+        break;
+      case 'BaseBoardManufacturer':
+        finalStringArr[5] = value;
+        break;
+    }
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    console.log(finalStringArr);
-    var res = '';
-    finalStringArr.forEach(function(key, value) {
-      res = res + key + "=" + value + "|";
-    });
-    console.log(res);
+    console.log(finalStringArr[1]);
+    console.log(finalStringArr[5]);
+     
     
 
     // if (finalErr.length == 0) {
