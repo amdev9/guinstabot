@@ -44,7 +44,7 @@ function checkLicense(cb) {
   // openWin(cb);
 
   bios(function(obj) {
-    console.log(obj['memUserDir']);
+    console.log(obj['DiskEnum']);
   });
  
 }
