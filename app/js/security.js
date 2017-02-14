@@ -71,14 +71,6 @@ function checkLicense(cb) {
     });
   }
 
-
-  var serialKey = finalStringArr.slice(0,2).join("|");
-  const secretSerial = 'abcdefg';
-  const secretMessage = 'a password';
-  var token = sha256(serialKey, secretSerial);
-  showLicenseTokenView(token);
-  // aes 192 to send data to server
-
   winReestr(function(key, value) {
     myEmitter.emit('event', key + " " + value );
     // switch(key) {
@@ -105,20 +97,25 @@ function checkLicense(cb) {
     finalErr.push(errValue);
   });
 
-  // if (sendData) {
-  //   var message = aes192Cipher(sendData, secretMessage);
-  //   var postData = JSON.stringify({
-  //     "token": token,
-  //     "message": message
-  //   });
-  //   var req = http.request(options, callback);
-  //   console.log(postData);
-  //   req.write(postData);
-  //   req.end();
-  // } else {
-  //   showLicenseTokenView();
-  //   cb("vm");
-  // }
+    // if (sendData) {
+    // var serialKey = finalStringArr.slice(0,2).join("|");
+    // const secretSerial = 'abcdefg';
+    // const secretMessage = 'a password';
+    // var token = sha256(serialKey, secretSerial);
+    // showLicenseTokenView(token);
+    // var message = aes192Cipher(sendData, secretMessage);
+    // var postData = JSON.stringify({
+    // "token": token,
+    // "message": message
+    // });
+    // var req = http.request(options, callback);
+    // console.log(postData);
+    // req.write(postData);
+    // req.end();
+    // } else {
+    // showLicenseTokenView();
+    // cb("vm");
+    // }
 }
 
 
