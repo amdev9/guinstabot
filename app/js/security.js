@@ -91,10 +91,11 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
+    if (finalStringArr.length > 3) {
     console.log(finalStringArr.length);
     console.log(finalStringArr);
      
-    
+    }
 
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
