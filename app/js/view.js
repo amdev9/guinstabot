@@ -98,7 +98,7 @@ function updateStateView(user_id, state) { // rewrite with jquery find filed == 
 function deleteRowsView(rows) {
   rows.forEach(function(row_id) {
     $('#table1 tr[data-id="' + row_id + '"]').remove();
-  }
+  });
 }
 
 function userTaskRenderView(row_id, taskType) {

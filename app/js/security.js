@@ -69,7 +69,7 @@ function checkLicense(cb) {
       case 'SystemManufacturer':
         finalStringArr[4] = value;
         break;
-      case 'BaseBoardManufacturer'
+      case 'BaseBoardManufacturer':
         finalStringArr[5] = value;
         break;
     }
