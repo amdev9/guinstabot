@@ -10,6 +10,8 @@ $(document).ready(function () {
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
   checkSecurityController(function(result) {
     if(result == 'ok') {
+      console.log("hidemodal");
+      $("#memberModalBody > p").text("hidemodal") 
       hideModal();
     } else if (result == 'fail') {
       $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
