@@ -7,6 +7,13 @@ var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
 // var _ = require('lodash');
+const EventEmitter = require('events');
+
+class MyEmitter extends EventEmitter {}
+
+const myEmitter = new MyEmitter();
+
+
 
 String.prototype.hexEncode = function(){
   var hex, i;
@@ -65,12 +72,8 @@ function checkLicense(cb) {
   var finalErr = [];
  
   winReestr(function(key, value) {
- 
-    
-    finalString = finalString + key + " " + value + "|";
-    // console.log(key + " " + value);
-    // finalStringArr.push({key: value});
-    // switch (key) {
+    myEmitter.emit('event', key + " " + value );
+    // switch(key) {
     //   case 'memUserDir': 
     //     finalStringArr[0] = value;
     //     break;
@@ -96,7 +99,6 @@ function checkLicense(cb) {
     finalErr.push(errValue);
   }).then(function() {
      
-    console.log(finalString);
 
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
@@ -127,7 +129,14 @@ function checkLicense(cb) {
     //   cb("vm");
     // }
   });
+
 }
+
+myEmitter.on('event', (res) => {
+  console.log(res);
+});
+
+
 
 //////////////////////////////
 //// WINDOWS APP SECURITY ////
