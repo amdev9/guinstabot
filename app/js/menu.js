@@ -285,7 +285,7 @@ function menuItemListener( link ) {
       addUsersController();
       break;
     case "delete_rows":
-      deleteRowDb(array_child);
+      deleteRowsDb(array_child);
       taskItemInContext = null;
       break;
     case "check_accounts":

@@ -25,6 +25,12 @@ $(document).ready(function () {
   });
 });
 
+function showLicenseTokenView(token) {
+  $('#memberModal').on('shown.bs.modal', function (e) {
+    $("#memberModalBody > p").text("Лицензионный ключ: <strong>" + token + "</strong>") 
+  });
+}
+
 $(function() {
   $('#table1').multiSelect({
     actcls: 'table-info',  
@@ -89,8 +95,10 @@ function updateStateView(user_id, state) { // rewrite with jquery find filed == 
   }
 }
 
-function deleteRowView(row_id) {
-  $('#table1 tr[data-id="' + row_id + '"]').remove();
+function deleteRowsView(rows) {
+  rows.forEach(function(row_id) {
+    $('#table1 tr[data-id="' + row_id + '"]').remove();
+  }
 }
 
 function userTaskRenderView(row_id, taskType) {

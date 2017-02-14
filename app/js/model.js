@@ -457,12 +457,35 @@ function updateTaskStatusDb(task_id, statusValue) {
   });
 }
 
-function deleteRowDb(rows) {
+function deleteRowsDb(rows) {
+  deleteRowsView(row_id);
+  // FIX
+  // get all docs and get _rev
+  // then delete all docs 
+  // db.bulkDocs([
+  //   {
+  //     title    : 'Lisa Says',
+  //     _deleted : true,
+  //     _id      : "doc1",
+  //     _rev     : "1-84abc2a942007bee7cf55007cba56198"
+  //   },
+  //   {
+  //     title    : 'Space Oddity',
+  //     _deleted : true,
+  //     _id      : "doc2",
+  //     _rev     : "1-7b80fc50b6af7a905f368670429a757e"
+  //   }
+  // ]).then(function (result) {
+  //   // handle result
+  // }).catch(function (err) {
+  //   console.log(err);
+  // });
+
   rows.forEach(function(row_id) {
     db.get(row_id).then(function(doc) {
       return db.remove(doc);
     }).then(function (result) {
-      deleteRowView(row_id);
+      // deleteRowsView(row_id);
     }).catch(function (err) {
       console.log(err);
     });

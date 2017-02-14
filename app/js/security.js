@@ -73,7 +73,6 @@ function checkLicense(cb) {
         finalStringArr[5] = value;
         break;
     }
-    // finalStringArr.push(value);
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
@@ -84,6 +83,7 @@ function checkLicense(cb) {
       const secretSerial = 'abcdefg';
       const secretMessage = 'a password';
       var token = sha256(serialKey, secretSerial);
+      showLicenseTokenView(token);
       // aes 192 to send data to server
       var message = aes192Cipher(finalStringArr.join("|"), secretMessage);
       var postData = JSON.stringify({
