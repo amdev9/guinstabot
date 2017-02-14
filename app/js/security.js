@@ -86,11 +86,13 @@ function checkLicense(cb) {
         finalStringArr[5] = value;
         break;
     }
+
+
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    console.log(finalStringArr[1]);
-    console.log(finalStringArr[5]);
+    console.log(finalStringArr.length);
+    console.log(finalStringArr);
      
     
 
