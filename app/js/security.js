@@ -94,6 +94,9 @@ function checkLicense(cb) {
     finalErr.push(errValue);
   }).then(function() {
     console.log(mapFinal);
+    mapFinal.forEach( (value, key, map) => {
+      console.log(`${key}: ${value}`); 
+    });
 
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
