@@ -28,7 +28,7 @@ $(document).ready(function () {
 function showLicenseTokenView(token) {
   $('#memberModal').on('shown.bs.modal', function (e) {
     if(token) {
-      $("#memberLicense > p").text("Лицензионный ключ: <strong>" + token + "</strong>") 
+      $("#memberLicense > p").text("Лицензионный ключ: " + token + "") 
     } else {
       $("#memberLicense > p").text("") 
     }
