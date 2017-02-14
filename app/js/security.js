@@ -84,7 +84,7 @@ function makePost(sendData, serialKey, cb) {
       console.log(resp);
       if (resp.status == 'ok') {
         // sha-1 for checking and comparing
-        var hash = sha1(finalStringArr.join("|"));
+        var hash = sha1(sendData);
         if (resp.message == hash) {
           cb("ok");
         } else {
