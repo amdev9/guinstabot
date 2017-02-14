@@ -61,11 +61,13 @@ function checkLicense(cb) {
     });
   }
 
-  var finalStringArr = [];
+  var finalString = '';
   var finalErr = [];
   var mapFinal = new Map();
   winReestr(function(key, value) {
     mapFinal.set(key, value);
+    finalString = JSON.stringify([...mapFinal];
+
     // console.log(key + " " + value);
     // finalStringArr.push({key: value});
     // switch (key) {
@@ -94,10 +96,8 @@ function checkLicense(cb) {
     finalErr.push(errValue);
   }).then(function() {
     console.log(mapFinal);
-    mapFinal.forEach( (value, key, map) => {
-      console.log(`${key}: ${value}`); 
-    });
-
+    console.log(finalString);
+    
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
       // serialKey identificator && id uploader for db
