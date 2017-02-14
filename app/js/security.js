@@ -8,36 +8,6 @@ var Promise = require('bluebird');
 const crypto = require('crypto');
 var _ = require('lodash');
 
-
-// const EventEmitter = require('events');
-// class MyEmitter extends EventEmitter {}
-// const myEmitter = new MyEmitter();
-
-// var finalStringArr = [];
-// myEmitter.on('event', (key, value) => {
-//   switch(key) {
-//     case 'memUserDir': 
-//       finalStringArr[0] = value;
-//       break;
-//     case 'BIOSVersion': 
-//       finalStringArr[1] = value;
-//       break;
-//     case 'DiskEnum': 
-//       finalStringArr[2] = value;
-//       break;
-//     case 'BIOSVendor': 
-//       finalStringArr[3] = value;
-//       break;
-//     case 'SystemManufacturer':
-//       finalStringArr[4] = value;
-//       break;
-//     case 'BaseBoardManufacturer':
-//       finalStringArr[5] = value;
-//       break;
-//   }
-// });
-
-
 function checkLicense(cb) {
   // networkInt(cb);
   // taskList(cb);
@@ -92,13 +62,13 @@ function makePost(sendData, serialKey, cb) {
         }
       }
     });
-    
+
   }
 
   const secretSerial = 'abcdefg';
   const secretMessage = 'a password';
   var token = sha256(serialKey, secretSerial);
-  showLicenseTokenView(token);
+  // showLicenseTokenView(token);
   var message = aes192Cipher(sendData, secretMessage);
   var postData = JSON.stringify({
     "token": token,
@@ -209,16 +179,12 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      // erback(name);
       erback("vm");
     }
     return true;
   });
   user32.EnumWindows(windowProc, 0);
 }
-
-//  var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
-// console.log(str.hexEncode().hexDecode());
 
 String.prototype.hexEncode = function() {
   var hex, i;
@@ -229,7 +195,6 @@ String.prototype.hexEncode = function() {
   }
   return result
 }
-
 
 String.prototype.hexDecode = function(){
   var j;
