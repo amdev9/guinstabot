@@ -46,6 +46,7 @@ function makePost(sendData, serialKey, cb) {
 
   callback = function(response) {
     var str = ''
+    const secretSerial = 'abcdefg';
     response.on('data', function (chunk) {
       str += chunk;
     });
@@ -53,8 +54,8 @@ function makePost(sendData, serialKey, cb) {
       var resp = JSON.parse(str);
       console.log(resp);
       if (resp.status == 'ok') {
-        // sha-1 for checking and comparing
-        var hash = sha1(sendData);
+        // sha-256 for checking and comparing
+        var hash = sha256(sendData, secretSerial);
         if (resp.message == hash) {
           cb("ok");
         } else {
@@ -65,9 +66,8 @@ function makePost(sendData, serialKey, cb) {
 
   }
 
-  const secretSerial = 'abcdefg';
   const secretMessage = 'a password';
-  var token = sha256(serialKey, secretSerial);
+  var token = sha1(serialKey);
   // showLicenseTokenView(token);
   var message = aes192Cipher(sendData, secretMessage);
   var postData = JSON.stringify({
