@@ -92,6 +92,7 @@ function makePost(sendData, serialKey, cb) {
         }
       }
     });
+    
   }
 
   const secretSerial = 'abcdefg';
