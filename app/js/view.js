@@ -10,9 +10,9 @@ $(document).ready(function () {
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
   checkSecurityController(function(result) {
     if(result == 'ok') {
-        // $('#memberModal').on('shown.bs.modal', function (e) {
-      $('#memberModal').modal('hide');
-  // });
+        $('#memberModal').on('bs.modal', function (e) {
+      $('#memberModal').modal('hide'); //shown.
+  });
        
     } else if (result == 'fail') {
       $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
