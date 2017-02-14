@@ -17,7 +17,6 @@ $(document).ready(function () {
       $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
       console.log(result);
     } else if (result == 'vm') {
-      // showLicenseTokenView();
       $("#memberModalBody > p").text("Виртуальные машины не поддерживаются") 
     } else {
       $("#memberModalBody > p").text("Произошла ошибка") 
@@ -26,13 +25,7 @@ $(document).ready(function () {
 });
 
 function showLicenseTokenView(token) {
-  // $('#memberModal').on('shown.bs.modal', function (e) {
-    // if(token) {
-      $("#memberLicense > p").text("Лицензионный ключ: " + token + "") 
-    // } else {
-    //   $("#memberLicense > p").text("") 
-    // }
-  // });
+  $("#memberLicense > p").text("Лицензионный ключ: " + token + "")
 }
 
 $(function() {
