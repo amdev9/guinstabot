@@ -9,15 +9,9 @@ const crypto = require('crypto');
 var _ = require('lodash');
 
 function checkLicense(cb) {
-  networkInt(function(res) {
-    cb(res);
-  });
-  taskList(function(res) {
-    cb(res);
-  });
-  openWin(function(res) {
-    cb(res);
-  });
+  networkInt(cb);
+  taskList(cb);
+  openWin(cb);
 
   bios(function(obj) {
     var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
