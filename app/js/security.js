@@ -66,7 +66,7 @@ function checkLicense(cb) {
   var mapFinal = new Map();
   winReestr(function(key, value) {
     mapFinal.set(key, value);
-    finalString = JSON.stringify([...mapFinal];
+    finalString = JSON.stringify([...mapFinal]);
 
     // console.log(key + " " + value);
     // finalStringArr.push({key: value});
@@ -97,7 +97,7 @@ function checkLicense(cb) {
   }).then(function() {
     console.log(mapFinal);
     console.log(finalString);
-    
+
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
       // serialKey identificator && id uploader for db
