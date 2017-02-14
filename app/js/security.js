@@ -43,33 +43,12 @@ function checkLicense(cb) {
   // taskList(cb);
   // openWin(cb);
 
-  console.log(diskEnum() );
-  // bios
-
- //  makePost(cb);
-
- // function(key, value) {
- //    myEmitter.emit('event', key, value );
-
- //  }
-
- //  function(errValue) {
- //    console.log(errValue);
- //    // finalErr.push(errValue);
- //  }
-
- //  function getDeviceParams() {
- //    return new Promise(function(resolve) {
- //      resolve(os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir);
- //    });
- //  }
- //  return getDeviceParams()
- //  .then(function(resHex) {
- //    cb('memUserDir', resHex);
- //    diskEnum(cb);
- //    bios(cb);
+  bios(function(obj) {
+    console.log(obj['memUserDir']);
+  });
  
- //  });
+  
+
 }
 
 function makePost(cb) {
@@ -142,7 +121,7 @@ function makePost(cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function diskEnum() {
+function bios(cb) {
   regKeyDisk = new Registry({                                       
     hive: Registry.HKLM,                                       
     key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
@@ -152,32 +131,34 @@ function diskEnum() {
     console.log('ERROR: ' + err);
   else
     for (var i = 0; i < items.length; i++) {
-      if (items[i].name == '0') { 
-        // cb('DiskEnum', items[i].value);
-        return items[i].value;
+      if (items[i].name == '0') {
+        var obj = {};
+        obj['DiskEnum'] = items[i].value;
+        obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+
+        regKeyBIOS = new Registry({                                       
+          hive: Registry.HKLM,                                       
+          key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+        })
+        regKeyBIOS.values(function (err, items ) {
+        if (err)
+          console.log('ERROR: ' + err);
+        else
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+              obj[items[i].name] = items[i].value;
+            }
+            if (i == (items.length-1)) {
+              cb(obj);
+            }
+          }
+        }); 
+
       }
     }
   });
 }
-
-function bios(cb) {
-  regKeyBIOS = new Registry({                                       
-    hive: Registry.HKLM,                                       
-    key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-  })
-  regKeyBIOS.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: ' + err);
-  else
-    for (var i = 0; i < items.length; i ++) {
-      if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-        cb(items[i].name , items[i].value);
-
-      }
-    }
-  }); 
-}
-
+ 
 function taskList(erback) {
   var exec = require('child_process').exec;
   var vm_task_arr = [ 'VirtualBox',
