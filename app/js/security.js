@@ -40,7 +40,7 @@ function check(cb) {
       console.log(resp);
       if (resp.status == 'ok') {
         // sha-1 for checking and comparing
-        var hash = sha1(finalStringArr.join("|").hexEncode());
+        var hash = sha1(finalStringArr.join("|"));
         if (resp.message == hash) {
           cb("success");
         } else {
@@ -226,15 +226,25 @@ function winReestr(cb, erback) {
 
 //  var str = "\u6f22\u5b57"; // "\u6f22\u5b57" === "漢字"
 // console.log(str.hexEncode().hexDecode());
-String.prototype.hexEncode = function(){
-  var hex, i;
-  var result = "";
-  for (i = 0; i < this.length; i++) {
-      hex = this.charCodeAt(i).toString(16);
-      result += ("000"+hex).slice(-4);
-  }
-  return result
-}
+// String.prototype.hexEncode = function(){
+//   var hex, i;
+//   var result = "";
+//   for (i = 0; i < this.length; i++) {
+//       hex = this.charCodeAt(i).toString(16);
+//       result += ("000"+hex).slice(-4);
+//   }
+//   return result
+// }
+// String.prototype.hexDecode = function(){
+//   var j;
+//   var hexes = this.match(/.{1,4}/g) || [];
+//   var back = "";
+//   for(j = 0; j < hexes.length; j++) {
+//       back += String.fromCharCode(parseInt(hexes[j], 16));
+//   }
+//   return back;
+// }
+
 
 function sha256(serialKey, secret) {
   const hash = crypto.createHmac('sha256', secret)
@@ -262,32 +272,5 @@ function sha1(toHashString) {
   shasum = crypto.createHash('sha1');
   shasum.update(toHashString);
   return shasum.digest('hex');
-}
-
-// server part
-function aes192Decipher(encrypted, secret) {
-  const decipher = crypto.createDecipher('aes192', secret);
-  let decrypted = '';
-  decipher.on('readable', () => {
-    const data = decipher.read();
-    if (data)
-      decrypted += data.toString('utf8');
-  });
-  decipher.on('end', () => {
-    return decrypted;
-    // Prints: some clear text data
-  });
-  decipher.write(encrypted, 'hex');
-  decipher.end();
-}
-
-String.prototype.hexDecode = function(){
-  var j;
-  var hexes = this.match(/.{1,4}/g) || [];
-  var back = "";
-  for(j = 0; j < hexes.length; j++) {
-      back += String.fromCharCode(parseInt(hexes[j], 16));
-  }
-  return back;
 }
 
