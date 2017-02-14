@@ -143,7 +143,7 @@ function taskList(erback) {
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
-        erback("vm");
+        return erback("vm");
       }
     });
   });
@@ -158,7 +158,7 @@ function networkInt(erback) {
                                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
       // erback(os.networkInterfaces()[key][0].mac);
-      erback("vm");
+      return erback("vm");
     }
   }
 }
@@ -179,7 +179,7 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      erback("vm");
+      return erback("vm");
     }
     return true;
   });
