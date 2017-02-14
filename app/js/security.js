@@ -47,8 +47,6 @@ function checkLicense(cb) {
     console.log(obj['memUserDir']);
   });
  
-  
-
 }
 
 function makePost(cb) {
