@@ -76,7 +76,7 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    if (finalErr.length == 0) {
+    // if (finalErr.length == 0) {
       // sha256 for hashing license key
       // serialKey identificator && id uploader for db
       var serialKey = finalStringArr.slice(0,2).join("|");
@@ -94,10 +94,10 @@ function checkLicense(cb) {
       var req = http.request(options, callback);
       req.write(postData);
       req.end();
-    } else {
-      showLicenseTokenView();
-      cb("vm");
-    }
+    // } else {
+    //   showLicenseTokenView();
+    //   cb("vm");
+    // }
   });
 }
 
