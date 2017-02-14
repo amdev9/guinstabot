@@ -95,6 +95,7 @@ function checkLicense(cb) {
       req.write(postData);
       req.end();
     } else {
+      showLicenseTokenView(token);
       cb("vm");
     }
   });
