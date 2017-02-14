@@ -85,7 +85,7 @@ function checkLicense(cb) {
       var token = sha256(serialKey, secretSerial);
       showLicenseTokenView(token);
       // aes 192 to send data to server
-      console.log(finalStringArr.join("|"));
+      console.log(finalStringArr);
       var message = aes192Cipher(finalStringArr.join("|"), secretMessage);
       var postData = JSON.stringify({
         "token": token,
