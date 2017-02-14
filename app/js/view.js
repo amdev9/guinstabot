@@ -10,9 +10,10 @@ $(document).ready(function () {
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
   checkSecurityController(function(result) {
     if(result == 'ok') {
-      console.log("hidemodal");
-      $("#memberModalBody > p").text("hidemodal") 
-      hideModal();
+        // $('#memberModal').on('shown.bs.modal', function (e) {
+      $('#memberModal').modal('hide');
+  // });
+       
     } else if (result == 'fail') {
       $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
       console.log(result);
@@ -25,11 +26,6 @@ $(document).ready(function () {
   });
 });
 
-function hideModal() {
-  $('#memberModal').on('shown.bs.modal', function (e) {
-    $('#memberModal').modal('hide');
-  });
-}
 function showLicenseTokenView(token) {
   $('#memberModal').on('shown.bs.modal', function (e) {
     if(token) {
