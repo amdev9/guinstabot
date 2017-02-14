@@ -64,7 +64,8 @@ function checkLicense(cb) {
   var finalStringArr = [];
   var finalErr = [];
   winReestr(function(key, value) {
-    finalStringArr.push({key: value});
+    console.log(key + " " + value);
+    // finalStringArr.push({key: value});
     // switch (key) {
     //   case 'memUserDir': 
     //     finalStringArr[0] = value;
