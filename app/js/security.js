@@ -63,39 +63,37 @@ function checkLicense(cb) {
 
   var finalStringArr = [];
   var finalErr = [];
+  var mapFinal = new Map();
   winReestr(function(key, value) {
+    mapFinal.set(key, value);
     // console.log(key + " " + value);
     // finalStringArr.push({key: value});
-    switch (key) {
-      case 'memUserDir': 
-        finalStringArr[0] = value;
-        break;
-      case 'BIOSVersion': 
-        finalStringArr[1] = value;
-        break;
-      case 'DiskEnum': 
-        finalStringArr[2] = value;
-        break;
-      case 'BIOSVendor': 
-        finalStringArr[3] = value;
-        break;
-      case 'SystemManufacturer':
-        finalStringArr[4] = value;
-        break;
-      case 'BaseBoardManufacturer':
-        finalStringArr[5] = value;
-        break;
-    }
+    // switch (key) {
+    //   case 'memUserDir': 
+    //     finalStringArr[0] = value;
+    //     break;
+    //   case 'BIOSVersion': 
+    //     finalStringArr[1] = value;
+    //     break;
+    //   case 'DiskEnum': 
+    //     finalStringArr[2] = value;
+    //     break;
+    //   case 'BIOSVendor': 
+    //     finalStringArr[3] = value;
+    //     break;
+    //   case 'SystemManufacturer':
+    //     finalStringArr[4] = value;
+    //     break;
+    //   case 'BaseBoardManufacturer':
+    //     finalStringArr[5] = value;
+    //     break;
+    // }
 
 
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
-    if (finalStringArr.length > 3) {
-    console.log(finalStringArr.length);
-    console.log(finalStringArr);
-     
-    }
+    console.log(mapFinal);
 
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
