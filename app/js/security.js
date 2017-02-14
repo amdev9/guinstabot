@@ -53,7 +53,7 @@ function checkLicense(cb) {
   var finalStringArr = [];
   var finalErr = [];
   winReestr(function(key, value) {
-    console.log(key + " " + value);
+    
     switch (key) {
       case 'memUserDir': 
         finalStringArr[0] = value;
@@ -77,6 +77,7 @@ function checkLicense(cb) {
   }, function(errValue) {
     finalErr.push(errValue);
   }).then(function() {
+    console.log(finalStringArr);
     // if (finalErr.length == 0) {
       // sha256 for hashing license key
       // serialKey identificator && id uploader for db
