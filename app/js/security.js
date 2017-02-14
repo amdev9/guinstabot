@@ -59,6 +59,7 @@ function makePost(sendData, serialKey, cb) {
         if (resp.message == hash) {
           cb("ok");
         } else {
+          showLicenseTokenView(token);
           cb("fail");
         }
       }
@@ -68,7 +69,6 @@ function makePost(sendData, serialKey, cb) {
 
   const secretMessage = 'a password';
   var token = sha1(serialKey);
-  // showLicenseTokenView(token);
   var message = aes192Cipher(sendData, secretMessage);
   var postData = JSON.stringify({
     "token": token,
