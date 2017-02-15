@@ -7,7 +7,7 @@ var Registry = require('winreg');
 const crypto = require('crypto');
 
 function checkLicense(cb) {
-  if (process.platform == 'windows') {
+  if (process.platform == 'win32') {
 
   // networkInt((res) => {
   //   if(res == "vm") {
