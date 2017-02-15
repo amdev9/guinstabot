@@ -3,7 +3,7 @@
   "private": true,
   "productName": "InstaBOT",
   "version": "0.0.1",
-  "description": "GUI application for private instagram api",
+  "description": "GUI instagram activities application",
   "author": "Alex <alexpro@mail.gnu>",
   "main": "main.js",
   "scripts": {
@@ -22,7 +22,6 @@
     "ffi": "^2.2.0",
     "hawk": "^6.0.1",
     "immediate": "^3.2.3",
-    "instagram-private-api": "0.10.0",
     "jquery": "^3.1.1",
     "js-yaml": "^3.8.1",
     "lie": "^3.1.1",

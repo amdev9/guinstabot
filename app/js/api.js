@@ -4,7 +4,7 @@
 
 'use strict';
 
-const Client = require('instagram-private-api').V1;
+const Client = require('../instagram-private-api').V1; //     "instagram-private-api": "0.10.0",
 const fs = require('fs');
 var Promise = require('bluebird');
 var cookieDir = os.tmpdir() + '/cookie/';

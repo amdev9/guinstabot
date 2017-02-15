@@ -33,8 +33,7 @@ $(function() {
     except: ['tbody'], 
     statics: ['.danger', '[data-no="1"]'], 
     callback: function (items) {
-      taskItemInContext = items;
-      // $('#table2').empty().append(items.clone().removeClass('info').addClass('success'));
+      taskItemInContext = items; // $('#table2').empty().append(items.clone().removeClass('info').addClass('success'));
     }
   });
 });
