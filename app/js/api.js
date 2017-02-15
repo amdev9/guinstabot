@@ -92,7 +92,9 @@ var filterNoSession = function(task) {
   updateStateView(task._id, 'В работе');
   renderNewTaskCompletedView(task._id);
   loggerDb(task._id, 'Фильтрация аудитории');
-  fs.truncate(task.outputfile, 0, function() { loggerDb(task._id, 'Файл подготовлен'); });
+  fs.truncate(task.outputfile, 0, function() { 
+    loggerDb(task._id, 'Файл подготовлен');
+  });
 
   for (var i = 0; i < task.partitions.length; i++) {
         // console.log(task.partitions[i]);
@@ -138,7 +140,7 @@ var filterNoSession = function(task) {
         }, 3000);
       });
     }).then(function() {
-      // console.log("STOP");
+
        updateStateView(task._id, 'Остановлен');
        loggerDb(task._id, 'Фильтрация остановлена');
     }).catch(function (err) {
@@ -187,7 +189,9 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
 var filterSession = function(user, task) {
   updateStateView(user._id, 'В работе');
   loggerDb(user._id, 'Фильтрация аудитории');
-  fs.truncate(task.outputfile, 0, function(){ loggerDb(user._id, 'Файл подготовлен'); });
+  fs.truncate(task.outputfile, 0, function(){ 
+    loggerDb(user._id, 'Файл подготовлен'); 
+  });
 
   if(user.proxy) { 
     let proxy_name = user.proxy.split(":")[0];
@@ -207,7 +211,7 @@ var filterSession = function(user, task) {
 
   const device = new Client.Device(user.username);
   checkFolderExists(cookieDir);
-  const storage = new Client.CookieFileStorage(cookieDir + user_id + ".json");
+  const storage = new Client.CookieFileStorage(cookieDir + user._id + ".json");
   var ses = Client.Session.create(device, storage, user.username, user.password);
 
   var iterator = 0;
@@ -219,8 +223,8 @@ var filterSession = function(user, task) {
           renderUserCompletedView(user._id, iterator+1, task.input_array.length);
         });
       }
-      if (getStateView(user_id) == 'stop' || iterator >= task.input_array.length) { 
-        deleteStopStateView(user_id);
+      if (getStateView(user._id) == 'stop' || iterator >= task.input_array.length) { 
+        deleteStopStateView(user._id);
         return resolver.resolve();
       }
       return Promise.cast(action())
@@ -247,7 +251,7 @@ var filterSession = function(user, task) {
 
 function apiFilterAccounts(row) {
   if (row.type == 'user') {
-    filterSession(row._id, row.task);
+    filterSession(row, row.task);
   } else if(row.type == 'task') {
     filterNoSession(row);
   }
@@ -256,7 +260,9 @@ function apiFilterAccounts(row) {
 function apiParseAccounts(user, task) {
   updateStateView(user._id, 'В работе');
   loggerDb(user._id, 'Парсинг аудитории');
-  fs.truncate(task.outputfile, 0, function() { loggerDb(user._id, 'Файл подготовлен'); });
+  fs.truncate(task.outputfile, 0, function() { 
+    loggerDb(user._id, 'Файл подготовлен'); 
+  });
   var indicator = 0;
 
   if(user.proxy) { 
@@ -335,7 +341,7 @@ function apiParseAccounts(user, task) {
       if (err instanceof Client.Exceptions.APIError) {
         updateUserStatusDb(user._id, err.name);
       } else {
-        updateUserStatusDb(user._id, 'Произошла ошибка');
+        // updateUserStatusDb(user._id, 'Произошла ошибка');
         console.log(err);
       }
     });

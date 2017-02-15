@@ -2,3 +2,30 @@
 [17:15:35] ratm9111: Файл подготовлен
 [17:15:41] ratm9111: Работа завершена
 [17:15:41] ratm9111: Парсинг остановлен
+[20:41:44] ratm9111: Парсинг аудитории
+[20:41:44] ratm9111: Файл подготовлен
+[20:41:50] ratm9111: Работа завершена
+[20:41:50] ratm9111: Парсинг остановлен
+[20:56:33] ratm9111: Фильтрация аудитории
+[20:56:33] ratm9111: Файл подготовлен
+[20:56:57] ratm9111: IGAccountNotFoundError
+[21:02:58] ratm9111: RequestsLimitError
+[21:04:49] ratm9111: RequestsLimitError
+[21:04:52] ratm9111: RequestsLimitError
+[21:04:55] ratm9111: RequestsLimitError
+[21:04:58] ratm9111: RequestsLimitError
+[21:05:49] ratm9111: RequestsLimitError
+[21:05:52] ratm9111: RequestsLimitError
+[21:05:55] ratm9111: RequestsLimitError
+[21:05:58] ratm9111: RequestsLimitError
+[21:06:49] ratm9111: RequestsLimitError
+[21:06:52] ratm9111: RequestsLimitError
+[21:06:55] ratm9111: RequestsLimitError
+[21:06:58] ratm9111: RequestsLimitError
+[21:07:52] ratm9111: RequestsLimitError
+[21:07:55] ratm9111: RequestsLimitError
+[21:07:58] ratm9111: RequestsLimitError
+[21:08:58] ratm9111: RequestsLimitError
+[21:10:43] ratm9111: IGAccountNotFoundError
+[21:10:55] ratm9111: RequestsLimitError
+[21:10:58] ratm9111: RequestsLimitError
