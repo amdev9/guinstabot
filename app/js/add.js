@@ -2,7 +2,7 @@ ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 
-// FIX close when main closed
+ipc.on('closing', () => {});
 
 ipc.on('selected_accounts', (event, message) => {
   var test = document.getElementById("test");

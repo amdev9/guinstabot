@@ -21,7 +21,7 @@ $(document).ready(function () {
     }
   });
 });
-
+ 
 function showLicenseTokenView(token) {
   $("#memberLicense > p").text("Лицензионный ключ: " + token + "")
 }

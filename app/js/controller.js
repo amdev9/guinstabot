@@ -9,7 +9,6 @@ const url = require('url');
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
 
-
 function checkSecurityController(cb) {
   checkLicense(cb);
 }
@@ -33,15 +32,22 @@ function editUserController(user) {
       protocol: 'file:',
       slashes: true
     }))
-    editView.on('closed', function() {
+    editView.on('close', function() {
       editView = null;
     });
+    // Prevent from closing main window
+    window.onbeforeunload = function (e) { 
+      editView.webContents.send('closing');
+      return false;
+    }
+
     editView.webContents.on('did-finish-load', () => {
       /// FIX check for length and if more then 1 -> error window
       getUserDb(user[0], editView.webContents ); 
     });
     editView.webContents.openDevTools();
   }
+
 }
 
 function tasksController(action, rows) {
@@ -56,8 +62,12 @@ function tasksController(action, rows) {
     taskView = null;
     // deleteUserTaskDb(); 
   });
+  // Prevent from closing main window
+  window.onbeforeunload = function (e) { 
+    taskView.webContents.send('closing');
+    return false;
+  }
   taskView.webContents.on('did-finish-load', () => {
-
     if (action == "add" && rows.length > 0) {
       taskView.webContents.send('type', 'user');
       createUserTaskDb(rows);
@@ -111,5 +121,11 @@ function addUsersController() {
   addView.on('closed', function() {
     addView = null;
   })
+  // Prevent from closing main window
+  window.onbeforeunload = function (e) { 
+    addView.webContents.send('closing');
+    return false;
+  }
+
   addView.webContents.openDevTools()    
 }
