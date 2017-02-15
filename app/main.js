@@ -7,6 +7,7 @@ const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
+var log = require('electron-log');
 
 const autoUpdater = require("electron-updater").autoUpdater;
 autoUpdater.logger = require("electron-log")
@@ -44,7 +45,7 @@ app.on('ready', function() {
     protocol: 'file:',
     slashes: true
   }));
-  mainWindow.on('closed', function() {
+  mainWindow.on('close', function() {
     mainWindow = null;
   });
   mainWindow.webContents.on('did-finish-load', () => {

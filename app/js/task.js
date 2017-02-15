@@ -3,6 +3,8 @@ const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
 
+// FIX close when main closed
+
 ipc.on('type', (event, type) => {
   updateElementsAccessibility(type);
   saveTypeDom(type);

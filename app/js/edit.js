@@ -2,6 +2,8 @@ ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 
+// FIX close when main closed
+
 ipc.on('edit', (event, user) => {
   document.getElementById("username").value = user.username;
   document.getElementById("proxy").value = user.proxy;
