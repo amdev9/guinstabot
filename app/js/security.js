@@ -22,7 +22,7 @@ function checkLicense(cb) {
   //             cb('vm');
   //           } else {
    
-               bios(function(obj) {
+              bios(function(obj) {
                 var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
                   "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
                 var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
