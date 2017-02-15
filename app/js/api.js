@@ -91,7 +91,8 @@ function filterFunction(json, task, cb) {
 }
 
 var filterNoSession = function(task) {
- 
+  console.log(task);
+
   updateStateView(task._id, 'В работе');
   renderNewTaskCompletedView(task._id);
   loggerDb(task._id, 'Фильтрация аудитории');
@@ -100,16 +101,21 @@ var filterNoSession = function(task) {
   });
 
   for (var i = 0; i < task.partitions.length; i++) {
-        // console.log(task.partitions[i]);
     if(task.proxy_parc.length > 0) {
-      proxy_name = task.proxy_parc[i].split(":")[0];
-      proxy_pass = task.proxy_parc[i].split(":")[1];
-      proxy_ip = task.proxy_parc[i].split(":")[2];
-      proxy_port = task.proxy_parc[i].split(":")[3];
-      if (proxy_name != "" && proxy_pass != "") {
-        Client.Request.setProxy(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`); 
-      } else {
+      if(task.proxy_parc[i].split(":").length == 2) {
+        let proxy_ip = task.proxy_parc[i].split(":")[0];
+        let proxy_port = task.proxy_parc[i].split(":")[1];
+        console.log(`http://${proxy_ip}:${proxy_port}`); 
         Client.Request.setProxy(`http://${proxy_ip}:${proxy_port}`); 
+      } else if(task.proxy_parc[i].split(":").length == 4) {
+        let proxy_name = task.proxy_parc[i].split(":")[0];
+        let proxy_pass = task.proxy_parc[i].split(":")[1];
+        let proxy_ip = task.proxy_parc[i].split(":")[2];
+        let proxy_port = task.proxy_parc[i].split(":")[3];
+        console.log(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
+        Client.Request.setProxy(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
+      } else {
+        console.log("Proxy format wrong");
       }
     }
     var filterRequest = new Client.Web.FilterRequest();   
@@ -117,7 +123,6 @@ var filterNoSession = function(task) {
       
     var promiseWhile = function(i, action) {
       var resolver = Promise.defer();
-      console.log(resolver);
       var func = function(json) {
         if (json) {
           filterFunction(json, task, function() {
@@ -140,10 +145,10 @@ var filterNoSession = function(task) {
     promiseWhile(i, function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          console.log(task.input_array[iterator]);
+          // console.log(task.input_array[iterator]);
           resolve(filterRequest.getUser(task.input_array[iterator]));
           iterator++;
-        }, 3000);
+        }, 20);
       });
     }).then(function() {
 

@@ -530,8 +530,6 @@ function initViewDb() {
       include_docs: true
     });
   }).then(function (result) {
-    console.log("RESULT");
-    console.log(result);
     result.rows.forEach( function (task) {
       initTaskRowRenderView(task); // pass all result.rows and make one append
     });
