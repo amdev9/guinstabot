@@ -17,11 +17,15 @@ var levelpath = path.join(tmpdir, 'levdb');
 var db = new PouchDB( levelpath , {adapter: 'leveldb'});
 // PouchDB.debug.enable('*');
 PouchDB.debug.disable();
-// db.destroy().then(function (response) {
-//     console.log(response);
-// }).catch(function (err) {
-//   console.log(err);
-// });
+// dropDb();
+
+function dropDb() {
+  db.destroy().then(function (response) {
+    console.log(response);
+  }).catch(function (err) {
+    console.log(err);
+  });
+}
 
 function addTaskDb(taskName, params) {
   readFilePromise(params[0], 'utf8').then(function(data) {
@@ -42,16 +46,20 @@ function addTaskDb(taskName, params) {
         var to_parse_usernames = parsed_array.length;
         var div = Math.floor(to_parse_usernames / (proxyParsed.length+1) );
         var rem = to_parse_usernames % (proxyParsed.length+1);
-        var partition = [];
-
+        // var partition = [];
         // partition[0] = rem + div; // fix to { start: 0, end: rem + div }
+        var partition = new Array(proxyParsed.length);
+        partition.fill({});
+
         partition[0].start = 0;
         partition[0].end = rem + div;
+        partition[0].proxy_parc = proxyParsed[0];
 
         for (var i = 1; i < proxyParsed.length; i++) {
           // partition[i] = partition[i-1]+div; // fix to { start: partition[i-1].end , end: partition[i-1].end + div }
           partition[i].start = partition[i-1].end;
           partition[i].end = partition[i-1].end + div;
+          partition[i].proxy_parc = proxyParsed[i];
         }
         
         /////////////////////////////////
@@ -77,7 +85,6 @@ function addTaskDb(taskName, params) {
           private: params[9],
           lastdate: params[10],
           outputfile: params[11],
-          proxy_parc: proxyParsed,
           partitions: partition,
           type: 'task',
           status: '-'

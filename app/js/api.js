@@ -98,22 +98,16 @@ var filterNoSession = function(task) {
   fs.truncate(task.outputfile, 0, function() { 
     loggerDb(task._id, 'Файл подготовлен');
   });
-
-  // async.forEach(task.partitions, function (taskpart, callback) {
-  //   // taskpart
-  //   callback();
-  // }, function(err) {
-  //     console.log('iterating done');
-  // });  
-
-  for (var i = 0; i < task.partitions.length; i++) {
-    if(task.proxy_parc.length > 0) {
-      setProxyFunc(task.proxy_parc[i]);
-    }
+  
+  // for (var i = 0; i < task.partitions.length; i++) {
+  async.forEach(task.partitions, function (taskpart, callback) {
+    // if(task.proxy_parc.length > 0) {
+    setProxyFunc(taskpart.proxy_parc);
+    // }
     var filterRequest = new Client.Web.FilterRequest();   
     // var iterator = (i == 0) ? 0 : task.partitions[i-1]; 
-    var iterator = task.partitions[i].start;
-    var promiseWhile = function(i, action) {
+    var iterator = taskpart.start;
+    var promiseWhile = function( action) {
       var resolver = Promise.defer();
       var func = function(json) {
         if (json) {
@@ -122,7 +116,7 @@ var filterNoSession = function(task) {
           });
         }
 
-        if (getStateView(task._id) == 'stop' || iterator >= task.partitions[i].end ) { 
+        if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
           deleteStopStateView(task._id);
           return resolver.resolve(); 
         } // max_limit value -> partition[i]
@@ -134,10 +128,10 @@ var filterNoSession = function(task) {
       return resolver.promise;
     }
 
-    promiseWhile(i, function() {
+    promiseWhile(function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          resolve(filterRequest.getUser(task.input_array[iterator]));
+          resolve(filterRequest.getUser(task.input_array[iterator])); // FIX pass param 
           iterator++;
         }, 20);
       });
@@ -147,7 +141,11 @@ var filterNoSession = function(task) {
     }).catch(function (err) {
       console.log(err);
     });
-  }
+  // }
+      callback();
+   }, function(err) {
+      console.log('iterating done');
+  }); 
 }
 
 function filterSessionUser(user_id, ses, task, userFilter, cb) {
