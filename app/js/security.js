@@ -8,7 +8,6 @@ const crypto = require('crypto');
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-
   // networkInt((res) => {
   //   if(res == "vm") {
   //     cb('vm');
