@@ -43,9 +43,15 @@ function addTaskDb(taskName, params) {
         var div = Math.floor(to_parse_usernames / (proxyParsed.length+1) );
         var rem = to_parse_usernames % (proxyParsed.length+1);
         var partition = [];
-        partition[0] = rem + div;
+
+        // partition[0] = rem + div; // fix to { start: 0, end: rem + div }
+        partition[0].start = 0;
+        partition[0].end = rem + div;
+
         for (var i = 1; i < proxyParsed.length; i++) {
-          partition[i] = partition[i-1]+div;
+          // partition[i] = partition[i-1]+div; // fix to { start: partition[i-1].end , end: partition[i-1].end + div }
+          partition[i].start = partition[i-1].end;
+          partition[i].end = partition[i-1].end + div;
         }
         
         /////////////////////////////////

@@ -8,6 +8,7 @@ const Client = require('../instagram-private-api').V1; //     "instagram-private
 const fs = require('fs');
 var Promise = require('bluebird');
 var cookieDir = os.tmpdir() + '/cookie/';
+var async = require('async');
 
 function mediaFilter(json, task, cb) {
   // console.log("mediaFilter");
@@ -47,7 +48,6 @@ function mediaSessionFilter(json, task, cb) {
 }
 
 function filterFunction(json, task, cb) {
-
 
   var followersCond = json.followerCount > task.followers.from && json.followerCount < task.followers.to;
   var subscribersCond = json.followingCount > task.subscribers.from && json.followingCount < task.subscribers.to;
@@ -92,7 +92,6 @@ function filterFunction(json, task, cb) {
 
 var filterNoSession = function(task) {
   console.log(task);
-
   updateStateView(task._id, 'В работе');
   renderNewTaskCompletedView(task._id);
   loggerDb(task._id, 'Фильтрация аудитории');
@@ -100,14 +99,20 @@ var filterNoSession = function(task) {
     loggerDb(task._id, 'Файл подготовлен');
   });
 
-  for (var i = 0; i < task.partitions.length; i++) {    // run async
+  // async.forEach(task.partitions, function (taskpart, callback) {
+  //   // taskpart
+  //   callback();
+  // }, function(err) {
+  //     console.log('iterating done');
+  // });  
 
+  for (var i = 0; i < task.partitions.length; i++) {
     if(task.proxy_parc.length > 0) {
       setProxyFunc(task.proxy_parc[i]);
     }
     var filterRequest = new Client.Web.FilterRequest();   
-    var iterator = (i == 0) ? 0 : task.partitions[i-1];
-      
+    // var iterator = (i == 0) ? 0 : task.partitions[i-1]; 
+    var iterator = task.partitions[i].start;
     var promiseWhile = function(i, action) {
       var resolver = Promise.defer();
       var func = function(json) {
@@ -117,7 +122,7 @@ var filterNoSession = function(task) {
           });
         }
 
-        if (getStateView(task._id) == 'stop' || iterator >= task.partitions[i] ) { 
+        if (getStateView(task._id) == 'stop' || iterator >= task.partitions[i].end ) { 
           deleteStopStateView(task._id);
           return resolver.resolve(); 
         } // max_limit value -> partition[i]
@@ -132,20 +137,16 @@ var filterNoSession = function(task) {
     promiseWhile(i, function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          // console.log(task.input_array[iterator]);
           resolve(filterRequest.getUser(task.input_array[iterator]));
           iterator++;
         }, 20);
       });
     }).then(function() {
-
       updateStateView(task._id, 'Остановлен');
       loggerDb(task._id, 'Фильтрация остановлена');
     }).catch(function (err) {
-      console.log('HERE ERROR');
       console.log(err);
     });
-
   }
 }
 
