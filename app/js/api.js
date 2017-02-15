@@ -47,6 +47,8 @@ function mediaSessionFilter(json, task, cb) {
 }
 
 function filterFunction(json, task, cb) {
+
+
   var followersCond = json.followerCount > task.followers.from && json.followerCount < task.followers.to;
   var subscribersCond = json.followingCount > task.subscribers.from && json.followingCount < task.subscribers.to;
   var publicationsCond = json.mediaCount > task.publications.from && json.mediaCount < task.publications.to;
@@ -63,8 +65,8 @@ function filterFunction(json, task, cb) {
       var words = f.toString().split('\n').filter(isEmpty);
       words.forEach(function (word) {
         word = word.toLowerCase();
-        var fullName = json.fullName.toLowerCase();
-        var biography = json.biography.toLowerCase();
+        var fullName = json.fullName ? json.fullName.toLowerCase() : '';
+        var biography = json.biography ? json.biography.toLowerCase() : '';
         if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
           // console.log(fullName + " -> "+ word);
           // console.log(biography + " -> "+  word);
@@ -89,6 +91,7 @@ function filterFunction(json, task, cb) {
 }
 
 var filterNoSession = function(task) {
+ 
   updateStateView(task._id, 'В работе');
   renderNewTaskCompletedView(task._id);
   loggerDb(task._id, 'Фильтрация аудитории');
@@ -114,6 +117,7 @@ var filterNoSession = function(task) {
       
     var promiseWhile = function(i, action) {
       var resolver = Promise.defer();
+      console.log(resolver);
       var func = function(json) {
         if (json) {
           filterFunction(json, task, function() {
@@ -132,18 +136,21 @@ var filterNoSession = function(task) {
       process.nextTick(func);
       return resolver.promise;
     }
+
     promiseWhile(i, function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
+          console.log(task.input_array[iterator]);
           resolve(filterRequest.getUser(task.input_array[iterator]));
           iterator++;
         }, 3000);
       });
     }).then(function() {
 
-       updateStateView(task._id, 'Остановлен');
-       loggerDb(task._id, 'Фильтрация остановлена');
+      updateStateView(task._id, 'Остановлен');
+      loggerDb(task._id, 'Фильтрация остановлена');
     }).catch(function (err) {
+      console.log('HERE ERROR');
       console.log(err);
     });
 
