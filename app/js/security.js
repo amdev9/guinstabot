@@ -4,12 +4,9 @@
 
 var https = require('https');
 var Registry = require('winreg');
-var Promise = require('bluebird');
 const crypto = require('crypto');
-var _ = require('lodash');
 
 function checkLicense(cb) {
-  
   // networkInt((res) => {
   //   if(res == "vm") {
   //     cb('vm');
@@ -34,8 +31,6 @@ function checkLicense(cb) {
   //     });
   //   }
   // });
-
- 
 }
 
 function makePost(sendData, serialKey, cb) {
@@ -50,7 +45,6 @@ function makePost(sendData, serialKey, cb) {
       }
     };
   } else {
-
     var options = {
       hostname: 'calm-beyond-91310.herokuapp.com',
       port: 443,
@@ -60,16 +54,6 @@ function makePost(sendData, serialKey, cb) {
         'Content-Type': 'application/json'
       }
     };
-
-    // var options = {
-    //   host: '192.168.1.33',
-    //   path: '/api/uploader',
-    //   port: '5014',
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   }
-    // };
   }
 
   callback = function(response) {
@@ -82,7 +66,6 @@ function makePost(sendData, serialKey, cb) {
       var resp = JSON.parse(str);
       console.log(resp);
       if (resp.status == 'ok') {
-        // sha-256 for checking and comparing
         var hash = sha256(sendData, secretSerial);
         if (resp.message == hash) {
           cb("ok");
@@ -91,7 +74,6 @@ function makePost(sendData, serialKey, cb) {
         }
       }
     });
-
   }
 
   const secretMessage = 'a password';
@@ -185,7 +167,6 @@ function networkInt(erback) {
                                                           '08:00:20',   // Oracle (VirtualBox) 
                                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      // erback(os.networkInterfaces()[key][0].mac);
       erback("vm");
     }
   }
