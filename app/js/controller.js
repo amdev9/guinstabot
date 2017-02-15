@@ -70,8 +70,10 @@ function tasksController(action, rows) {
 }
 
 function showLogsController(rows) {
+  var logpath = __dirname + "/logs/";
+  checkFolderExists(logpath);
   rows.forEach(function (row_id) {
-    var l_filepath = __dirname + "/logs/" +  row_id + ".txt";
+    var l_filepath = logpath + row_id + ".txt";
     if (fs.existsSync(l_filepath) ) {
       let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
       loggerView.setMenu(null)

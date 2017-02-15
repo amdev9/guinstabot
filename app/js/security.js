@@ -35,7 +35,7 @@ function checkLicense(cb) {
   //   }
   // });
   } else {
-    cb('fail');
+    cb('ok');
   }
 }
 

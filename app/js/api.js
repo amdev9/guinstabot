@@ -7,7 +7,7 @@
 const Client = require('instagram-private-api').V1;
 const fs = require('fs');
 var Promise = require('bluebird');
-var cookieDir = __dirname + '/cookie/';
+var cookieDir = os.tmpdir() + '/cookie/';
 
 function mediaFilter(json, task, cb) {
   // console.log("mediaFilter");
