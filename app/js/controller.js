@@ -73,27 +73,27 @@ function showLogsController(rows) {
   rows.forEach(function (row_id) {
     var l_filepath = __dirname + "/logs/" +  row_id + ".txt";
     if (fs.existsSync(l_filepath) ) {
-    let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
-    loggerView.setMenu(null)
-    loggerView.loadURL(url.format({
-      pathname: path.join(__dirname, 'log.html'),
-      protocol: 'file:',
-      slashes: true
-    }))
+      let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
+      loggerView.setMenu(null)
+      loggerView.loadURL(url.format({
+        pathname: path.join(__dirname, 'log.html'),
+        protocol: 'file:',
+        slashes: true
+      }))
 
-    loggerView.on('closed', function() {
-      loggerView = null;
-    });
-    loggerView.webContents.on('did-finish-load', () => {
-      loggerView.webContents.send('log_data', l_filepath, row_id);
-    });
-    loggerView.webContents.openDevTools();
-  } else {
-    dialog.showMessageBox({ 
-      message: `Логи для ${row_id} отсутствуют`,
-      buttons: ["OK"] 
-    });
-  }
+      loggerView.on('closed', function() {
+        loggerView = null;
+      });
+      loggerView.webContents.on('did-finish-load', () => {
+        loggerView.webContents.send('log_data', l_filepath, row_id);
+      });
+      loggerView.webContents.openDevTools();
+    } else {
+      dialog.showMessageBox({ 
+        message: `Логи для ${row_id} отсутствуют`,
+        buttons: ["OK"] 
+      });
+    }
   });
 }
 

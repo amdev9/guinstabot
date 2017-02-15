@@ -7,6 +7,8 @@ var Registry = require('winreg');
 const crypto = require('crypto');
 
 function checkLicense(cb) {
+
+  // cb('fail');
   // networkInt((res) => {
   //   if(res == "vm") {
   //     cb('vm');
@@ -19,12 +21,14 @@ function checkLicense(cb) {
   //           if(res == "vm") {
   //             cb('vm');
   //           } else {
+   
                bios(function(obj) {
                 var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
                   "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
                 var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
                 makePost(sendData, serialKey, cb);
               });
+
   //           }
   //         });
   //       }

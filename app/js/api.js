@@ -7,6 +7,7 @@
 const Client = require('instagram-private-api').V1;
 const fs = require('fs');
 var Promise = require('bluebird');
+var cookieDir = __dirname + '/cookie/';
 
 function mediaFilter(json, task, cb) {
   // console.log("mediaFilter");
@@ -205,7 +206,8 @@ var filterSession = function(user, task) {
   }
 
   const device = new Client.Device(user.username);
-  const storage = new Client.CookieFileStorage(__dirname + "/cookie/" + user_id + ".json");
+  checkFolderExists(cookieDir);
+  const storage = new Client.CookieFileStorage(cookieDir + user_id + ".json");
   var ses = Client.Session.create(device, storage, user.username, user.password);
 
   var iterator = 0;
@@ -274,9 +276,9 @@ function apiParseAccounts(user, task) {
   }
   // user:pass:ip:[port]
 
-
   const device = new Client.Device(user.username);
-  const storage = new Client.CookieFileStorage(__dirname + "/cookie/" + user._id + ".json");
+  checkFolderExists(cookieDir);
+  const storage = new Client.CookieFileStorage(cookieDir + user._id + ".json");
   var ses = Client.Session.create(device, storage, user.username, user.password);
 
   task.parsed_conc.forEach( function(conc_user) {
@@ -291,7 +293,6 @@ function apiParseAccounts(user, task) {
         feed = new Client.Feed.AccountFollowing(session, account.id);
       }
    
-
       var promiseWhile = function( action) {
       var resolver = Promise.defer();
       var indicator = 0;
@@ -343,7 +344,8 @@ function apiParseAccounts(user, task) {
 
 function apiSessionCheck(user_id, username, password) { // add proxy
   const device = new Client.Device(username);
-  const storage = new Client.CookieFileStorage(__dirname + "/cookie/" + user_id + ".json");
+  checkFolderExists(cookieDir);
+  const storage = new Client.CookieFileStorage(cookieDir + user_id + ".json");
   Client.Session.create(device, storage, username, password)
     .then(function(session) {
       Client.Session.login(session, username, password).then(function(result){

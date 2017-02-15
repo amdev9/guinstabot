@@ -28,7 +28,6 @@ PouchDB.debug.disable();
 // });
 
 function addTaskDb(taskName, params) {
-
   readFilePromise(params[0], 'utf8').then(function(data) {
     var concurParsed = [];
     concurParsed = data.split('\n');
@@ -38,8 +37,7 @@ function addTaskDb(taskName, params) {
     });
   }).then(function(parsed_array) {
  
-      if (taskName == 'filtration') {
-
+    if (taskName == 'filtration') {
       var proxyParsed = [];
       readFile(params[12], function (data) { 
         proxyParsed = data.split('\n');
@@ -458,7 +456,7 @@ function updateTaskStatusDb(task_id, statusValue) {
 }
 
 function deleteRowsDb(rows) {
-  deleteRowsView(row_id);
+  deleteRowsView(rows);
   // FIX
   // get all docs and get _rev
   // then delete all docs 
