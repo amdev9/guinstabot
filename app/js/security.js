@@ -7,8 +7,8 @@ var Registry = require('winreg');
 const crypto = require('crypto');
 
 function checkLicense(cb) {
+  if (process.platform == 'windows') {
 
-  // cb('fail');
   // networkInt((res) => {
   //   if(res == "vm") {
   //     cb('vm');
@@ -35,31 +35,21 @@ function checkLicense(cb) {
   //     });
   //   }
   // });
+  } else {
+    cb('fail');
+  }
 }
 
 function makePost(sendData, serialKey, cb) {
-  if (process.platform == 'darwin') {
-    var options = {
-      host: '127.0.0.1',
-      path: '/api/uploader',
-      port: '5014',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-  } else {
-    var options = {
-      hostname: 'calm-beyond-91310.herokuapp.com',
-      port: 443,
-      path: '/api/uploader',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    };
-  }
-
+  var options = {
+    hostname: 'calm-beyond-91310.herokuapp.com',
+    port: 443,
+    path: '/api/uploader',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
   callback = function(response) {
     var str = ''
     const secretSerial = 'abcdefg';
