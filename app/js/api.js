@@ -100,23 +100,10 @@ var filterNoSession = function(task) {
     loggerDb(task._id, 'Файл подготовлен');
   });
 
-  for (var i = 0; i < task.partitions.length; i++) {
+  for (var i = 0; i < task.partitions.length; i++) {    // run async
+
     if(task.proxy_parc.length > 0) {
-      if(task.proxy_parc[i].split(":").length == 2) {
-        let proxy_ip = task.proxy_parc[i].split(":")[0];
-        let proxy_port = task.proxy_parc[i].split(":")[1];
-        console.log(`http://${proxy_ip}:${proxy_port}`); 
-        Client.Request.setProxy(`http://${proxy_ip}:${proxy_port}`); 
-      } else if(task.proxy_parc[i].split(":").length == 4) {
-        let proxy_name = task.proxy_parc[i].split(":")[0];
-        let proxy_pass = task.proxy_parc[i].split(":")[1];
-        let proxy_ip = task.proxy_parc[i].split(":")[2];
-        let proxy_port = task.proxy_parc[i].split(":")[3];
-        console.log(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
-        Client.Request.setProxy(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
-      } else {
-        console.log("Proxy format wrong");
-      }
+      setProxyFunc(task.proxy_parc[i]);
     }
     var filterRequest = new Client.Web.FilterRequest();   
     var iterator = (i == 0) ? 0 : task.partitions[i-1];
@@ -206,19 +193,7 @@ var filterSession = function(user, task) {
   });
 
   if(user.proxy) { 
-    let proxy_name = user.proxy.split(":")[0];
-    let proxy_pass = user.proxy.split(":")[1];
-    let proxy_ip = user.proxy.split(":")[2];
-    let proxy_port = user.proxy.split(":")[3];
-    if (proxy_name!="" && proxy_pass!="") {
-      let proxy_string = `http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`;
-      console.log(proxy_string);
-      // Client.Request.setProxy( ); 
-    } else {
-      let proxy_string = `http://${proxy_ip}:${proxy_port}`;
-      console.log(proxy_string);
-      // Client.Request.setProxy( ); 
-    }
+    setProxyFunc(user.proxy);
   }
 
   const device = new Client.Device(user.username);
@@ -276,23 +251,10 @@ function apiParseAccounts(user, task) {
     loggerDb(user._id, 'Файл подготовлен'); 
   });
   var indicator = 0;
-
+  
   if(user.proxy) { 
-    let proxy_name = user.proxy.split(":")[0];
-    let proxy_pass = user.proxy.split(":")[1];
-    let proxy_ip = user.proxy.split(":")[2];
-    let proxy_port = user.proxy.split(":")[3];
-    if (proxy_name!="" && proxy_pass!="") {
-      let proxy_string = `http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`;
-      console.log(proxy_string);
-      // Client.Request.setProxy(); 
-    } else {
-      let proxy_string = `http://${proxy_ip}:${proxy_port}`;
-      console.log(proxy_string);
-      // Client.Request.setProxy(); 
-    }
+     setProxyFunc(user.proxy);
   }
-  // user:pass:ip:[port]
 
   const device = new Client.Device(user.username);
   checkFolderExists(cookieDir);

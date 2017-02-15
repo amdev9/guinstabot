@@ -4,6 +4,24 @@
 
 'use strict';
 
+function setProxyFunc(proxyString) {
+  if(proxyString.split(":").length == 2) {
+    let proxy_ip = proxyString.split(":")[0];
+    let proxy_port = proxyString.split(":")[1];
+    console.log(`http://${proxy_ip}:${proxy_port}`); 
+    Client.Request.setProxy(`http://${proxy_ip}:${proxy_port}`); 
+  } else if(task.proxy_parc[i].split(":").length == 4) {
+    let proxy_name = proxyString.split(":")[0];
+    let proxy_pass = proxyString.split(":")[1];
+    let proxy_ip = proxyString.split(":")[2];
+    let proxy_port = proxyString.split(":")[3];
+    console.log(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
+    Client.Request.setProxy(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
+  } else {
+    console.log("Proxy format wrong");
+  }
+}
+
 function checkFolderExists(filepath) {
   if (!fs.existsSync(filepath)){
     fs.mkdirSync(filepath);
