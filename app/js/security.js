@@ -50,16 +50,26 @@ function makePost(sendData, serialKey, cb) {
       }
     };
   } else {
+    
     var options = {
-      url: 'https://calm-beyond-91310.herokuapp.com/api/uploader',
-      // host: 'https://calm-beyond-91310.herokuapp.com', // host: '192.168.1.33',
-      // path: '/api/uploader',
-      // port: '80', //'5014',
+      hostname: 'calm-beyond-91310.herokuapp.com',
+      port: 443,
+      path: '/api/uploader',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
     };
+
+    // var options = {
+    //   host: '192.168.1.33',
+    //   path: '/api/uploader',
+    //   port: '5014',
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   }
+    // };
   }
 
   callback = function(response) {
