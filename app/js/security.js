@@ -2,7 +2,7 @@
 //// SECURITY CHECK //////////
 //////////////////////////////
 
-var http = require('http');
+var https = require('https');
 var Registry = require('winreg');
 var Promise = require('bluebird');
 const crypto = require('crypto');
@@ -50,7 +50,7 @@ function makePost(sendData, serialKey, cb) {
       }
     };
   } else {
-    
+
     var options = {
       hostname: 'calm-beyond-91310.herokuapp.com',
       port: 443,
@@ -102,7 +102,7 @@ function makePost(sendData, serialKey, cb) {
     "token": token,
     "message": message
   });
-  var req = http.request(options, callback);
+  var req = https.request(options, callback);
   console.log(postData);
   req.write(postData);
   req.end();
