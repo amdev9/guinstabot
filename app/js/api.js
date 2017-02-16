@@ -98,11 +98,12 @@ var filterNoSession = function(task) {
   fs.truncate(task.outputfile, 0, function() { 
     loggerDb(task._id, 'Файл подготовлен');
   });
-  var taskInputArray = task.input_array;
-  var task_id = task._id;
+ 
   // for (var i = 0; i < task.partitions.length; i++) {
+  
   async.forEach(task.partitions, function (taskpart, callback) {
     // if(task.proxy_parc.length > 0) {
+      console.log(taskpart.proxy_parc);
     setProxyFunc(taskpart.proxy_parc);
     // }
     var filterRequest = new Client.Web.FilterRequest();   
@@ -113,12 +114,12 @@ var filterNoSession = function(task) {
       var func = function(json) {
         if (json) {
           filterFunction(json, task, function() {
-            renderTaskCompletedView(task_id); // +1 //, iterator, task.input_array.length
+            renderTaskCompletedView(task._id); // +1 //, iterator, task.input_array.length
           });
         }
 
-        if (getStateView(task_id) == 'stop' || iterator >= taskpart.end ) { 
-          deleteStopStateView(task_id);
+        if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
+          deleteStopStateView(task._id);
           return resolver.resolve(); 
         } // max_limit value -> partition[i]
         return Promise.cast(action())
@@ -132,7 +133,7 @@ var filterNoSession = function(task) {
     promiseWhile(function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          resolve(filterRequest.getUser(taskInputArray[iterator])); // FIX pass param 
+          resolve(filterRequest.getUser(task.input_array[iterator])); // FIX pass param 
           iterator++;
         }, 20);
       });

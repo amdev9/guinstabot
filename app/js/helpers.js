@@ -10,7 +10,7 @@ function setProxyFunc(proxyString) {
     let proxy_port = proxyString.split(":")[1];
     console.log(`http://${proxy_ip}:${proxy_port}`); 
     Client.Request.setProxy(`http://${proxy_ip}:${proxy_port}`); 
-  } else if(task.proxy_parc[i].split(":").length == 4) {
+  } else if(proxyString.split(":").length == 4) {
     let proxy_name = proxyString.split(":")[0];
     let proxy_pass = proxyString.split(":")[1];
     let proxy_ip = proxyString.split(":")[2];
