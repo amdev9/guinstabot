@@ -35,14 +35,12 @@ function editUserController(user) {
     editView.on('close', function() {
       editView = null;
     });
-    // Prevent from closing main window
     window.onbeforeunload = function (e) { 
       editView.webContents.send('closing');
       return false;
     }
 
     editView.webContents.on('did-finish-load', () => {
-      /// FIX check for length and if more then 1 -> error window
       getUserDb(user[0], editView.webContents ); 
     });
     editView.webContents.openDevTools();
@@ -51,7 +49,7 @@ function editUserController(user) {
 }
 
 function tasksController(action, rows) {
-  let taskView = new BrowserWindow({width: 600, height: 500, frame: true});
+  let taskView = new BrowserWindow({width: 1000, height: 800, frame: true});
   taskView.setMenu(null)
   taskView.loadURL(url.format({
     pathname: path.join(__dirname, 'task.html'),
