@@ -146,6 +146,7 @@ var filterNoSession = function(task) {
   // }
       callback();
    }, function(err) {
+    console.log(err);
       console.log('iterating done');
   }); 
 }
