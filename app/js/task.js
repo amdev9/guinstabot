@@ -75,7 +75,6 @@ function isEmpty(x) {
 }
 
 function completeTask(taskName) {
-
   if (taskName == 'parse_concurrents') {
 
     var followTrueSubscribeFalse = false;
@@ -132,16 +131,14 @@ function clearTextArea (selector) {
 }
 
 function openFile ( selector ) {
- 
-  var path = dialog.showOpenDialog({properties: ['openFile', 'openDirectory']}); 
+  var path = dialog.showOpenDialog({properties: ['openFile']}); // 'openDirectory'
   if (path) {
     document.getElementById(selector).value = path;
   } 
 }
 
 function openParse(selector) {
- 
-  var path = dialog.showOpenDialog({properties: ['openFile', 'openDirectory']});
+  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
   readFile(path[0], function(data) {
     document.getElementById(selector).value = data;
   });
