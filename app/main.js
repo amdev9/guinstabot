@@ -51,7 +51,7 @@ app.on('ready', function() {
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('sync_db');
   })
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 });
 
  

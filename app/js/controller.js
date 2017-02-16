@@ -43,7 +43,7 @@ function editUserController(user) {
     editView.webContents.on('did-finish-load', () => {
       getUserDb(user[0], editView.webContents ); 
     });
-    editView.webContents.openDevTools();
+    // editView.webContents.openDevTools();
   }
 
 }
@@ -75,7 +75,7 @@ function tasksController(action, rows) {
       getTaskDb(rows[0], taskView.webContents);
     }
   });
-  taskView.webContents.openDevTools();
+  // taskView.webContents.openDevTools();
 }
 
 function showLogsController(rows) {
@@ -98,7 +98,7 @@ function showLogsController(rows) {
       loggerView.webContents.on('did-finish-load', () => {
         loggerView.webContents.send('log_data', l_filepath, row_id);
       });
-      loggerView.webContents.openDevTools();
+      // loggerView.webContents.openDevTools();
     } else {
       dialog.showMessageBox({ 
         message: `Логи для ${row_id} отсутствуют`,
@@ -125,5 +125,5 @@ function addUsersController() {
     return false;
   }
 
-  addView.webContents.openDevTools()    
+  // addView.webContents.openDevTools()    
 }
