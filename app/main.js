@@ -48,6 +48,9 @@ app.on('ready', function() {
   mainWindow.on('close', function() {
     mainWindow = null;
   });
+  mainWindow.webContents.on("devtools-opened", () => {
+    mainWindow.webContents.closeDevTools();
+  });
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('sync_db');
   })
