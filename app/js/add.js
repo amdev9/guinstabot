@@ -13,7 +13,7 @@ ipc.on('selected_accounts', (event, message) => {
 
 var openFile = function(selector) {
   const {dialog} = require('electron').remote
-  var path = dialog.showOpenDialog({properties: ['openFile', 'openDirectory']});
+  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
   if (path) {
     document.getElementById(selector).value = path;
   } 

@@ -22,6 +22,9 @@
 <form id="add_accounts_form">
   <div class="form-group row align-items-center">
     <div class="input-group offset-1 col-10">
+      <small class="text-muted"><p><b>Формат:</b> {name}|{pass}|{proxy_ip}:{proxy_port} <br><b>или</b> {name}|{pass}|{proxy_user}:{proxy_pass}:{proxy_ip}:{proxy_port}</p></small>
+    </div>
+    <div class="input-group offset-1 col-10">
       <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" id="add_acc_txt_file" name="add_acc_txt_file">
       <span class="input-group-btn">
         <button onclick="openFile('add_acc_txt_file')" class="btn btn-secondary btn-sm" type="button">Выбрать</button>
