@@ -57,7 +57,7 @@ function makePost(sendData, serialKey, cb) {
     });
     response.on('end', function () {  
       var resp = JSON.parse(str);
-      console.log(resp);
+      // console.log(resp);
       if (resp.status == 'ok') {
         var hash = sha256(sendData, secretSerial);
         if (resp.message == hash) {
@@ -78,7 +78,7 @@ function makePost(sendData, serialKey, cb) {
     "message": message
   });
   var req = https.request(options, callback);
-  console.log(postData);
+  // console.log(postData);
   req.write(postData);
   req.end();
 
