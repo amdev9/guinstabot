@@ -9,8 +9,7 @@ const path = require('path');
 const url = require('url');
 var log = require('electron-log');
 var config = require('config');
-const devIsOpen = config.get('App.devTools');
-
+var devIsOpen = config.get('App.devTools');
 
 const autoUpdater = require("electron-updater").autoUpdater;
 autoUpdater.logger = require("electron-log")
@@ -66,6 +65,5 @@ function openDevTool(win, isOpen) {
     });
   }
 }
-
  
 

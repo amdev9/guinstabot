@@ -1,7 +1,7 @@
 {
   // Customer module configs
   "App": {
-    "devTools": false // for Production
+    "devTools": false
   }
 }
 
