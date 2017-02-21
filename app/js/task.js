@@ -2,6 +2,9 @@ ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
+var config = require('config');
+var softname = config.get('App.softname');
+document.title = "Добавление задания | " + softname
 
 ipc.on('closing', () => {});
 

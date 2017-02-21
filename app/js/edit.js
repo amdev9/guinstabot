@@ -1,6 +1,9 @@
 ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
+var config = require('config');
+var softname = config.get('App.softname');
+document.title = "Редактирование аккаунта | " + softname
 
 ipc.on('edit', (event, user) => {
   document.getElementById("username").value = user.username;

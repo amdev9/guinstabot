@@ -1,6 +1,7 @@
 {
   // Customer module configs
   "App": {
+    "softname": "InstaBOT",
     "devTools": true,
     "hostname": "calm-beyond-91310.herokuapp.com"
   }
