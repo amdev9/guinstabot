@@ -13,6 +13,7 @@ const autoUpdater = require("electron-updater").autoUpdater;
 autoUpdater.logger = require("electron-log")
 autoUpdater.logger.transports.file.level = "info"
 
+const devIsOpen = true;
 var mainWindow = null;
 
 ipc.on('user_add', (event, user) => {
@@ -23,8 +24,8 @@ ipc.on('user_edit', (event, user) => {
   mainWindow.webContents.send('edit', user);
 });
 
-ipc.on('task_complete_event', (event, taskName, ...params) => {
-  mainWindow.webContents.send('task_complete', taskName, params);
+ipc.on('task_complete_event', (event, rows, taskName, ...params) => {
+  mainWindow.webContents.send('task_complete', rows, taskName, params);
 });
 
 ipc.on('add_task_event', (event, taskName, ...params) => {
@@ -48,14 +49,21 @@ app.on('ready', function() {
   mainWindow.on('close', function() {
     mainWindow = null;
   });
-  mainWindow.webContents.on("devtools-opened", () => {
-    mainWindow.webContents.closeDevTools();
-  });
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('sync_db');
   })
-  // mainWindow.webContents.openDevTools()
+  openDevTool(mainWindow, devIsOpen);
 });
+
+function openDevTool(win, isOpen) {
+  if (isOpen) {
+    win.webContents.openDevTools()
+  } else {
+    win.webContents.on("devtools-opened", () => {
+      win.webContents.closeDevTools();
+    });
+  }
+}
 
  
 

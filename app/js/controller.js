@@ -8,9 +8,20 @@ var path = require('path');
 const url = require('url');
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
+const devIsOpen = true;
 
 function checkSecurityController(cb) {
   checkLicense(cb);
+}
+
+function openDevTool(win, isOpen) {
+  if (isOpen) {
+    win.webContents.openDevTools()
+  } else {
+    win.webContents.on("devtools-opened", () => {
+      win.webContents.closeDevTools();
+    });
+  }
 }
 
 function editUserController(user) { 
@@ -43,7 +54,7 @@ function editUserController(user) {
     editView.webContents.on('did-finish-load', () => {
       getUserDb(user[0], editView.webContents ); 
     });
-    // editView.webContents.openDevTools();
+    openDevTool(editView, devIsOpen);
   }
 
 }
@@ -56,9 +67,8 @@ function tasksController(action, rows) {
     protocol: 'file:',
     slashes: true
   }))
-  taskView.on('closed', function() {
+  taskView.on('close', function() {
     taskView = null;
-    // deleteUserTaskDb(); 
   });
   // Prevent from closing main window
   window.onbeforeunload = function (e) { 
@@ -67,15 +77,14 @@ function tasksController(action, rows) {
   }
   taskView.webContents.on('did-finish-load', () => {
     if (action == "add" && rows.length > 0) {
-      taskView.webContents.send('type', 'user');
-      createUserTaskDb(rows);
+      taskView.webContents.send('type', 'user', rows);
     } else if (action == "add" && rows.length == 0) {
       taskView.webContents.send('type', 'task');
     } else if (action == "edit" && rows.length == 1) {
       getTaskDb(rows[0], taskView.webContents);
     }
   });
-  // taskView.webContents.openDevTools();
+  openDevTool(taskView, devIsOpen);
 }
 
 function showLogsController(rows) {
@@ -98,7 +107,7 @@ function showLogsController(rows) {
       loggerView.webContents.on('did-finish-load', () => {
         loggerView.webContents.send('log_data', l_filepath, row_id);
       });
-      // loggerView.webContents.openDevTools();
+      openDevTool(loggerView, devIsOpen);
     } else {
       dialog.showMessageBox({ 
         message: `Логи для ${row_id} отсутствуют`,
@@ -124,6 +133,5 @@ function addUsersController() {
     addView.webContents.send('closing');
     return false;
   }
-
-  // addView.webContents.openDevTools()    
+  openDevTool(addView, devIsOpen); 
 }

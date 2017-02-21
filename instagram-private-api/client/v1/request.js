@@ -30,7 +30,6 @@ function Request(session) {
 
 module.exports = Request;
 
-
 var signatures = require('./signatures');
 var Device = require('./device');
 var Exceptions = require('./exceptions');

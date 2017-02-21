@@ -15,13 +15,11 @@ module.exports = Upload;
 var Exceptions = require('./exceptions');
 var Request = require("./request");
 
-
 Upload.prototype.parseParams = function (params) {
     var hash = {};
     hash.uploadId = params.upload_id;
     return hash;
 };
-
 
 Upload.photo = function (session, streamOrPath) {
     var stream = Helpers.pathToStream(streamOrPath);

@@ -13,7 +13,6 @@ const os = require('os');
 var tmpdir = os.tmpdir();
 var levelpath = path.join(tmpdir, 'levdb');
 
-
 var db = new PouchDB( levelpath , {adapter: 'leveldb'});
 // PouchDB.debug.enable('*');
 PouchDB.debug.disable();
@@ -134,118 +133,33 @@ function runTasksDb(rows) {
     });
   });
 }
- 
-function createUserTaskDb(rows) {
-  rows.forEach( function (user_id) {
-    db.get(user_id).then(function(user) {
-      let db_object = {
-        _id: user._id,
-        username: user.username, 
-        proxy: user.proxy,
-        password: user.password,
-        status: user.status,
-        type: user.type,
-        cookie: user.cookie,
-        task: 'uncomplete',
-        _rev: user._rev  
-      };
-      return db.put(db_object);
-    }).then(function(response) {
-      console.log(response);
-    }).catch(function (err) {
-      console.log(err);
-    });
-  });
-}
 
-function deleteUserTaskDb() {
-
-  var ddoc = {
-    _id: '_design/index2',
-    views: {
-      index2: {
-        map: function mapFun(doc) {
-          if (doc.task) {
-            emit(doc.task);
-          }
-        }.toString()
-      }
-    }
-  }
-  db.put(ddoc).catch(function(err) {
-    if (err.name !== 'conflict') {
-      throw err;
-    }
-  }).then(function() {
-    return db.query('index2', {
-      key: 'uncomplete',
-      include_docs: true
-    });
-  }).then(function(result) {
-    result.rows.forEach( function(row) {
-      db.get(row.doc._id).then(function(user) {
-        return db.put({
-          _id: user._id,
-          username: user.username, 
-          proxy: user.proxy,
-          password: user.password,
-          status: user.status,
-          type: user.type,
-          cookie: user.cookie,
-          task: '-',  // non change if task.name exists
-          _rev: user._rev  
-        });
-      }).then(function(response) {
-        // if (response.ok == true) {
-          userTaskRenderView(response.id, '-'); // if exist 
-          console.log(response);
-        // }
+function getExistedUserRows(rows) {
+  var result = [];
+  return new Promise(function(resolve, reject) {
+    rows.forEach(function(row_id, i) {
+      db.get(row_id).then(function(doc) {
+        result.push(doc);
+        if (i == rows.length - 1) {
+          resolve(result);  
+        }
+      }).then(function (result) {
+         
       }).catch(function (err) {
         console.log(err);
       });
     });
-  }).catch(function(err) {
-    console.log(err);
-  });
-
+  })
+  
 }
 
-function readFile(filepath, cb) {
-  fs.readFile(filepath, 'utf8', (err, data) => {
-    if (err) throw err;
-    return cb(data);
-  });
-}
+function completeUserTaskDb(rows, taskName, params) {
 
-function completeUserTaskDb(taskName, params) {
-
-  var ddoc = {
-    _id: '_design/index2',
-    views: {
-      index2: {
-        map: function mapFun(doc) {
-          if (doc.task) {
-            emit(doc.task);
-          }
-        }.toString()
-      }
-    }
-  }
-
-  db.put(ddoc).catch(function (err) {
-    if (err.name !== 'conflict') {
-      throw err;
-    }
-  }).then(function() {
-    return db.query('index2', {
-      key: 'uncomplete',
-      include_docs: true
-    });
-  }).then(function(result) {
+  getExistedUserRows(rows)
+    .then(function(result) {
+    var users = result;
 
     if (taskName == 'parse_concurrents') {
-
-      var users = result.rows;
       var to_parse_usernames = params[1].length;
       var div = Math.floor(to_parse_usernames / users.length);
       var rem = to_parse_usernames % users.length;
@@ -254,15 +168,16 @@ function completeUserTaskDb(taskName, params) {
       for (var i = 1; i < users.length; i++) {
         dotation[i] = dotation[i-1]+div;
       }
-      result.rows.forEach( function(user, i , arr) {
+      users.forEach( function(user, i , arr) {
+
         let db_object = {
-          _id: user.doc._id,
-          username: user.doc.username, 
-          proxy: user.doc.proxy,
-          password: user.doc.password,
-          status: user.doc.status,
-          type: user.doc.type,
-          cookie: user.doc.cookie,
+          _id: user._id,
+          username: user.username, 
+          proxy: user.proxy,
+          password: user.password,
+          status: user.status,
+          type: user.type,
+          cookie: user.cookie,
           task: {
             name: taskName,
             outputfile: params[0], 
@@ -270,14 +185,14 @@ function completeUserTaskDb(taskName, params) {
             max_limit: params[2], 
             parse_type: params[3]
           },
-          _rev: user.doc._rev 
+          _rev: user._rev 
         };
-
         return db.put(db_object).then(function (result) {
-          userTaskRenderView(user.doc._id, taskName);
+          userTaskRenderView(user._id, taskName);
         }).catch(function (err) {
           console.log(err);
         });
+
       });
     
     } else if (taskName == 'filtration') {
@@ -287,8 +202,6 @@ function completeUserTaskDb(taskName, params) {
         concurParsed = data.split('\n');
         concurParsed = concurParsed.filter(isEmpty);
 
-
-        var users = result.rows;
         var to_parse_usernames = concurParsed.length;
         var div = Math.floor(to_parse_usernames / users.length);
         var rem = to_parse_usernames % users.length;
@@ -298,16 +211,15 @@ function completeUserTaskDb(taskName, params) {
           dotation[i] = dotation[i-1]+div;
         }
         
-        result.rows.forEach( function(user, i , arr) {
-
+        users.forEach( function(user, i , arr) {
           let db_object = {
-            _id: user.doc._id,
-            username: user.doc.username, 
-            proxy: user.doc.proxy,
-            password: user.doc.password,
-            status: user.doc.status,
-            type: user.doc.type,
-            cookie: user.doc.cookie,
+            _id: user._id,
+            username: user.username, 
+            proxy: user.proxy,
+            password: user.password,
+            status: user.status,
+            type: user.type,
+            cookie: user.cookie,
             task: {
               name: taskName,
               inputfile: params[0],
@@ -330,20 +242,15 @@ function completeUserTaskDb(taskName, params) {
               lastdate: params[10],
               outputfile: params[11]
             },
-            _rev: user.doc._rev
+            _rev: user._rev
           };
-
           return db.put(db_object).then(function (result) {
-            userTaskRenderView(user.doc._id, taskName);
+            userTaskRenderView(user._id, taskName);
           }).catch(function (err) {
             console.log(err);
           });
         });
-
-
-        });
-
-    
+      });
     }
 
   }).catch(function(err) {
@@ -390,7 +297,7 @@ function getUserDb(user_id, webcontents) {
 
 function getTaskDb(row_id, webcontents) {
   // figure out by row_id user or task
-  console.log(row_id);
+  // console.log(row_id);
   db.get(row_id).then(function(item) {
     if (item.type == 'task') {
       webcontents.send('edit', item);

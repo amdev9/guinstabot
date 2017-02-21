@@ -18,8 +18,8 @@ ipc.on('sync_db', (event) => {
   initViewDb();
 });
 
-ipc.on('task_complete', (event, taskName, params ) => {
-  completeUserTaskDb(taskName, params);
+ipc.on('task_complete', (event, rows, taskName, params ) => {
+  completeUserTaskDb(rows, taskName, params);
 });
 
 ipc.on('add_task', (event, taskName, params ) => {

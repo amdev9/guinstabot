@@ -5,13 +5,12 @@ const {dialog} = require('electron').remote
 
 ipc.on('closing', () => {});
 
-ipc.on('type', (event, type) => {
+ipc.on('type', (event, type, rows) => { 
   updateElementsAccessibility(type);
-  saveTypeDom(type);
+  saveTypeRowsDom(type, rows);
 });
 
 ipc.on('edit', (event, task) => {
-  console.log(task.name);
   if (task.name == 'filtration') {
     updateElemView(['filtration']);
     document.getElementById("inputfile").value = task.inputfile;
@@ -54,8 +53,9 @@ function disableCustomElem() {
   $("#proxy_file_button").prop("disabled", false);
 }
 
-function saveTypeDom(type) {
+function saveTypeRowsDom(type, rows) {
   $("div.container").attr('id', type);
+  $("div.container").data('rows', rows);
 }
 
 function updateElemView(accessible) {
@@ -75,8 +75,8 @@ function isEmpty(x) {
 }
 
 function completeTask(taskName) {
+  var containerRows = $("div.container").data('rows');
   if (taskName == 'parse_concurrents') {
-
     var followTrueSubscribeFalse = false;
     var concurParsed = document.getElementById("parsed_conc").value.split('\n');
     concurParsed = concurParsed.filter(isEmpty);
@@ -87,7 +87,7 @@ function completeTask(taskName) {
     var parsedAccountsFile = document.getElementById("parsed_accounts").value;
 
     const parse_concurrents_params = [parsedAccountsFile, concurParsed, limit, followTrueSubscribeFalse]; 
-    const parse_concurrents_user = ['task_complete_event', taskName].concat(parse_concurrents_params);
+    const parse_concurrents_user = [ 'task_complete_event', containerRows, taskName].concat(parse_concurrents_params);
     ipc.send.apply(this, parse_concurrents_user);
     window.close();
 
@@ -114,7 +114,7 @@ function completeTask(taskName) {
 
     const filtration_params = [inputfile, followers_from, followers_to, subscribers_from, subscribers_to, publications_from, publications_to, stop_words_file, avatar,  private, lastdate , filtered_accounts, proxy_file];
     const filtration_params_task = ['add_task_event', taskName].concat(filtration_params);
-    const filtration_params_user = ['task_complete_event', taskName].concat(filtration_params);
+    const filtration_params_user = [ 'task_complete_event', containerRows , taskName].concat(filtration_params);
 
     if ($("div.container").attr('id') == "task" ) {
       ipc.send.apply(this, filtration_params_task);
