@@ -11,7 +11,6 @@ var cookieDir = os.tmpdir() + '/cookie/';
 var async = require('async');
 
 function mediaFilter(json, task, cb) {
-  // console.log("mediaFilter");
   if (json.isBusiness) {
     mediaSessionFilter( json, task, cb);
   } else {
@@ -22,7 +21,6 @@ function mediaFilter(json, task, cb) {
 function mediaNoSessionFilter(json, task, cb) {
   var filterRequest = new Client.Web.FilterRequest();
   filterRequest.media(json.username).then(function(response) {
-    // console.log(response.items[0].created_time); 
     appendStringFile(task.outputfile, json.username);
     cb();
   });

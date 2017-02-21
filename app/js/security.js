@@ -5,6 +5,8 @@
 var https = require('https');
 var Registry = require('winreg');
 const crypto = require('crypto');
+var config = require('config');
+var host = config.get('App.hostname');
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
@@ -41,7 +43,7 @@ function checkLicense(cb) {
 
 function makePost(sendData, serialKey, cb) {
   var options = {
-    hostname: 'calm-beyond-91310.herokuapp.com',
+    hostname: host,
     port: 443,
     path: '/api/uploader',
     method: 'POST',

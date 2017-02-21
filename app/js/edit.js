@@ -21,31 +21,3 @@ function saveAccountData() {
   window.close();
 }
 
-/////////////////////
-// jquery validate //
-/////////////////////
-
-$(function() {
-  $("#edit_form").validate({
-    rules: {
-      username: "required",
-      password: "required",
-    },
-    messages: {
-      username: "Введите логин",
-      password: "Введите пароль",
-    },
-     highlight: function(element) {
-            $(element).closest('.form-group').addClass('has-danger');
-        },
-        unhighlight: function(element) {
-            $(element).closest('.form-group').removeClass('has-danger');
-        },
-        errorElement: 'span',
-        errorClass: 'form-control-feedback form-control-sm',
-
-    submitHandler: function(form) {
-      saveAccountData();
-    }
-  });
-});

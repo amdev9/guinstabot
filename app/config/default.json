@@ -1,7 +1,8 @@
 {
   // Customer module configs
   "App": {
-    "devTools": false
+    "devTools": false,
+    "hostname": "calm-beyond-91310.herokuapp.com"
   }
 }
 
