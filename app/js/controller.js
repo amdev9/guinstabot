@@ -8,7 +8,8 @@ var path = require('path');
 const url = require('url');
 const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
-const devIsOpen = true;
+var config = require('config');
+const devIsOpen = config.get('App.devTools');
 
 function checkSecurityController(cb) {
   checkLicense(cb);
