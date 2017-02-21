@@ -141,20 +141,16 @@ function getExistedUserRows(rows) {
       db.get(row_id).then(function(doc) {
         result.push(doc);
         if (i == rows.length - 1) {
-          resolve(result);  
+          resolve(result);   /// FIX for prod
         }
-      }).then(function (result) {
-         
       }).catch(function (err) {
         console.log(err);
       });
     });
   })
-  
 }
 
 function completeUserTaskDb(rows, taskName, params) {
-
   getExistedUserRows(rows)
     .then(function(result) {
     var users = result;
