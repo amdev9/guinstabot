@@ -4,7 +4,7 @@
 
 'use strict';
 
-const Client = require('../instagram-private-api').V1; //     "instagram-private-api": "0.10.0",
+const Client = require('./instagram-private-api').V1; 
 const fs = require('fs');
 var Promise = require('bluebird');
 var cookieDir = os.tmpdir() + '/cookie/';
@@ -89,8 +89,7 @@ function filterFunction(json, task, cb) {
 }
 
 var filterNoSession = function(task) {
- 
-  updateStateView(task._id, 'В работе');
+  setStateView(task._id, 'run');
   renderNewTaskCompletedView(task._id);
   loggerDb(task._id, 'Фильтрация аудитории');
   fs.truncate(task.outputfile, 0, function() { 
@@ -117,7 +116,7 @@ var filterNoSession = function(task) {
         }
 
         if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
-          deleteStopStateView(task._id);
+
           return resolver.resolve(); 
         } // max_limit value -> partition[i]
         return Promise.cast(action())
@@ -136,7 +135,7 @@ var filterNoSession = function(task) {
         }, 20);
       });
     }).then(function() {
-      updateStateView(task_id, 'Остановлен');
+      setStateView(task_id, 'stopped');
       loggerDb(task_id, 'Фильтрация остановлена');
     }).catch(function (err) {
       console.log(err);
@@ -186,7 +185,7 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
 }
 
 var filterSession = function(user, task) {
-  updateStateView(user._id, 'В работе');
+  setStateView(user._id, 'run');
   loggerDb(user._id, 'Фильтрация аудитории');
   fs.truncate(task.outputfile, 0, function(){ 
     loggerDb(user._id, 'Файл подготовлен'); 
@@ -211,7 +210,6 @@ var filterSession = function(user, task) {
         });
       }
       if (getStateView(user._id) == 'stop' || iterator >= task.input_array.length) { 
-        deleteStopStateView(user._id);
         return resolver.resolve();
       }
       return Promise.cast(action())
@@ -245,7 +243,7 @@ function apiFilterAccounts(row) {
 }
 
 function apiParseAccounts(user, task) {
-  updateStateView(user._id, 'В работе');
+  setStateView(user._id, 'run');
   loggerDb(user._id, 'Парсинг аудитории');
   fs.truncate(task.outputfile, 0, function() { 
     loggerDb(user._id, 'Файл подготовлен'); 
@@ -287,7 +285,7 @@ function apiParseAccounts(user, task) {
           });
         }
         if (getStateView(user._id) == 'stop' || indicator > task.max_limit) {
-          deleteStopStateView(user._id);
+    
           return resolver.resolve();
         }
         return Promise.cast(action())

@@ -101,21 +101,40 @@ function addTaskDb(taskName, params) {
   });
 }
 
-function addUserDb(user) {
-  db.put({
-    _id: user.username,
-    username: user.username,
-    proxy: user.proxy,
-    password: user.password,
-    type: 'user',
-    cookie: '',
-    task: '-',
-    status: '-'
-  }).then(function (response) {
-    renderUserRowView(user);
-  }).catch(function (err) {
-    console.log(err);
-  });
+function addUsersDb(users) {
+
+   users.forEach(function(userString, i, fullArr) {
+    var userArr = userString.split('|');
+    var usersObjArr = [];
+    if (userArr.length == 3) {
+      var user = {};
+      user._id = userArr[0];
+      user.username = userArr[0];   
+      user.password = userArr[1];
+      user.proxy = userArr[2];
+      user.type = 'user';
+      user.cookie = '';
+      user.task = '-';
+      user.status = '-';
+      usersObjArr.push(user);
+      if ( i == fullArr.length - 1 ) {
+        db.bulkDocs(usersObjArr)
+          .then(function (response) {
+            response.forEach(function(item, i, arr) {
+              if (item.error == true) {
+                usersObjArr.splice(i, 1);
+              }
+              if (i == arr.length - 1) {
+                renderUserRowView(usersObjArr);
+              }
+            });
+        }).catch(function (err) {
+          console.log(err);
+        });
+      }
+    }
+  }); 
+
 }
 
 function runTasksDb(rows) {
@@ -184,7 +203,7 @@ function completeUserTaskDb(rows, taskName, params) {
           _rev: user._rev 
         };
         return db.put(db_object).then(function (result) {
-          userTaskRenderView(user._id, taskName);
+          setTaskView(user._id, taskName);
         }).catch(function (err) {
           console.log(err);
         });
@@ -241,7 +260,7 @@ function completeUserTaskDb(rows, taskName, params) {
             _rev: user._rev
           };
           return db.put(db_object).then(function (result) {
-            userTaskRenderView(user._id, taskName);
+            setTaskView(user._id, taskName);
           }).catch(function (err) {
             console.log(err);
           });
@@ -446,18 +465,16 @@ function initViewDb() {
       include_docs: true
     });
   }).then(function (result) {
-    result.rows.forEach( function (task) {
-      initTaskRowRenderView(task); // pass all result.rows and make one append
-    });
+    initTaskRowRenderView(result.rows);
   }).then(function () {
     return db.query('index', {
       key: 'user',
       include_docs: true
     });
   }).then(function (result) {
-    result.rows.forEach( function (user) {
-      initUserRowRenderView(user); // pass all result.rows and make one append
-    });
+    
+    initUserRowRenderView(result.rows);
+     
   }).catch(function (err) {
     console.log(err);
   });

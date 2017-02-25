@@ -2,8 +2,8 @@ ipc = require('electron').ipcRenderer;
 const fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
-var config = require('config');
-var softname = config.get('App.softname');
+var config = require('../config/default');
+var softname = config.App.softname;
 document.title = "Добавление задания | " + softname
 
 ipc.on('closing', () => {});
@@ -77,7 +77,7 @@ function isEmpty(x) {
   }
 }
 
-function parseConcurrents() {
+function parseConcurrents(taskName) {
   var containerRows = $("div.container").data('rows');
   var followTrueSubscribeFalse = false;
   var concurParsed = document.getElementById("parsed_conc").value.split('\n');
@@ -94,7 +94,7 @@ function parseConcurrents() {
   window.close();
 }
 
-function filtration() {
+function filtration(taskName) {
   var containerRows = $("div.container").data('rows');
   var inputfile = document.getElementById("inputfile").value;
   var followers_from = document.getElementById("followers_from").value;
@@ -130,9 +130,9 @@ function filtration() {
 
 function completeTask(taskName) {
   if (taskName == 'parse_concurrents') {
-    parseConcurrents();
+    parseConcurrents(taskName);
   } else if (taskName == 'filtration') {
-    filtration();
+    filtration(taskName);
   }
 }
 
@@ -162,7 +162,6 @@ function readFile(filepath, cb) {
 }
 
 function saveFile(selector) {
- 
   var path = dialog.showSaveDialog();
   if (path) {
     document.getElementById(selector).value = path;

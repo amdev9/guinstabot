@@ -8,8 +8,8 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 var log = require('electron-log');
-var config = require('config');
-var devIsOpen = config.get('App.devTools');
+var config = require('./config/default');
+const devIsOpen = config.App.devTools;
 
 const autoUpdater = require("electron-updater").autoUpdater;
 autoUpdater.logger = require("electron-log")
@@ -17,8 +17,8 @@ autoUpdater.logger.transports.file.level = "info"
 
 var mainWindow = null;
 
-ipc.on('user_add', (event, user) => {
-  mainWindow.webContents.send('add', user);
+ipc.on('users_add', (event, users) => {
+  mainWindow.webContents.send('add', users);
 });
 
 ipc.on('user_edit', (event, user) => {
