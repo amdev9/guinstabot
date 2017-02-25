@@ -1,5 +1,5 @@
 
-function clickInsideElement( e, className ) {
+function clickInsideElement(e, className) {
   var el = e.srcElement || e.target;
   if ( el.classList.contains(className) ) {
     return el;

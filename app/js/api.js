@@ -5,10 +5,14 @@
 'use strict';
 
 const Client = require('./instagram-private-api').V1; 
-const fs = require('fs');
+var fs = require('fs');
+var path = require('path')
 var Promise = require('bluebird');
-var cookieDir = os.tmpdir() + '/cookie/';
 var async = require('async');
+var config = require('./config/default');
+var softname = config.App.softname;
+
+var cookieDir = path.join(os.tmpdir(), softname, 'cookie');
 
 function mediaFilter(json, task, cb) {
   if (json.isBusiness) {
@@ -135,7 +139,7 @@ var filterNoSession = function(task) {
         }, 20);
       });
     }).then(function() {
-      setStateView(task_id, 'stopped');
+      // setStateView(task_id, 'stopped');
       loggerDb(task_id, 'Фильтрация остановлена');
     }).catch(function (err) {
       console.log(err);
@@ -197,7 +201,8 @@ var filterSession = function(user, task) {
 
   const device = new Client.Device(user.username);
   checkFolderExists(cookieDir);
-  const storage = new Client.CookieFileStorage(cookieDir + user._id + ".json");
+  var cookiePath = path.join(cookieDir, user._id + ".json");
+  const storage = new Client.CookieFileStorage(cookiePath);
   var ses = Client.Session.create(device, storage, user.username, user.password);
 
   var iterator = 0;
@@ -256,7 +261,8 @@ function apiParseAccounts(user, task) {
 
   const device = new Client.Device(user.username);
   checkFolderExists(cookieDir);
-  const storage = new Client.CookieFileStorage(cookieDir + user._id + ".json");
+  var cookiePath = path.join(cookieDir, user._id + ".json");
+  const storage = new Client.CookieFileStorage(cookiePath);
   var ses = Client.Session.create(device, storage, user.username, user.password);
 
   task.parsed_conc.forEach( function(conc_user) {
@@ -323,7 +329,8 @@ function apiParseAccounts(user, task) {
 function apiSessionCheck(user_id, username, password) { // add proxy
   const device = new Client.Device(username);
   checkFolderExists(cookieDir);
-  const storage = new Client.CookieFileStorage(cookieDir + user_id + ".json");
+  var cookiePath = path.join(cookieDir, user_id + ".json");
+  const storage = new Client.CookieFileStorage(cookiePath);
   Client.Session.create(device, storage, username, password)
     .then(function(session) {
       Client.Session.login(session, username, password).then(function(result){

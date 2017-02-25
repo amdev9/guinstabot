@@ -10,6 +10,9 @@ const BrowserWindow = require('electron').remote.BrowserWindow;
 const {dialog} = require('electron').remote;
 var config = require('./config/default');
 const devIsOpen = config.App.devTools;
+var softname = config.App.softname;
+
+var logsDir = path.join(os.tmpdir(), softname, 'logs');
 
 function checkSecurityController(cb) {
   checkLicense(cb);
@@ -25,7 +28,7 @@ function openDevTool(win, isOpen) {
   }
 }
 
-function editUserController(user) { 
+function editUserController(user) {
   if (user.length == 0) {
     dialog.showMessageBox({ 
       message: "Пользователь не выбран",
@@ -57,7 +60,6 @@ function editUserController(user) {
     });
     openDevTool(editView, devIsOpen);
   }
-
 }
 
 function tasksController(action, rows) {
@@ -89,10 +91,9 @@ function tasksController(action, rows) {
 }
 
 function showLogsController(rows) {
-  var logpath = __dirname + "/logs/";
-  checkFolderExists(logpath);
+  checkFolderExists(logsDir);
   rows.forEach(function (row_id) {
-    var l_filepath = logpath + row_id + ".txt";
+    var l_filepath = path.join(logsDir, row_id + ".txt");
     if (fs.existsSync(l_filepath) ) {
       let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
       loggerView.setMenu(null)

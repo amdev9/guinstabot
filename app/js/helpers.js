@@ -4,6 +4,9 @@
 
 'use strict';
 
+var fs = require('fs');
+var mkdirp = require('mkdirp');
+
 function setProxyFunc(proxyString) {
   if(proxyString.split(":").length == 2) {
     let proxy_ip = proxyString.split(":")[0];
@@ -23,9 +26,10 @@ function setProxyFunc(proxyString) {
 }
 
 function checkFolderExists(filepath) {
-  if (!fs.existsSync(filepath)){
-    fs.mkdirSync(filepath);
-  }
+  mkdirp(filepath, function (err) {
+    if (err) console.error(err)
+    else console.log('pow!')
+  });
 }
 
 function appendStringFile(filepath, string) {
@@ -54,6 +58,14 @@ function isEmpty(x) {
   if( x !== "" ) {
     return true;
   }
+}
+
+function getTimeStamp() {
+  var d = new Date();
+  var timeTxt = d.toTimeString().split(' ')[0];
+  var dateTxt = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  var dateTimeTxt = "[" + dateTxt+" "+timeTxt + "] ";
+  return dateTimeTxt;
 }
 
 function convertTime(UNIX_timestamp) {

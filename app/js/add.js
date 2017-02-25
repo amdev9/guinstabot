@@ -1,5 +1,5 @@
 ipc = require('electron').ipcRenderer;
-const fs = require("fs");
+var fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 var config = require('../config/default');
 var softname = config.App.softname;
@@ -22,7 +22,7 @@ function isEmpty(x) {
 
 var openFile = function(selector) {
   const {dialog} = require('electron').remote
-  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
+  var path = dialog.showOpenDialog({properties: ['openFile']});
   if (path) {
     document.getElementById(selector).value = path;
   }

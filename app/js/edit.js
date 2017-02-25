@@ -1,5 +1,5 @@
 ipc = require('electron').ipcRenderer;
-const fs = require("fs");
+var fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 var config = require('../config/default');
 var softname = config.App.softname;
