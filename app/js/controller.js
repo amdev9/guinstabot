@@ -109,6 +109,16 @@ function showLogsController(rows) {
       loggerView.webContents.on('did-finish-load', () => {
         loggerView.webContents.send('log_data', l_filepath, row_id);
       });
+
+      fs.watchFile(l_filepath, (curr, prev) => {
+        if (curr == prev) {} else {
+          loggerView.webContents.send('log_data_changed', l_filepath, row_id);
+          // console.log(`the current mtime is: ${curr.mtime}`);
+          // console.log(`the previous mtime was: ${prev.mtime}`);
+        }
+      });
+
+
       openDevTool(loggerView, devIsOpen);
     } else {
       dialog.showMessageBox({ 

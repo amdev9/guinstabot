@@ -17,3 +17,21 @@ ipc.on('log_data', (event, l_filepath, title) => {
     text.innerHTML += line + "<br>";
   });
 });
+
+
+ipc.on('log_data_changed', (event, l_filepath, title) => {
+  // console.log("log_data_changed")
+  var text = document.getElementById("text");
+  const rl = readline.createInterface({
+    input: fs.createReadStream(l_filepath)
+  });
+
+  rl.on('line', function (line) {
+    text.innerHTML += line + "<br>";
+  });
+});
+
+
+
+
+ 
