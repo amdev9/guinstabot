@@ -20,7 +20,7 @@ ipc.on('log_data', (event, l_filepath, title) => {
 
 
 ipc.on('log_data_changed', (event, l_filepath, title) => {
-  // console.log("log_data_changed")
+  // console.log("log_data_changed") ///            FIX to add string prokrut vnis bez full obnova
   var text = document.getElementById("text");
   const rl = readline.createInterface({
     input: fs.createReadStream(l_filepath)

@@ -76,10 +76,10 @@ function setStateView(id, state) {
     if (getState(id) != 'stopped') {
       setState(id, state);
       setStateMessage(id, 'Останавливаем');
-    } else if (state == 'stopped') {
-      setState(id, state);
-      setStateMessage(id, 'Остановлен');
-    }
+    } 
+  } else if (state == 'stopped') {
+    setState(id, state);
+    setStateMessage(id, 'Остановлен');
   }
 }
 

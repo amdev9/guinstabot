@@ -120,7 +120,6 @@ var filterNoSession = function(task) {
         }
 
         if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
-
           return resolver.resolve(); 
         } // max_limit value -> partition[i]
         return Promise.cast(action())
@@ -139,8 +138,8 @@ var filterNoSession = function(task) {
         }, 20);
       });
     }).then(function() {
-      // setStateView(task_id, 'stopped');
-      loggerDb(task_id, 'Фильтрация остановлена');
+      loggerDb(task._id, 'Фильтрация остановлена');
+      setStateView(task._id, 'stopped');
     }).catch(function (err) {
       console.log(err);
     });
@@ -189,6 +188,7 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
 }
 
 var filterSession = function(user, task) {
+  checkFolderExists(cookieDir);
   setStateView(user._id, 'run');
   loggerDb(user._id, 'Фильтрация аудитории');
   fs.truncate(task.outputfile, 0, function(){ 
@@ -200,7 +200,6 @@ var filterSession = function(user, task) {
   }
 
   const device = new Client.Device(user.username);
-  checkFolderExists(cookieDir);
   var cookiePath = path.join(cookieDir, user._id + ".json");
   const storage = new Client.CookieFileStorage(cookiePath);
   var ses = Client.Session.create(device, storage, user.username, user.password);
@@ -233,6 +232,7 @@ var filterSession = function(user, task) {
     });
   }).then(function() {
     loggerDb(user._id, 'Фильтрация остановлена');
+    setStateView(user._id, 'stopped');
   }).catch(function (err) {
     console.log(err);
   });
@@ -247,7 +247,10 @@ function apiFilterAccounts(row) {
   }
 }
 
+
+
 function apiParseAccounts(user, task) {
+  checkFolderExists(cookieDir);
   setStateView(user._id, 'run');
   loggerDb(user._id, 'Парсинг аудитории');
   fs.truncate(task.outputfile, 0, function() { 
@@ -260,7 +263,6 @@ function apiParseAccounts(user, task) {
   }
 
   const device = new Client.Device(user.username);
-  checkFolderExists(cookieDir);
   var cookiePath = path.join(cookieDir, user._id + ".json");
   const storage = new Client.CookieFileStorage(cookiePath);
   var ses = Client.Session.create(device, storage, user.username, user.password);
@@ -291,7 +293,6 @@ function apiParseAccounts(user, task) {
           });
         }
         if (getStateView(user._id) == 'stop' || indicator > task.max_limit) {
-    
           return resolver.resolve();
         }
         return Promise.cast(action())
@@ -311,7 +312,8 @@ function apiParseAccounts(user, task) {
       }).then(function() {
 
         loggerDb(user._id, 'Парсинг остановлен');
-      
+        setStateView(user._id, 'stopped');
+
       }).catch(function (err) {
         console.log(err);
       });
@@ -327,8 +329,8 @@ function apiParseAccounts(user, task) {
 }
 
 function apiSessionCheck(user_id, username, password) { // add proxy
-  const device = new Client.Device(username);
   checkFolderExists(cookieDir);
+  const device = new Client.Device(username);
   var cookiePath = path.join(cookieDir, user_id + ".json");
   const storage = new Client.CookieFileStorage(cookiePath);
   Client.Session.create(device, storage, username, password)
