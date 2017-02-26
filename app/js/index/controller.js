@@ -76,7 +76,7 @@ function editUserController(user) {
     }
 
     editView.webContents.on('did-finish-load', () => {
-      getUserDb(user[0], editView.webContents ); 
+      getItemDb(user[0], editView.webContents ); 
     });
     openDevTool(editView, devIsOpen);
   }
@@ -104,7 +104,7 @@ function tasksController(action, rows) {
     } else if (action == "add" && rows.length == 0) {
       taskView.webContents.send('type', 'task');
     } else if (action == "edit" && rows.length == 1) {
-      getTaskDb(rows[0], taskView.webContents);
+      getItemDb(rows[0], taskView.webContents);
     }
   });
   openDevTool(taskView, devIsOpen);

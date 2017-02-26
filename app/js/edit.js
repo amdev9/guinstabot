@@ -23,4 +23,3 @@ function saveAccountData() {
   ipc.send('user_edit', user );
   window.close();
 }
-

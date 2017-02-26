@@ -26,6 +26,7 @@ ipc.on('user_edit', (event, user) => {
 });
 
 ipc.on('task_complete_event', (event, rows, taskName, ...params) => {
+  console.log(rows);
   mainWindow.webContents.send('task_complete', rows, taskName, params);
 });
 

@@ -13,40 +13,27 @@ ipc.on('type', (event, type, rows) => {
   saveTypeRowsDom(type, rows);
 });
 
-ipc.on('edit', (event, task) => {
-  if (task.name == 'parse_concurrents') {
-    editParseConcurrents(task);
-  } else if (task.name == 'filtration') {
-    editFiltration(task);
+ipc.on('edit', (event, item) => {
+  var rows = [];
+  rows.push(item._id);
+  saveTypeRowsDom(null, rows);
+
+  if (item.type == 'user') {
+    var user = item;  
+    if (user.task.name == 'parse_concurrents') {
+      editParseConcurrents(user.task);
+    } else if (user.task.name == 'filtration') {
+      editFiltration(user.task);
+    }
+  } else {
+    var task = item;
+    if (task.name == 'parse_concurrents') {
+      editParseConcurrents(task);
+    } else if (task.name == 'filtration') {
+      editFiltration(task);
+    }
   }
 });
-
-function editFiltration(task) {
-  $("div.container").data('task', { _id: task._id, _rev: task._rev });
-  updateElemView(['filtration']);
-  document.getElementById("inputfile").value = task.inputfile;
-  document.getElementById("followers_from").value = task.followers.from;
-  document.getElementById("followers_to").value = task.followers.to;
-  document.getElementById("publications_from").value = task.subscribers.from;
-  document.getElementById("publications_to").value = task.subscribers.to;
-  document.getElementById("subscribers_from").value = task.publications.from;
-  document.getElementById("subscribers_to").value = task.publications.to;
-  document.getElementById("stop_words_file").value = task.stop_words_file;
-  document.getElementById("avatar").checked = task.anonym_profile; 
-  document.getElementById("private").value =  task.private;
-  document.getElementById("lastdate").value = task.lastdate;
-  document.getElementById("filtered_accounts").value = task.outputfile;
-}
-
-function editParseConcurrents(task) {
-  $("div.container").data('task', { _id: task._id, _rev: task._rev });
-  updateElemView(['parse_concurrents']);
-  document.getElementById("parsed_conc").value = task.parsed_conc.join('\n');
-  document.getElementById("follow").checked = task.parse_type;
-  document.getElementById("subscribe").checked = !task.parse_type;
-  document.getElementById("max_limit").value = task.max_limit;
-  document.getElementById("parsed_accounts").value = task.outputfile;
-}
 
 function updateElementsAccessibility(type) {
   if (type == 'user') {
@@ -79,50 +66,82 @@ function updateElemView(accessible) {
   });
 }
 
+function clearTextArea (selector) {
+  document.getElementById(selector).value = "";
+}
+
+function openFile ( selector ) {
+  var path = dialog.showOpenDialog({properties: ['openFile']}); // 'openDirectory'
+  if (path) {
+    document.getElementById(selector).value = path;
+  } 
+}
+
+function openParse(selector) {
+  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
+  readFile(path[0], function(data) {
+    document.getElementById(selector).value = data;
+  });
+}
+
+function readFile(filepath, cb) {
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) throw err;
+    return cb(data);
+  });
+}
+
+function saveFile(selector) {
+  var path = dialog.showSaveDialog();
+  if (path) {
+    document.getElementById(selector).value = path;
+  }
+}
+
+document.getElementById("lastdate").disabled = true;
+function checkDatePicker() {
+  if (document.getElementById('date_checker').checked == true) {
+     document.getElementById("lastdate").disabled = false;
+  } else {
+    document.getElementById("lastdate").disabled = true;
+  }
+}
+
 function isEmpty(x) {
   if (x !== "") {
     return true;
   }
 }
 
+function editFiltration(task) {
+  // $("div.container").data('task', { _id: task._id, _rev: task._rev });
+  updateElemView(['filtration']);
+  document.getElementById("inputfile").value = task.inputfile;
+  document.getElementById("followers_from").value = task.followers.from;
+  document.getElementById("followers_to").value = task.followers.to;
+  document.getElementById("publications_from").value = task.subscribers.from;
+  document.getElementById("publications_to").value = task.subscribers.to;
+  document.getElementById("subscribers_from").value = task.publications.from;
+  document.getElementById("subscribers_to").value = task.publications.to;
+  document.getElementById("stop_words_file").value = task.stop_words_file;
+  document.getElementById("avatar").checked = task.anonym_profile; 
+  document.getElementById("private").value =  task.private;
+  document.getElementById("lastdate").value = task.lastdate;
+  document.getElementById("filtered_accounts").value = task.outputfile;
+}
+
+function editParseConcurrents(task) {
+  // $("div.container").data('task', { _id: task._id, _rev: task._rev });
+  updateElemView(['parse_concurrents']);
+  document.getElementById("parsed_conc").value = task.parsed_conc.join('\n');
+  document.getElementById("follow").checked = task.parse_type;
+  document.getElementById("subscribe").checked = !task.parse_type;
+  document.getElementById("max_limit").value = task.max_limit;
+  document.getElementById("parsed_accounts").value = task.outputfile;
+}
+
 function parseConcurrents(taskName) {
   var containerRows = $("div.container").data('rows');
-
-
-  // var to_parse_usernames = params[1].length;
-  // var div = Math.floor(to_parse_usernames / users.length);
-  // var rem = to_parse_usernames % users.length;
-  // var dotation = [];
-  // dotation[0] = rem + div;
-  // for (var i = 1; i < users.length; i++) {
-  //   dotation[i] = dotation[i-1]+div;
-  // }
-  // users.forEach( function(user, i , arr) {
-
-  //   let db_object = {
-  //     _id: user._id,
-  //     username: user.username, 
-  //     proxy: user.proxy,
-  //     password: user.password,
-  //     status: user.status,
-  //     type: user.type,
-  //     cookie: user.cookie,
-  //     task: {
-  //       name: taskName,
-  //       outputfile: params[0], 
-  //       parsed_conc: (i == 0) ? params[1].slice(0, dotation[i]) : params[1].slice(dotation[i-1], dotation[i]),
-  //       max_limit: params[2], 
-  //       parse_type: params[3]
-  //     },
-  //     _rev: user._rev 
-  //   };
-
-  // return db.put(db_object).then(function (result) {
-  //      setTaskView(user._id, taskName);
-  //    }).catch(function (err) {
-  //      console.log(err);
-  //    });
-  //  });
 
   var followTrueSubscribeFalse = false;
   var concurParsed = document.getElementById("parsed_conc").value.split('\n');
@@ -178,47 +197,8 @@ function completeTask(taskName) {
     parseConcurrents(taskName);
   } else if (taskName == 'filtration') {
     filtration(taskName);
-  }
-}
-
-function clearTextArea (selector) {
-  document.getElementById(selector).value = "";
-}
-
-function openFile ( selector ) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); // 'openDirectory'
-  if (path) {
-    document.getElementById(selector).value = path;
-  } 
-}
-
-function openParse(selector) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
-  readFile(path[0], function(data) {
-    document.getElementById(selector).value = data;
-  });
-}
-
-function readFile(filepath, cb) {
-  fs.readFile(filepath, 'utf8', (err, data) => {
-    if (err) throw err;
-    return cb(data);
-  });
-}
-
-function saveFile(selector) {
-  var path = dialog.showSaveDialog();
-  if (path) {
-    document.getElementById(selector).value = path;
-  }
-}
-
-document.getElementById("lastdate").disabled = true;
-function checkDatePicker() {
-  if (document.getElementById('date_checker').checked == true) {
-     document.getElementById("lastdate").disabled = false;
-  } else {
-    document.getElementById("lastdate").disabled = true;
+  } else if (taskName == 'create_accounts') {
+    createAccounts(taskName);
   }
 }
 
