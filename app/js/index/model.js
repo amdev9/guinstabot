@@ -158,12 +158,14 @@ function runTasksDb(rows) {
 }
 
 function getExistedUserRows(rows) {
+     
   var result = [];
   return new Promise(function(resolve, reject) {
     rows.forEach(function(row_id, i) {
       db.get(row_id).then(function(doc) {
         result.push(doc);
         if (i == rows.length - 1) {
+
           resolve(result);   /// FIX for prod
         }
       }).catch(function (err) {
@@ -174,11 +176,14 @@ function getExistedUserRows(rows) {
 }
 
 function completeUserTaskDb(rows, taskName, params) {
+  console.log(rows);
   getExistedUserRows(rows)
     .then(function(result) {
+
     var users = result;
 
     if (taskName == 'parse_concurrents') {
+      
       var to_parse_usernames = params[1].length;
       var div = Math.floor(to_parse_usernames / users.length);
       var rem = to_parse_usernames % users.length;
