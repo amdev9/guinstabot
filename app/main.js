@@ -25,13 +25,8 @@ ipc.on('user_edit', (event, user) => {
   mainWindow.webContents.send('edit', user);
 });
 
-ipc.on('task_complete_event', (event, rows, taskName, ...params) => {
-  console.log(rows);
-  mainWindow.webContents.send('task_complete', rows, taskName, params);
-});
-
-ipc.on('add_task_event', (event, taskName, ...params) => {
-  mainWindow.webContents.send('add_task', taskName, params);
+ipc.on('add_task_event', (event, task, users) => {
+  mainWindow.webContents.send('add_task', task, users);
 });
 
 app.on('window-all-closed', function() {

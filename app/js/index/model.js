@@ -30,79 +30,29 @@ function dropDb() {
   });
 }
 
-function addTaskDb(taskName, params) {
-  readFilePromise(params[0], 'utf8').then(function(data) {
-    var concurParsed = [];
-    concurParsed = data.split('\n');
-    concurParsed = concurParsed.filter(isEmpty);
-    return new Promise(function(resolve, reject) {
-      resolve(concurParsed);
-    });
-  }).then(function(parsed_array) {
- 
-    if (taskName == 'filtration') {
-      var proxyParsed = [];
-      readFile(params[12], function (data) { 
-        proxyParsed = data.split('\n');
-        proxyParsed = proxyParsed.filter(isEmpty);
+// function addTaskDb(taskName, params) {
+//   readFilePromise(params[0], 'utf8').then(function(data) {
+//     var concurParsed = [];
+//     concurParsed = data.split('\n');
+//     concurParsed = concurParsed.filter(isEmpty);
+//     return new Promise(function(resolve, reject) {
+//       resolve(concurParsed);
+//     });
+//   }).then(function(parsed_array) {
+//     if (taskName == 'filtration') {
+//       filtrationTaskDb(parsed_array, taskName, params);
+//     }
+//   });
+// }
 
-        var to_parse_usernames = parsed_array.length;
-        var div = Math.floor(to_parse_usernames / (proxyParsed.length+1) );
-        var rem = to_parse_usernames % (proxyParsed.length+1);
-        // var partition = [];
-        // partition[0] = rem + div; // fix to { start: 0, end: rem + div }
-        var partition = new Array(proxyParsed.length);
-        partition.fill({});
-
-        partition[0].start = 0;
-        partition[0].end = rem + div;
-        partition[0].proxy_parc = proxyParsed[0];
-
-        for (var i = 1; i < proxyParsed.length; i++) {
-          // partition[i] = partition[i-1]+div; // fix to { start: partition[i-1].end , end: partition[i-1].end + div }
-          partition[i].start = partition[i-1].end;
-          partition[i].end = partition[i-1].end + div;
-          partition[i].proxy_parc = proxyParsed[i];
-        }
-        
-        /////////////////////////////////
-        let db_object = {
-          _id: new Date().toISOString(),
-          name: taskName,
-          inputfile: params[0],
-          input_array: parsed_array,
-          followers: {
-            from: params[1],
-            to: params[2]
-          },
-          subscribers: {
-            from: params[3], 
-            to: params[4]
-          },
-          publications: {
-            from: params[5],
-            to: params[6]
-          },
-          stop_words_file: params[7],
-          anonym_profile: params[8],
-          private: params[9],
-          lastdate: params[10],
-          outputfile: params[11],
-          partitions: partition,
-          type: 'task',
-          status: '-'
-        };
-
-
-        db.put(db_object).then(function (response) {
-          console.log(response);
-          renderTaskRowView(response.id, taskName);
-        }).catch(function (err) {
-          console.log(err);
-        });
-      });
-    }
-  });
+function addTaskDb(task, users) { 
+  // console.log(task);
+  // console.log(users);
+  if (task[0].name == 'parse_concurrents') {
+    parseConcurrentsTaskDb(task, users);
+  } else if (task[0].name == 'filtration') {
+    filtrationTaskDb(task, users);
+  }
 }
 
 function addUsersDb(users) {
@@ -158,7 +108,7 @@ function runTasksDb(rows) {
 }
 
 function getExistedUserRows(rows) {
-  console.log(rows);
+ 
   var result = [];
   return new Promise(function(resolve, reject) {
     rows.forEach(function(row_id, i) {
@@ -174,99 +124,167 @@ function getExistedUserRows(rows) {
   })
 }
 
-
-function parseConcurrentsUserDb(result, taskName, params) {
-  var users = result;
-  var to_parse_usernames = params[1].length;
-  var div = Math.floor(to_parse_usernames / users.length);
-  var rem = to_parse_usernames % users.length;
-  var dotation = [];
-  dotation[0] = rem + div;
-  for (var i = 1; i < users.length; i++) {
-    dotation[i] = dotation[i-1]+div;
-  }
-  users.forEach( function(user, i , arr) {
-    let db_object = {
-      _id: user._id,
-      username: user.username, 
-      proxy: user.proxy,
-      password: user.password,
-      status: user.status,
-      type: user.type,
-      cookie: user.cookie,
-      task: {
-        name: taskName,
-        outputfile: params[0], 
-        parsed_conc: (i == 0) ? params[1].slice(0, dotation[i]) : params[1].slice(dotation[i-1], dotation[i]),
-        max_limit: params[2], 
-        parse_type: params[3]
-      },
-      _rev: user._rev 
-    };
-    return db.put(db_object).then(function (result) {
-      setTaskView(user._id, taskName);
+function parseConcurrentsTaskDb(tasks, users) {
+  users.forEach(function(user_id, i) {
+    db.get(user_id).then(function(user) {
+      user.task = tasks[i];
+      db.put(user).then(function(result) {
+        setTaskView(user._id, user.task.name);
+      }).catch(function (err) {
+        console.log(err);
+      });
     }).catch(function (err) {
       console.log(err);
     });
   });
 }
 
-function filtrationUserDb(result, taskName, params) {
-  var users = result;
-  var concurParsed = [];
-  readFile(params[0], function (data) {
-    concurParsed = data.split('\n');
-    concurParsed = concurParsed.filter(isEmpty);
-
-    var to_parse_usernames = concurParsed.length;
-    var div = Math.floor(to_parse_usernames / users.length);
-    var rem = to_parse_usernames % users.length;
-    var dotation = [];
-    dotation[0] = rem + div;
-    for (var i = 1; i < users.length; i++) {
-      dotation[i] = dotation[i-1]+div;
+function filtrationTaskDb(tasks, users) {
+  var task = tasks;
+  db.put(task).then(function (response) {
+    if(!task._rev) {
+      renderTaskRowView(response.id, task.name);
     }
-    
-    users.forEach( function(user, i , arr) {
-      let db_object = {
-        _id: user._id,
-        username: user.username, 
-        proxy: user.proxy,
-        password: user.password,
-        status: user.status,
-        type: user.type,
-        cookie: user.cookie,
-        task: {
-          name: taskName,
-          inputfile: params[0],
-          input_array: (i == 0) ? concurParsed.slice(0, dotation[i]) : concurParsed.slice(dotation[i-1], dotation[i]), // params[0],  
-          followers: {
-            from: params[1],
-            to: params[2]
-          },
-          subscribers: {
-            from: params[3], 
-            to: params[4]
-          },
-          publications: {
-            from: params[5],
-            to: params[6]
-          },
-          stop_words_file: params[7],
-          anonym_profile: params[8],
-          private: params[9],
-          lastdate: params[10],
-          outputfile: params[11]
-        },
-        _rev: user._rev
-      };
-      return db.put(db_object).then(function (result) {
-        setTaskView(user._id, taskName);
-      }).catch(function (err) {
-        console.log(err);
-      });
-    });
+  }).catch(function (err) {
+    console.log(err);
   });
+
+
+  // users.forEach(function(user_id, i) {
+  //   db.get(user_id).then(function(user) {
+  //     user.task = tasks[i];
+  //     db.put(user).then(function(result) {
+  //       setTaskView(user._id, user.task.name);
+  //     }).catch(function (err) {
+  //       console.log(err);
+  //     });
+  //   }).catch(function (err) {
+  //     console.log(err);
+  //   });
+  // });
+
+
+
+  // var proxyParsed = [];
+  // readFilePromise(params[12], 'utf8').then(function(data) {
+  // // readFile(params[12], function (data) { 
+  //   proxyParsed = data.split('\n');
+  //   proxyParsed = proxyParsed.filter(isEmpty);
+
+  //   var to_parse_usernames = parsed_array.length;
+  //   var div = Math.floor(to_parse_usernames / (proxyParsed.length+1) );
+  //   var rem = to_parse_usernames % (proxyParsed.length+1);
+  //   // var partition = [];
+  //   // partition[0] = rem + div; // fix to { start: 0, end: rem + div }
+  //   var partition = new Array(proxyParsed.length);
+  //   partition.fill({});
+
+  //   partition[0].start = 0;
+  //   partition[0].end = rem + div;
+  //   partition[0].proxy_parc = proxyParsed[0];
+
+  //   for (var i = 1; i < proxyParsed.length; i++) {
+  //     // partition[i] = partition[i-1]+div; // fix to { start: partition[i-1].end , end: partition[i-1].end + div }
+  //     partition[i].start = partition[i-1].end;
+  //     partition[i].end = partition[i-1].end + div;
+  //     partition[i].proxy_parc = proxyParsed[i];
+  //   }
+    
+  //   /////////////////////////////////
+  //   let db_object = {
+  //     // need ref to update
+  //     _id: new Date().toISOString(),
+  //     name: taskName,
+  //     inputfile: params[0],
+  //     input_array: parsed_array,
+  //     followers: {
+  //       from: params[1],
+  //       to: params[2]
+  //     },
+  //     subscribers: {
+  //       from: params[3], 
+  //       to: params[4]
+  //     },
+  //     publications: {
+  //       from: params[5],
+  //       to: params[6]
+  //     },
+  //     stop_words_file: params[7],
+  //     anonym_profile: params[8],
+  //     private: params[9],
+  //     lastdate: params[10],
+  //     outputfile: params[11],
+  //     partitions: partition,
+  //     type: 'task',
+  //     status: '-'
+  //   };
+
+  //   db.put(db_object).then(function (response) {
+  //     console.log(response);
+  //     renderTaskRowView(response.id, taskName);
+  //   }).catch(function (err) {
+  //     console.log(err);
+  //   });
+  // });
+}
+
+function filtrationUserDb(result, taskName, params) {
+  // var users = result;
+  // var concurParsed = [];
+  // readFilePromise(params[0], 'utf8').then(function(data) {
+  // // readFile(params[0], function (data) {
+  //   concurParsed = data.split('\n');
+  //   concurParsed = concurParsed.filter(isEmpty);
+
+  //   var to_parse_usernames = concurParsed.length;
+  //   var div = Math.floor(to_parse_usernames / users.length);
+  //   var rem = to_parse_usernames % users.length;
+  //   var dotation = [];
+  //   dotation[0] = rem + div;
+  //   for (var i = 1; i < users.length; i++) {
+  //     dotation[i] = dotation[i-1]+div;
+  //   }
+    
+  //   users.forEach( function(user, i , arr) {
+  //     let db_object = {
+  //       _id: user._id,
+  //       username: user.username, 
+  //       proxy: user.proxy,
+  //       password: user.password,
+  //       status: user.status,
+  //       type: user.type,
+  //       cookie: user.cookie,
+  //       task: {
+  //         name: taskName,
+  //         inputfile: params[0],
+  //         input_array: (i == 0) ? concurParsed.slice(0, dotation[i]) : concurParsed.slice(dotation[i-1], dotation[i]), // params[0],  
+  //         followers: {
+  //           from: params[1],
+  //           to: params[2]
+  //         },
+  //         subscribers: {
+  //           from: params[3], 
+  //           to: params[4]
+  //         },
+  //         publications: {
+  //           from: params[5],
+  //           to: params[6]
+  //         },
+  //         stop_words_file: params[7],
+  //         anonym_profile: params[8],
+  //         private: params[9],
+  //         lastdate: params[10],
+  //         outputfile: params[11]
+  //       },
+  //       _rev: user._rev
+  //     };
+  //     return db.put(db_object).then(function (result) {
+  //       setTaskView(user._id, taskName);
+  //     }).catch(function (err) {
+  //       console.log(err);
+  //     });
+  //   });
+  // });
 }
 
 function completeUserTaskDb(rows, taskName, params) {

@@ -1,5 +1,7 @@
 ipc = require('electron').ipcRenderer;
 var fs = require("fs");
+var Promise = require('bluebird');
+var readFilePromise = Promise.promisify(require("fs").readFile);
 window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
 var config = require('../config/default');
@@ -14,9 +16,18 @@ ipc.on('type', (event, type, rows) => {
 });
 
 ipc.on('edit', (event, item) => {
+
+  if(item.type == 'user') {
   var rows = [];
   rows.push(item._id);
-  saveTypeRowsDom(null, rows);
+  saveTypeRowsDom('user', rows);
+  } else {
+    var rows = { _id: item._id, _rev: item._rev };
+    saveTypeRowsDom('task', rows);
+  }
+
+  $("#proxy_file").prop("disabled", false);
+  $("#proxy_file_button").prop("disabled", false);
 
   if (item.type == 'user') {
     var user = item;  
@@ -52,8 +63,8 @@ function disableCustomElem() {
 }
 
 function saveTypeRowsDom(type, rows) {
-  $("div.container").attr('id', type);
-  $("div.container").data('rows', rows);
+  // $("div.container").attr('id', type);
+  $("div.container").data(type, rows);
 }
 
 function updateElemView(accessible) {
@@ -128,6 +139,7 @@ function editFiltration(task) {
   document.getElementById("private").value =  task.private;
   document.getElementById("lastdate").value = task.lastdate;
   document.getElementById("filtered_accounts").value = task.outputfile;
+  document.getElementById("proxy_file").value = task.proxy_file;
 }
 
 function editParseConcurrents(task) {
@@ -141,55 +153,175 @@ function editParseConcurrents(task) {
 }
 
 function parseConcurrents(taskName) {
-  var containerRows = $("div.container").data('rows');
 
-  var followTrueSubscribeFalse = false;
-  var concurParsed = document.getElementById("parsed_conc").value.split('\n');
-  concurParsed = concurParsed.filter(isEmpty);
-  if (document.getElementById("follow").checked == true) {
-    followTrueSubscribeFalse = true;
-  }
-  var limit = document.getElementById("max_limit").value;
-  var parsedAccountsFile = document.getElementById("parsed_accounts").value;
+  var tasks = [];
+  var users = $("div.container").data('user');
 
-  const parse_concurrents_params = [parsedAccountsFile, concurParsed, limit, followTrueSubscribeFalse]; 
-  const parse_concurrents_user = [ 'task_complete_event', containerRows, taskName].concat(parse_concurrents_params);
-  ipc.send.apply(this, parse_concurrents_user);
-  window.close();
+  users.forEach(function(user, iter, arr) {
+    var task = {};
+    task.name = taskName;
+    task.outputfile = document.getElementById("parsed_accounts").value;
+    task.max_limit = document.getElementById("max_limit").value;
+    var concurParsed = document.getElementById("parsed_conc").value.split('\n');
+    concurParsed = concurParsed.filter(isEmpty);
+    var to_parse_usernames = concurParsed.length;
+    var div = Math.floor(to_parse_usernames / users.length);
+    var rem = to_parse_usernames % users.length;
+    var dotation = [];
+    dotation[0] = rem + div;
+    for (var i = 1; i < users.length; i++) {
+      dotation[i] = dotation[i-1]+div;
+    }
+    task.parsed_conc = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
+    var followTrueSubscribeFalse = false;
+    if (document.getElementById("follow").checked == true) {
+      followTrueSubscribeFalse = true;
+    }
+    task.parse_type = followTrueSubscribeFalse;
+    tasks.push(task);
+    if(iter == arr.length - 1) {      
+      ipc.send('add_task_event', tasks, users);
+      window.close();
+    }
+  });
 }
 
-function filtration(taskName) {
-  var containerRows = $("div.container").data('rows');
-  var inputfile = document.getElementById("inputfile").value;
-  var followers_from = document.getElementById("followers_from").value;
-  var followers_to = document.getElementById("followers_to").value;
-  var subscribers_from = document.getElementById("subscribers_from").value;
-  var subscribers_to = document.getElementById("subscribers_to").value;
-  var publications_from = document.getElementById("publications_from").value;
-  var publications_to = document.getElementById("publications_to").value;
-  var stop_words_file = document.getElementById("stop_words_file").value;
-  var avatar = document.getElementById("avatar").checked;
-  var private = document.getElementById("private").value;
 
+function filtrationUiData() {
+  var task = {};
+  task.inputfile = document.getElementById("inputfile").value;
+  task.followers = {
+    from: document.getElementById("followers_from").value,
+    to: document.getElementById("followers_to").value
+  };
+  task.subscribers = {
+    from: document.getElementById("subscribers_from").value,
+    to: document.getElementById("subscribers_to").value
+  };
+  task.publications = {
+    from: document.getElementById("publications_from").value,
+    to: document.getElementById("publications_to").value
+  };
+  task.stop_words_file = document.getElementById("stop_words_file").value;
+  task.anonym_profile = document.getElementById("avatar").checked;
+  task.private = document.getElementById("private").value;
   if (document.getElementById ('date_checker').checked == true) {
     var lastdate = document.getElementById("lastdate").value;
   } else {
     var lastdate = "";
   }
-  var filtered_accounts = document.getElementById("filtered_accounts").value;
-  var proxy_file = document.getElementById("proxy_file").value;
+  task.lastdate = lastdate;
+  task.outputfile = document.getElementById("filtered_accounts").value;
+  task.proxy_file = document.getElementById("proxy_file").value;
+  return task;
+}
 
-  const filtration_params = [inputfile, followers_from, followers_to, subscribers_from, subscribers_to, publications_from, publications_to, stop_words_file, avatar,  private, lastdate , filtered_accounts, proxy_file];
-  const filtration_params_task = ['add_task_event', taskName].concat(filtration_params);
-  const filtration_params_user = [ 'task_complete_event', containerRows , taskName].concat(filtration_params);
+function filtration(taskName) {
 
-  if ($("div.container").attr('id') == "task" ) {
-    ipc.send.apply(this, filtration_params_task);
-    window.close();
-  } else { 
-    ipc.send.apply(this, filtration_params_user);
-    window.close();
+  var uiData = filtrationUiData();
+
+  // var tasks = [];
+  // var users = $("div.container").data('user');
+  // users.forEach(function(user, iter, arr) {
+  //   var task = uiData;
+  //   task.name = taskName;
+  //   var concurParsed = [];
+  //   readFilePromise(task.inputfile, 'utf8').then(function(data) {
+  //     concurParsed = data.split('\n');
+  //     concurParsed = concurParsed.filter(isEmpty);
+
+  //     var to_parse_usernames = concurParsed.length;
+  //     var div = Math.floor(to_parse_usernames / users.length);
+  //     var rem = to_parse_usernames % users.length;
+  //     var dotation = [];
+  //     dotation[0] = rem + div;
+  //     for (var i = 1; i < users.length; i++) {
+  //       dotation[i] = dotation[i-1]+div;
+  //     }
+  //     task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
+     
+  //     tasks.push(task);
+  //     if(iter == arr.length - 1) {      
+  //       ipc.send('add_task_event', tasks, users);
+  //       window.close();
+  //     }
+  //   });
+  // });
+
+//TASK
+
+  var task = uiData;
+  task.name = taskName;
+  task.type = 'task';
+  task.status = '-';
+  var domContainer = $("div.container").data('task');
+  if (domContainer) {
+    task._id = domContainer._id;
+    task._rev = domContainer._rev;
+  } else {
+    task._id = new Date().toISOString();
   }
+
+  readFilePromise(task.inputfile, 'utf8').then(function(data) {
+    var parsed_array = [];
+    parsed_array = data.split('\n');
+    parsed_array = parsed_array.filter(isEmpty);
+
+    var proxyParsed = [];
+    readFilePromise(task.proxy_file, 'utf8').then(function(data) {
+      proxyParsed = data.split('\n');
+      proxyParsed = proxyParsed.filter(isEmpty);
+
+      var to_parse_usernames = parsed_array.length;
+      var div = Math.floor(to_parse_usernames / (proxyParsed.length+1) );
+      var rem = to_parse_usernames % (proxyParsed.length+1);
+      // var partition = [];
+      // partition[0] = rem + div; // fix to { start: 0, end: rem + div }
+      var partition = new Array(proxyParsed.length);
+      partition.fill({});
+
+      partition[0].start = 0;
+      partition[0].end = rem + div;
+      partition[0].proxy_parc = proxyParsed[0];
+
+      for (var i = 1; i < proxyParsed.length; i++) {
+        partition[i].start = partition[i-1].end;
+        partition[i].end = partition[i-1].end + div;
+        partition[i].proxy_parc = proxyParsed[i];
+      }
+      task.partitions = partition;
+      ipc.send('add_task_event', task);
+      window.close();
+    });
+  });
+}
+
+function createAccounts(taskName) {
+  var task = {};
+  var domContainer = $("div.container").data('task');
+  if (domContainer) {
+    task._id = domContainer._id;
+    task._rev = domContainer._rev;
+  } else {
+    task._id = new Date().toISOString();
+  }
+  
+  task.status = '-';
+  task.name = taskName;
+  task.type = 'task';
+  task.email_parsed = '';
+  task.own_emails = document.getElementById("own_emails").checked;
+  if(document.getElementById("own_emails").checked == true) {
+    task.email_parsed = document.getElementById("parsed_own_emails").value.split('\n').filter(isEmpty);
+  } else {
+    task.emails_cnt = document.getElementById("reg_count").value;
+  }
+  task.reg_timeout = document.getElementById("reg_timeout").value;
+  task.proxy_file = document.getElementById("proxy_file").value;
+  task.output_file = document.getElementById("output_file").value;
+
+  ipc.send('add_task_event', task);
+  window.close();
 }
 
 function completeTask(taskName) {
