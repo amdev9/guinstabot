@@ -25,8 +25,8 @@ ipc.on('user_edit', (event, user) => {
   mainWindow.webContents.send('edit', user);
 });
 
-ipc.on('add_task_event', (event, task, users) => {
-  mainWindow.webContents.send('add_task', task, users);
+ipc.on('add_task_event', (event, tasks, users) => {
+  mainWindow.webContents.send('add_task', tasks, users);
 });
 
 app.on('window-all-closed', function() {
@@ -62,4 +62,26 @@ function openDevTool(win, isOpen) {
   }
 }
  
+//-------------------------------------------------------------------
+//  MAC QUIT SECTION
+//-------------------------------------------------------------------
+let template = []
+if (process.platform === 'darwin') {
+  // OS X
+  const name = app.getName();
+  template.unshift({
+    label: name,
+    submenu: [
+      {
+        label: 'About ' + name,
+        role: 'about'
+      },
+      {
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        click() { app.quit(); }
+      },
+    ]
+  })
+}
 

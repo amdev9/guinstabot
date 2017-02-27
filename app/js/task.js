@@ -17,18 +17,18 @@ ipc.on('type', (event, type, rows) => {
 
 ipc.on('edit', (event, item) => {
 
-  if(item.type == 'user') {
-  var rows = [];
-  rows.push(item._id);
-  saveTypeRowsDom('user', rows);
+  if (item.type == 'user') {
+ 
+    var rows = [];
+    rows.push(item._id);
+    saveTypeRowsDom('user', rows);
   } else {
+
     var rows = { _id: item._id, _rev: item._rev };
     saveTypeRowsDom('task', rows);
   }
 
-  $("#proxy_file").prop("disabled", false);
-  $("#proxy_file_button").prop("disabled", false);
-
+  
   if (item.type == 'user') {
     var user = item;  
     if (user.task.name == 'parse_concurrents') {
@@ -49,6 +49,7 @@ ipc.on('edit', (event, item) => {
 function updateElementsAccessibility(type) {
   if (type == 'user') {
     updateElemView(['parse_concurrents', 'filtration']);
+    // disableCustomElem();
   } else {
     updateElemView(['filtration']);
     disableCustomElem();
@@ -125,7 +126,7 @@ function isEmpty(x) {
 }
 
 function editFiltration(task) {
-  // $("div.container").data('task', { _id: task._id, _rev: task._rev });
+
   updateElemView(['filtration']);
   document.getElementById("inputfile").value = task.inputfile;
   document.getElementById("followers_from").value = task.followers.from;
@@ -143,7 +144,7 @@ function editFiltration(task) {
 }
 
 function editParseConcurrents(task) {
-  // $("div.container").data('task', { _id: task._id, _rev: task._rev });
+
   updateElemView(['parse_concurrents']);
   document.getElementById("parsed_conc").value = task.parsed_conc.join('\n');
   document.getElementById("follow").checked = task.parse_type;
@@ -162,6 +163,12 @@ function parseConcurrents(taskName) {
     task.name = taskName;
     task.outputfile = document.getElementById("parsed_accounts").value;
     task.max_limit = document.getElementById("max_limit").value;
+    var followTrueSubscribeFalse = false;
+    if (document.getElementById("follow").checked == true) {
+      followTrueSubscribeFalse = true;
+    }
+    task.parse_type = followTrueSubscribeFalse;
+
     var concurParsed = document.getElementById("parsed_conc").value.split('\n');
     concurParsed = concurParsed.filter(isEmpty);
     var to_parse_usernames = concurParsed.length;
@@ -173,11 +180,6 @@ function parseConcurrents(taskName) {
       dotation[i] = dotation[i-1]+div;
     }
     task.parsed_conc = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
-    var followTrueSubscribeFalse = false;
-    if (document.getElementById("follow").checked == true) {
-      followTrueSubscribeFalse = true;
-    }
-    task.parse_type = followTrueSubscribeFalse;
     tasks.push(task);
     if(iter == arr.length - 1) {      
       ipc.send('add_task_event', tasks, users);
@@ -187,8 +189,9 @@ function parseConcurrents(taskName) {
 }
 
 
-function filtrationUiData() {
+function filtrationUiData(taskName) {
   var task = {};
+  task.name = taskName;
   task.inputfile = document.getElementById("inputfile").value;
   task.followers = {
     from: document.getElementById("followers_from").value,
@@ -216,42 +219,39 @@ function filtrationUiData() {
   return task;
 }
 
-function filtration(taskName) {
+function filtrationUser(uiData) {
 
-  var uiData = filtrationUiData();
+  var tasks = [];
+  var users = $("div.container").data('user');
+  users.forEach(function(user, iter, arr) {
+    var task = uiData;
+    var concurParsed = [];
+    readFilePromise(task.inputfile, 'utf8').then(function(data) {
+      concurParsed = data.split('\n');
+      concurParsed = concurParsed.filter(isEmpty);
 
-  // var tasks = [];
-  // var users = $("div.container").data('user');
-  // users.forEach(function(user, iter, arr) {
-  //   var task = uiData;
-  //   task.name = taskName;
-  //   var concurParsed = [];
-  //   readFilePromise(task.inputfile, 'utf8').then(function(data) {
-  //     concurParsed = data.split('\n');
-  //     concurParsed = concurParsed.filter(isEmpty);
-
-  //     var to_parse_usernames = concurParsed.length;
-  //     var div = Math.floor(to_parse_usernames / users.length);
-  //     var rem = to_parse_usernames % users.length;
-  //     var dotation = [];
-  //     dotation[0] = rem + div;
-  //     for (var i = 1; i < users.length; i++) {
-  //       dotation[i] = dotation[i-1]+div;
-  //     }
-  //     task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
+      var to_parse_usernames = concurParsed.length;
+      var div = Math.floor(to_parse_usernames / users.length);
+      var rem = to_parse_usernames % users.length;
+      var dotation = [];
+      dotation[0] = rem + div;
+      for (var i = 1; i < users.length; i++) {
+        dotation[i] = dotation[i-1]+div;
+      }
+      task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
      
-  //     tasks.push(task);
-  //     if(iter == arr.length - 1) {      
-  //       ipc.send('add_task_event', tasks, users);
-  //       window.close();
-  //     }
-  //   });
-  // });
+      tasks.push(task);
+      if(iter == arr.length - 1) {      
+        ipc.send('add_task_event', tasks, users);
+        window.close();
+      }
+    });
+  });
+}
 
-//TASK
+function filtrationTask(uiData) {
 
   var task = uiData;
-  task.name = taskName;
   task.type = 'task';
   task.status = '-';
   var domContainer = $("div.container").data('task');
@@ -296,7 +296,19 @@ function filtration(taskName) {
   });
 }
 
+function filtration(taskName) {
+
+  var uiData = filtrationUiData(taskName);
+  if ($("div.container").data('user')) {
+    filtrationUser(uiData);
+  } else {
+    filtrationTask(uiData);
+  }
+  
+}
+
 function createAccounts(taskName) {
+
   var task = {};
   var domContainer = $("div.container").data('task');
   if (domContainer) {

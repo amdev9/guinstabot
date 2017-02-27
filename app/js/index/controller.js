@@ -26,8 +26,8 @@ ipc.on('sync_db', (event) => {
   initViewDb();
 });
 
-ipc.on('add_task', (event, task, users) => {
-  addTaskDb(task, users);
+ipc.on('add_task', (event, tasks, users) => {
+  addTaskDb(tasks, users);
 });
 
 function checkSecurityController(cb) {
