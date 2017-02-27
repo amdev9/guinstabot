@@ -38,6 +38,7 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
   mainWindow = new BrowserWindow({width: 800, height: 600});
   mainWindow.setMenu(null)
+   
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
@@ -65,23 +66,23 @@ function openDevTool(win, isOpen) {
 //-------------------------------------------------------------------
 //  MAC QUIT SECTION
 //-------------------------------------------------------------------
-let template = []
-if (process.platform === 'darwin') {
-  // OS X
-  const name = app.getName();
-  template.unshift({
-    label: name,
-    submenu: [
-      {
-        label: 'About ' + name,
-        role: 'about'
-      },
-      {
-        label: 'Quit',
-        accelerator: 'Command+Q',
-        click() { app.quit(); }
-      },
-    ]
-  })
-}
+// let template = []
+// if (process.platform === 'darwin') {
+//   // OS X
+//   const name = app.getName();
+//   template.unshift({
+//     label: name,
+//     submenu: [
+//       {
+//         label: 'About ' + name,
+//         role: 'about'
+//       },
+//       {
+//         label: 'Quit',
+//         accelerator: 'Command+Q',
+//         click() { app.quit(); }
+//       },
+//     ]
+//   })
+// }
 

@@ -10,7 +10,8 @@
     "postinstall": "electron-rebuild -p",
     "start": "electron .",
     "pack": "build --dir",
-    "dist": "build --x64"
+    "dist": "build --x64",
+    "test": "./node_modules/mocha/bin/mocha --inline-diffs --timeout 10000 test.js"
   },
   "dependencies": {
     "async": "^2.1.4",
@@ -40,7 +41,9 @@
   "devDependencies": {
     "electron": "^1.4.15",
     "electron-builder": "^13.0.0",
-    "electron-rebuild": "^1.5.7"
+    "electron-rebuild": "^1.5.7",
+    "mocha": "^3.2.0",
+    "spectron": "^3.6.0"
   },
   "build": {
     "appId": "gnu.alexpro",
