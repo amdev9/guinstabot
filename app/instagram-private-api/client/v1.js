@@ -56,5 +56,7 @@ InstagramV1.Web.CaptchaVerificationChallenge = challenge.CaptchaVerificationChal
 InstagramV1.Web.EmailVerificationChallenge = challenge.EmailVerificationChallenge;
 InstagramV1.Web.PhoneVerificationChallenge = challenge.PhoneVerificationChallenge;
 
+var filter = require('./v1/web/filter');
+InstagramV1.Web.FilterRequest = filter.FilterRequest;
 
 module.exports = InstagramV1;

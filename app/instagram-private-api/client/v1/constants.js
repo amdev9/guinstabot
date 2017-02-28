@@ -75,7 +75,9 @@ const ROUTES = {
 const WEB_ROUTES = {
     challengeReset: 'challenge/reset/',
     challenge: 'challenge/',
-    userInfo: '<%= id %>/'
+    userInfo: '<%= id %>/',
+    userInfoAnonym: '<%= username %>',
+    mediaInfoAnonym: '<%= username %>/media?max_id=<%= maxId %>'
 }
 
 const PRIVATE_KEY = {

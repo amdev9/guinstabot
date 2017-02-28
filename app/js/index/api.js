@@ -100,15 +100,14 @@ var filterNoSession = function(task) {
     loggerDb(task._id, 'Файл подготовлен');
   });
  
-  // for (var i = 0; i < task.partitions.length; i++) {
+
   
   async.forEach(task.partitions, function (taskpart, callback) {
-    // if(task.proxy_parc.length > 0) {
-      console.log(taskpart.proxy_parc);
-    setProxyFunc(taskpart.proxy_parc);
-    // }
+ 
+    console.log(taskpart.proxy_parc);
+    // setProxyFunc(taskpart.proxy_parc);
+ 
     var filterRequest = new Client.Web.FilterRequest();   
-    // var iterator = (i == 0) ? 0 : task.partitions[i-1]; 
     var iterator = taskpart.start;
     var promiseWhile = function( action) {
       var resolver = Promise.defer();
@@ -121,7 +120,7 @@ var filterNoSession = function(task) {
 
         if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
           return resolver.resolve(); 
-        } // max_limit value -> partition[i]
+        } 
         return Promise.cast(action())
           .then(func)
           .catch(resolver.reject);

@@ -228,8 +228,9 @@ function filtrationTask(uiData) {
     parsed_array = data.split('\n');
     parsed_array = parsed_array.filter(isEmpty);
 
+    task.input_array = parsed_array;
     var proxyParsed = [];
-    readFilePromise(task.proxy_file, 'utf8').then(function(data) {
+    readFilePromise(task.proxy_file, 'utf8').then(function(data) { // for non proxy FIX
       proxyParsed = data.split('\n');
       proxyParsed = proxyParsed.filter(isEmpty);
 
