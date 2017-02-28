@@ -36,7 +36,9 @@ ipc.on('add_task', (event, tasks, users) => {
 function emitLoggerMessage(row_id, message) {
   // search by row_id logControls 
   var logView = _.find(logControls, function(obj) { return obj.key == row_id })
-  logView.control.send('append', message);
+  if (logView) {
+    logView.control.send('append', message);
+  }
 }
 
 function checkSecurityController(cb) {
@@ -153,7 +155,7 @@ function showLogsController(rows) {
         buttons: ["OK"] 
       });
     }
-  });
+  }); 
 }
 
 function addUsersController() {

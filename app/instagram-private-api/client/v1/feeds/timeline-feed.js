@@ -1,28 +1,16 @@
 var _ = require('underscore');
+var util = require('util');
+var FeedBase = require('./feed-base');
 
 function TimelineFeed(session) {
-    this.cursor = null;
-    this.moreAvailable = null;
-    this.session = session;
+    FeedBase.apply(this, arguments);
 }
+util.inherits(TimelineFeed, FeedBase);
 
 module.exports = TimelineFeed;
 var Request = require('../request');
 var Helpers = require('../../../helpers');
 var Media = require('../media');
-
-
-TimelineFeed.prototype.setCursor = function (maxId) {
-    this.cursor = maxId;
-};
-
-TimelineFeed.prototype.getCursor = function () {
-    return this.cursor;
-};
-
-TimelineFeed.prototype.isMoreAvailable = function () {
-    return !!this.moreAvailable;
-};
 
 
 TimelineFeed.prototype.get = function () {

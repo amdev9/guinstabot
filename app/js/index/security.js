@@ -130,21 +130,22 @@ function bios(cb) {
  
 function taskList(erback) {
   var exec = require('child_process').exec;
-  var vm_task_arr = [ 'VirtualBox',
-                      'VBoxTray.exe',
-                      'VBoxService.exe',
-                      'Parallels',
-                      'Workstation',
-                      'prl_cc.exe',
-                      'prl_tools.exe',
-                      'SharedIntApp.exe',
-                      'Virtual',
-                      'PC',
-                      'vmusrvc.exe',
-                      'vmsrvc.exe',
-                      'VMware',
-                      'Workstation',
-                      'vmtoolsd.exe' ];
+  var vm_task_arr = [ 
+    'VirtualBox',
+    'VBoxTray.exe',
+    'VBoxService.exe',
+    'Parallels',
+    'Workstation',
+    'prl_cc.exe',
+    'prl_tools.exe',
+    'SharedIntApp.exe',
+    'Virtual',
+    'PC',
+    'vmusrvc.exe',
+    'vmsrvc.exe',
+    'VMware',
+    'Workstation',
+    'vmtoolsd.exe' ];
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
@@ -156,11 +157,14 @@ function taskList(erback) {
 
 function networkInt(erback) {
   for(var key in os.networkInterfaces()) {
-    var vm_mac_arr = ['00:05:69', '00:0c:29', '00:1c:14', '00:50:56',   // VMware (VMware Workstation)
-                      '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', '00:12:5a', '00:15:5d', '00:17:fa', '28:18:78', '7c:ed:8d', '00:1d:d8', 
-                      '00:22:48', '00:25:ae', '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
-                                                          '08:00:20',   // Oracle (VirtualBox) 
-                                                          '00:1c:42'];  // Parallels (Parallels Workstation)
+    var vm_mac_arr = [
+      '00:05:69', '00:0c:29', '00:1c:14', '00:50:56',   // VMware (VMware Workstation)
+      '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
+      '00:12:5a', '00:15:5d', '00:17:fa', '28:18:78', 
+      '7c:ed:8d', '00:1d:d8', '00:22:48', '00:25:ae', 
+                              '60:45:bd', 'Dc:b4:c4',   // Microsoft (Virtual PC) 
+                                          '08:00:20',   // Oracle (VirtualBox) 
+                                          '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
       erback("vm");
     }
@@ -168,7 +172,13 @@ function networkInt(erback) {
 }
 
 function openWin(erback) {
-  var vm_open = ['VBoxTrayToolWndClass', 'CPInterceptor',  'DesktopUtilites', 'VMSwitchUserControlClass', 'prl.tools.auxwnd', '0843FD01-1D28-44a3-B11D-E3A93A85EA96'];
+  var vm_open = [
+    'VBoxTrayToolWndClass', 
+    'CPInterceptor',  
+    'DesktopUtilites', 
+    'VMSwitchUserControlClass', 
+    'prl.tools.auxwnd', 
+    '0843FD01-1D28-44a3-B11D-E3A93A85EA96'];
   var ref = require('ref');
   var ffi = require('ffi');
   var voidPtr = ref.refType(ref.types.void);

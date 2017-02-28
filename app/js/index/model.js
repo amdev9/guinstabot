@@ -15,6 +15,7 @@ var softname = config.App.softname;
  
 var levelPath = path.join(os.tmpdir(), softname, 'levdb');
 var logsDir = path.join(os.tmpdir(), softname, 'logs');
+
 checkFolderExists(levelPath);
 var db = new PouchDB(levelPath , {adapter: 'leveldb'});
 // PouchDB.debug.enable('*');
@@ -41,7 +42,7 @@ function addTaskDb(tasks, users) {
 }
 
 function addUsersDb(users) {
-
+  // pass user data fill to add js 
    users.forEach(function(userString, i, fullArr) {
     var userArr = userString.split('|');
     var usersObjArr = [];
@@ -302,6 +303,7 @@ function editUserDb(item) {
 }
 
 function initViewDb() {
+
   var ddoc2 = {
     _id: '_design/index',
     views: {

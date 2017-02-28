@@ -26,30 +26,26 @@ function setProxyFunc(proxyString) {
 }
 
 function checkFolderExists(filepath) {
-  mkdirp(filepath, function (err) {
-    if (err) console.error(err)
-    else console.log('pow!')
-  });
+  if (!fs.existsSync(filepath)){
+    fs.mkdirSync(filepath);
+  }
+  // mkdirp(filepath, function (err) {
+  //   if (err) throw(err);
+  // });
 }
 
 function appendStringFile(filepath, string) {
   fs.appendFile(filepath, string + '\n', (err) => {
     if (err) throw err;
-    // console.log('appended to file');
   });
 }
 
 function createFile(filename) {
-  fs.open(filename,'r', function(err, fd) {
+  fs.open(filename, 'r', function(err, fd) {
     if (err) {
       fs.writeFile(filename, '', function(err) {
-        if(err) {
-          console.log(err);
-        }
-        // console.log("The file was saved!");
+        if(err) throw (err);
       });
-    } else {
-      // console.log("The file exists!");
     }
   });
 }

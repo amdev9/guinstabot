@@ -16,7 +16,7 @@ var cookieDir = path.join(os.tmpdir(), softname, 'cookie');
 
 function mediaFilter(json, task, cb) {
   if (json.isBusiness) {
-    mediaSessionFilter( json, task, cb);
+    mediaSessionFilter(json, task, cb);
   } else {
     mediaNoSessionFilter(json, task, cb);
   }

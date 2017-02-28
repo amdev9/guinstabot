@@ -1,31 +1,18 @@
 var _ = require('underscore');
+var util = require('util');
+var FeedBase = require('./feed-base');
 
 function LocationMediaFeed(session, locationId) {
-    this.lastMaxId = null;
-    this.moreAvailable = null;
     this.locationId = locationId;
-    this.session = session;
+    FeedBase.apply(this, arguments);
 }
+util.inherits(LocationMediaFeed, FeedBase);
 
 module.exports = LocationMediaFeed;
 var Media = require('../media');
 var Request = require('../request');
 var Helpers = require('../../../helpers');
 var Exceptions = require('../exceptions');
-
-LocationMediaFeed.prototype.setCursor = function (maxId) {
-    this.lastMaxId = maxId;
-};
-
-
-LocationMediaFeed.prototype.getCursor = function () {
-    return this.lastMaxId;
-};
-
-
-LocationMediaFeed.prototype.isMoreAvailable = function () {
-    return !!this.moreAvailable;
-};
 
 LocationMediaFeed.prototype.get = function () {
     var that = this;

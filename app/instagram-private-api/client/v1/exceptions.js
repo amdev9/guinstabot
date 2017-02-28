@@ -20,6 +20,7 @@ APIError.prototype.serialize = function () {
 };
 
 
+
 function NotImplementedError(message) {
     this.name = "NotImplementedError";
     this.message = (message || "This method is actually not implemented");
@@ -43,7 +44,7 @@ function RequestError(payload) {
     this.message = "It's not possible to make request!";
     this.json = {};
     if(_.isString(payload.message))
-        this.message = payload.message;    
+        this.message = payload.message;
     if(_.isObject(payload)) {
         this.json = payload
     }
@@ -101,7 +102,7 @@ ActionSpamError.prototype.getBlockTime = function () {
         if (!hours || !_.isArray(hours)) return 0;
         var blockTime = parseInt(hours[1]) * 60 * 60 * 1000;
         return blockTime + (1000 * 60 * 5);
-    } 
+    }
     return 0;
 };
 
@@ -349,3 +350,10 @@ function AccountRegistrationError(message, json) {
 
 util.inherits(AccountRegistrationError, APIError);
 exports.AccountRegistrationError = AccountRegistrationError;
+
+function TranscodeTimeoutError() {
+    this.name = "Transcode Error";
+    this.message = "Server did not transcoded uploaded video in time";
+}
+util.inherits(TranscodeTimeoutError, APIError);
+exports.TranscodeTimeoutError = TranscodeTimeoutError;

@@ -17,7 +17,7 @@ function Request(session) {
     this._request.options = {
         gzip: true 
     };
-    this._request.headers = Request.defaultHeaders;
+    this._request.headers=_.extend({},Request.defaultHeaders);
     this.attemps = 2;
     if(session) {
         this.session = session;            
@@ -29,6 +29,7 @@ function Request(session) {
 }
 
 module.exports = Request;
+
 
 var signatures = require('./signatures');
 var Device = require('./device');
@@ -146,8 +147,8 @@ Request.prototype.setData = function(data, override) {
 
 
 Request.prototype.setBodyType = function(type) {
-    if(!_.contains(['form', 'formData', 'json'], type))
-        throw new Error("`bodyType` param must be and form, formData or json")
+    if(!_.contains(['form', 'formData', 'json', 'body'], type))
+        throw new Error("`bodyType` param must be and form, formData, json or body")
     this._request.bodyType = type;
     return this;
 };
@@ -295,6 +296,11 @@ Request.prototype._mergeOptions = function(options) {
 
 
 Request.prototype.parseMiddleware = function (response) {
+    if(response.req._headers.host==='upload.instagram.com' && response.statusCode===201){
+        var loaded = /(\d+)-(\d+)\/(\d+)/.exec(response.body);
+        response.body = {status:"ok",start:loaded[1],end:loaded[2],total:loaded[3]};
+        return response;
+    }
     try {
         response.body = JSONbig.parse(response.body);
         return response;
@@ -313,7 +319,7 @@ Request.prototype.errorMiddleware = function (response) {
         throw new Exceptions.CheckpointError(json, this.session);
     if (json.message == 'login_required')
         throw new Exceptions.AuthenticationError("Login required to process this request");
-    if (_.isString(json.message) && json.message.toLowerCase().indexOf('too many requests') !== -1) 
+    if (response.statusCode===429 || _.isString(json.message) && json.message.toLowerCase().indexOf('too many requests') !== -1)
         throw new Exceptions.RequestsLimitError();
     if (_.isString(json.message) && json.message.toLowerCase().indexOf('not authorized to view user') !== -1) 
         throw new Exceptions.PrivateUserError();
@@ -357,6 +363,8 @@ Request.prototype.send = function (options, attemps) {
             var json = response.body;
             if (_.isObject(json) && json.status == "ok")
                 return _.omit(response.body, 'status');
+            if (_.isString(json.message) && json.message.toLowerCase().indexOf('transcode timeout') !== -1)
+                throw new Exceptions.TranscodeTimeoutError();
             throw new Exceptions.RequestError(json);
         })
         .catch(function(error) {

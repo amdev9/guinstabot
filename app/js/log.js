@@ -22,8 +22,5 @@ ipc.on('append', (event, string) => {
   console.log(string);
   var text = document.getElementById("text");
   text.innerHTML += string + "<br>";
-  window.scrollTo(0,document.body.scrollHeight);
+  window.scrollTo(0, document.body.scrollHeight);
 });
-
-
- 

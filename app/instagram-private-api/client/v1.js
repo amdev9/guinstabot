@@ -26,6 +26,7 @@ InstagramV1.ThreadItem = require('./v1/thread-item');
 InstagramV1.QE = require('./v1/qe');
 InstagramV1.Upload = require('./v1/upload');
 InstagramV1.discover = require('./v1/discover');
+InstagramV1.Save = require('./v1/save');
 
 var creator = require('./v1/account-creator');
 InstagramV1.AccountCreator = creator.AccountCreator;
@@ -36,6 +37,7 @@ InstagramV1.Feed = {};
 InstagramV1.Feed.AccountFollowers = require('./v1/feeds/account-followers');
 InstagramV1.Feed.AccountFollowing = require('./v1/feeds/account-following');
 InstagramV1.Feed.Inbox = require('./v1/feeds/inbox');
+InstagramV1.Feed.InboxPending = require('./v1/feeds/inbox-pending');
 InstagramV1.Feed.LocationMedia = require('./v1/feeds/location-media');
 InstagramV1.Feed.TaggedMedia = require('./v1/feeds/tagged-media');
 InstagramV1.Feed.TagMedia = InstagramV1.Feed.TaggedMedia; // Alias but deprecated
@@ -44,14 +46,11 @@ InstagramV1.Feed.Timeline = require('./v1/feeds/timeline-feed');
 InstagramV1.Feed.UserMedia = require('./v1/feeds/user-media');
 InstagramV1.Feed.SelfLiked = require('./v1/feeds/self-liked');
 InstagramV1.Feed.MediaComments = require('./v1/feeds/media-comments');
+InstagramV1.Feed.SavedMedia = require('./v1/feeds/saved-media');
 
 InstagramV1.Web = {};
 InstagramV1.Web.Request = require('./v1/web/web-request');
 var challenge = require('./v1/web/challenge');
-//
-var filter = require('./v1/web/filter');
-InstagramV1.Web.FilterRequest = filter.FilterRequest;
-//
 InstagramV1.Web.Challenge = challenge.Challenge;
 InstagramV1.Web.CaptchaVerificationChallenge = challenge.CaptchaVerificationChallenge;
 InstagramV1.Web.EmailVerificationChallenge = challenge.EmailVerificationChallenge;
