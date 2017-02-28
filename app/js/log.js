@@ -18,20 +18,12 @@ ipc.on('log_data', (event, l_filepath, title) => {
   });
 });
 
-
-ipc.on('log_data_changed', (event, l_filepath, title) => {
-  // console.log("log_data_changed") ///            FIX to add string prokrut vnis bez full obnova
+ipc.on('append', (event, string) => {
+  console.log(string);
   var text = document.getElementById("text");
-  const rl = readline.createInterface({
-    input: fs.createReadStream(l_filepath)
-  });
-
-  rl.on('line', function (line) {
-    text.innerHTML += line + "<br>";
-  });
+  text.innerHTML += string + "<br>";
+  window.scrollTo(0,document.body.scrollHeight);
 });
-
-
 
 
  

@@ -53,6 +53,10 @@ app.on('ready', function() {
   openDevTool(mainWindow, devIsOpen);
 });
 
+app.on('window-all-closed', () => {
+  app.quit();
+});
+
 function openDevTool(win, isOpen) {
   if (isOpen) {
     win.webContents.openDevTools()

@@ -13,6 +13,9 @@ const devIsOpen = config.App.devTools;
 var softname = config.App.softname;
 var logsDir = path.join(os.tmpdir(), softname, 'logs');
 const ipc = require('electron').ipcRenderer;
+var _ = require('lodash')
+
+var logControls = [];
 
 ipc.on('add', (event, users) => {
   addUsersDb(users);
@@ -29,6 +32,12 @@ ipc.on('sync_db', (event) => {
 ipc.on('add_task', (event, tasks, users) => {
   addTaskDb(tasks, users);
 });
+
+function emitLoggerMessage(row_id, message) {
+  // search by row_id logControls 
+  var logView = _.find(logControls, function(obj) { return obj.key == row_id })
+  logView.control.send('append', message);
+}
 
 function checkSecurityController(cb) {
   checkLicense(cb);
@@ -120,20 +129,22 @@ function showLogsController(rows) {
       }))
 
       loggerView.on('closed', function() {
+        // remove loggerView row_id from logControls 
+        _.remove(logControls, {
+            key: row_id
+        });
         loggerView = null;
       });
       loggerView.webContents.on('did-finish-load', () => {
+        // append loggerView row_id to logControls 
+        var logControl = {
+          key: row_id,
+          control: loggerView.webContents
+        };
+        logControls.push(logControl);
+
         loggerView.webContents.send('log_data', l_filepath, row_id);
       });
-
-      fs.watchFile(l_filepath, (curr, prev) => {
-        if (curr == prev) {} else {
-          loggerView.webContents.send('log_data_changed', l_filepath, row_id);
-          // console.log(`the current mtime is: ${curr.mtime}`);
-          // console.log(`the previous mtime was: ${prev.mtime}`);
-        }
-      });
-
 
       openDevTool(loggerView, devIsOpen);
     } else {

@@ -18,25 +18,22 @@ ipc.on('type', (event, type, rows) => {
 ipc.on('edit', (event, item) => {
 
   if (item.type == 'user') {
- 
     var rows = [];
     rows.push(item._id);
     saveTypeRowsDom('user', rows);
-  } else {
-
-    var rows = { _id: item._id, _rev: item._rev };
-    saveTypeRowsDom('task', rows);
-  }
-
-  
-  if (item.type == 'user') {
+    
     var user = item;  
     if (user.task.name == 'parse_concurrents') {
       editParseConcurrents(user.task);
     } else if (user.task.name == 'filtration') {
       editFiltration(user.task);
     }
+
   } else {
+
+    var rows = { _id: item._id, _rev: item._rev };
+    saveTypeRowsDom('task', rows);
+
     var task = item;
     if (task.name == 'parse_concurrents') {
       editParseConcurrents(task);
@@ -49,7 +46,6 @@ ipc.on('edit', (event, item) => {
 function updateElementsAccessibility(type) {
   if (type == 'user') {
     updateElemView(['parse_concurrents', 'filtration']);
-    // disableCustomElem();
   } else {
     updateElemView(['filtration']);
     disableCustomElem();
@@ -64,7 +60,6 @@ function disableCustomElem() {
 }
 
 function saveTypeRowsDom(type, rows) {
-  // $("div.container").attr('id', type);
   $("div.container").data(type, rows);
 }
 
@@ -83,14 +78,14 @@ function clearTextArea (selector) {
 }
 
 function openFile ( selector ) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); // 'openDirectory'
+  var path = dialog.showOpenDialog({properties: ['openFile']}); 
   if (path) {
     document.getElementById(selector).value = path;
   } 
 }
 
 function openParse(selector) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); // , 'openDirectory'
+  var path = dialog.showOpenDialog({properties: ['openFile']}); 
   readFile(path[0], function(data) {
     document.getElementById(selector).value = data;
   });
@@ -153,40 +148,6 @@ function editParseConcurrents(task) {
   document.getElementById("parsed_accounts").value = task.outputfile;
 }
 
-function parseConcurrents(taskName) {
-
-  var tasks = [];
-  var users = $("div.container").data('user');
-
-  users.forEach(function(user, iter, arr) {
-    var task = {};
-    task.name = taskName;
-    task.outputfile = document.getElementById("parsed_accounts").value;
-    task.max_limit = document.getElementById("max_limit").value;
-    var followTrueSubscribeFalse = false;
-    if (document.getElementById("follow").checked == true) {
-      followTrueSubscribeFalse = true;
-    }
-    task.parse_type = followTrueSubscribeFalse;
-
-    var concurParsed = document.getElementById("parsed_conc").value.split('\n');
-    concurParsed = concurParsed.filter(isEmpty);
-    var to_parse_usernames = concurParsed.length;
-    var div = Math.floor(to_parse_usernames / users.length);
-    var rem = to_parse_usernames % users.length;
-    var dotation = [];
-    dotation[0] = rem + div;
-    for (var i = 1; i < users.length; i++) {
-      dotation[i] = dotation[i-1]+div;
-    }
-    task.parsed_conc = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
-    tasks.push(task);
-    if(iter == arr.length - 1) {      
-      ipc.send('add_task_event', tasks, users);
-      window.close();
-    }
-  });
-}
 
 
 function filtrationUiData(taskName) {
@@ -297,15 +258,49 @@ function filtrationTask(uiData) {
 }
 
 function filtration(taskName) {
-
   var uiData = filtrationUiData(taskName);
   if ($("div.container").data('user')) {
     filtrationUser(uiData);
   } else {
     filtrationTask(uiData);
-  }
-  
+  } 
 }
+
+function parseConcurrents(taskName) {
+
+  var tasks = [];
+  var users = $("div.container").data('user');
+
+  users.forEach(function(user, iter, arr) {
+    var task = {};
+    task.name = taskName;
+    task.outputfile = document.getElementById("parsed_accounts").value;
+    task.max_limit = document.getElementById("max_limit").value;
+    var followTrueSubscribeFalse = false;
+    if (document.getElementById("follow").checked == true) {
+      followTrueSubscribeFalse = true;
+    }
+    task.parse_type = followTrueSubscribeFalse;
+
+    var concurParsed = document.getElementById("parsed_conc").value.split('\n');
+    concurParsed = concurParsed.filter(isEmpty);
+    var to_parse_usernames = concurParsed.length;
+    var div = Math.floor(to_parse_usernames / users.length);
+    var rem = to_parse_usernames % users.length;
+    var dotation = [];
+    dotation[0] = rem + div;
+    for (var i = 1; i < users.length; i++) {
+      dotation[i] = dotation[i-1]+div;
+    }
+    task.parsed_conc = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
+    tasks.push(task);
+    if(iter == arr.length - 1) {      
+      ipc.send('add_task_event', tasks, users);
+      window.close();
+    }
+  });
+}
+
 
 function createAccounts(taskName) {
 

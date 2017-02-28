@@ -161,7 +161,7 @@ function checkAccountsDb(user_ids) {
 function loggerDb(user_id, logString) {
   checkFolderExists(logsDir);
   var dateTimeTxt = getTimeStamp();
-  db.get(user_id).then(function(user) {
+  db.get(user_id).then(function(user) { // do we need this hah???
     if (user.username) {
       var l_string = dateTimeTxt + user.username + ": " + logString;
     } else {
@@ -169,6 +169,7 @@ function loggerDb(user_id, logString) {
     }
     var l_filepath = path.join(logsDir, user._id + ".txt");
     createFile(l_filepath);
+    emitLoggerMessage(user._id, l_string);  // emit message to opened views
     appendStringFile(l_filepath, l_string);
   }).catch(function (err) {
     console.log(err);
