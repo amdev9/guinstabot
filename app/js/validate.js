@@ -55,6 +55,7 @@ $(function() {
 
   $("#filtration_form").validate({
     rules: {
+      proxy_file: "required",
       forFilterFile: "required",
       followers_from: "required",
       followers_to: "required",
@@ -65,6 +66,7 @@ $(function() {
       filteredAccounts:  "required", 
     },
     messages: {
+      proxy_file: "Выберите файл",
       forFilterFile: "Выберите файл",
       filteredAccounts: "Выберите файл"
     },

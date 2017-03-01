@@ -38,6 +38,7 @@ ipc.on('edit', (event, item) => {
     if (task.name == 'parse_concurrents') {
       editParseConcurrents(task);
     } else if (task.name == 'filtration') {
+      updateElementsAccessibility('task');
       editFiltration(task);
     }
   }
