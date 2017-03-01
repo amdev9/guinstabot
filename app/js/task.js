@@ -151,77 +151,64 @@ function editParseConcurrents(task) {
 
 
 function filtrationUiData(taskName) {
-  var task = {};
-  task.name = taskName;
-  task.inputfile = document.getElementById("inputfile").value;
-  task.followers = {
+  this.name = taskName;
+  this.inputfile = document.getElementById("inputfile").value;
+  this.followers = {
     from: document.getElementById("followers_from").value,
     to: document.getElementById("followers_to").value
   };
-  task.subscribers = {
+  this.subscribers = {
     from: document.getElementById("subscribers_from").value,
     to: document.getElementById("subscribers_to").value
   };
-  task.publications = {
+  this.publications = {
     from: document.getElementById("publications_from").value,
     to: document.getElementById("publications_to").value
   };
-  task.stop_words_file = document.getElementById("stop_words_file").value;
-  task.anonym_profile = document.getElementById("avatar").checked;
-  task.private = document.getElementById("private").value;
+  this.stop_words_file = document.getElementById("stop_words_file").value;
+  this.anonym_profile = document.getElementById("avatar").checked;
+  this.private = document.getElementById("private").value;
   if (document.getElementById ('date_checker').checked == true) {
     var lastdate = document.getElementById("lastdate").value;
   } else {
     var lastdate = "";
   }
-  task.lastdate = lastdate;
-  task.outputfile = document.getElementById("filtered_accounts").value;
-  task.proxy_file = document.getElementById("proxy_file").value;
-  return task;
+  this.lastdate = lastdate;
+  this.outputfile = document.getElementById("filtered_accounts").value;
+  this.proxy_file = document.getElementById("proxy_file").value;
 }
 
-function filtrationUser(uiData) {
+function filtrationUser(taskName) {
 
-  var tasks = [];
   var users = $("div.container").data('user');
-  users.forEach(function(user, iter, arr) {
-    var task = uiData;
-    var concurParsed = [];
-    readFilePromise(task.inputfile, 'utf8').then(function(data) {
-      concurParsed = data.split('\n');
-      concurParsed = concurParsed.filter(isEmpty);
-
-      var to_parse_usernames = concurParsed.length;
-      var div = Math.floor(to_parse_usernames / users.length);
-      var rem = to_parse_usernames % users.length;
-      var dotation = [];
-      dotation[0] = rem + div;
-      console.log(dotation[0]); // 2
-      for (var i = 1; i < users.length; i++) {
-        dotation[i] = dotation[i-1]+div;
-        console.log(dotation[i]); // 4
-      }
-      // task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
-      if (iter == 0) {
-        task.input_array = concurParsed.slice(0, dotation[iter]);
-      } else {
-        task.input_array = concurParsed.slice(dotation[iter-1], dotation[iter]);
-      }
-      
-    
-      tasks.push(task);
-      if(iter == arr.length - 1) {   
-        console.log(tasks);   
-        ipc.send('add_task_event', tasks, users);
-        // window.close();
-      }
-    });
+  var dotation = [];
+  var tasks = [];  
+  var task0 = new filtrationUiData(taskName);
+  var concurParsed = [];
+  readFilePromise(task0.inputfile, 'utf8').then(function(data) {
+    concurParsed = data.split('\n');
+    concurParsed = concurParsed.filter(isEmpty);
+    var to_parse_usernames = concurParsed.length;
+    var div = Math.floor(to_parse_usernames / users.length);
+    var rem = to_parse_usernames % users.length;
+    dotation[0] = rem + div;
+    tasks.push(task0);
+    task0.input_array = concurParsed.slice(0, dotation[0]);      
+    for (var i = 1; i < users.length; i++) {
+      var taskI = new filtrationUiData(taskName);
+      dotation[i] = dotation[i-1]+div;
+      taskI.input_array = concurParsed.slice(dotation[i-1], dotation[i]);
+      tasks.push(taskI);
+    }
+    console.log(tasks);
+    ipc.send('add_task_event', tasks, users);
+    window.close();
   });
 }
 
-function filtrationTask(uiData) { /// FIX
+function filtrationTask(taskName) {
 
-  var task = uiData;
+  var task = new filtrationUiData(taskName);
   task.type = 'task';
   task.status = '-';
   var domContainer = $("div.container").data('task');
@@ -279,18 +266,16 @@ function filtrationTask(uiData) { /// FIX
       }
       
       ipc.send('add_task_event', task);
-      console.log(task);
       // window.close();
     });
   });
 }
 
 function filtration(taskName) {
-  var uiData = filtrationUiData(taskName);
   if ($("div.container").data('user')) {
-    filtrationUser(uiData);
+    filtrationUser(taskName);
   } else {
-    filtrationTask(uiData);
+    filtrationTask(taskName);
   } 
 }
 

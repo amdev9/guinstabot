@@ -15,12 +15,19 @@ var softname = config.App.softname;
  
 var levelPath = path.join(os.tmpdir(), softname, 'levdb');
 var logsDir = path.join(os.tmpdir(), softname, 'logs');
+var db;
 
-checkFolderExists(levelPath);
-var db = new PouchDB(levelPath , {adapter: 'leveldb'});
-// PouchDB.debug.enable('*');
-PouchDB.debug.disable();
-// dropDb();
+
+function initDb() {
+  return mkdirFolder(levelPath)
+    .then(function() {
+      db = new PouchDB(levelPath , {adapter: 'leveldb'});
+      PouchDB.debug.enable('*');
+      // PouchDB.debug.disable();
+      // dropDb();
+      return db;
+    });
+}
 
 function dropDb() {
   db.destroy().then(function (response) {
@@ -42,10 +49,10 @@ function addTaskDb(tasks, users) {
 }
 
 function addUsersDb(users) {
-  // pass user data fill to add js 
+  // pass user data fill to add js
+  var usersObjArr = [];
    users.forEach(function(userString, i, fullArr) {
     var userArr = userString.split('|');
-    var usersObjArr = [];
     if (userArr.length == 3) {
       var user = {};
       user._id = userArr[0];
@@ -57,7 +64,7 @@ function addUsersDb(users) {
       user.task = '-';
       user.status = '-';
       usersObjArr.push(user);
-      if ( i == fullArr.length - 1 ) {
+      if ( i == fullArr.length - 1) {
         db.bulkDocs(usersObjArr)
           .then(function (response) {
             response.forEach(function(item, i, arr) {
@@ -160,21 +167,23 @@ function checkAccountsDb(user_ids) {
 }
 
 function loggerDb(user_id, logString) {
-  checkFolderExists(logsDir);
-  var dateTimeTxt = getTimeStamp();
-  db.get(user_id).then(function(user) { // do we need this hah???
-    if (user.username) {
-      var l_string = dateTimeTxt + user.username + ": " + logString;
-    } else {
-      var l_string = dateTimeTxt + user.name + ": " + logString;
-    }
-    var l_filepath = path.join(logsDir, user._id + ".txt");
-    createFile(l_filepath);
-    // emitLoggerMessage(user._id, l_string);  // emit message to opened views  FIX 
-    appendStringFile(l_filepath, l_string);
-  }).catch(function (err) {
-    console.log(err);
-  });
+  mkdirFolder(logsDir)
+    .then(function() {
+      var dateTimeTxt = getTimeStamp();
+      db.get(user_id).then(function(user) { // do we need this hah???
+        if (user.username) {
+          var l_string = dateTimeTxt + user.username + ": " + logString;
+        } else {
+          var l_string = dateTimeTxt + user.name + ": " + logString;
+        }
+        var l_filepath = path.join(logsDir, user._id + ".txt");
+        createFile(l_filepath);
+        // emitLoggerMessage(user._id, l_string);  // emit message to opened views  FIX 
+        appendStringFile(l_filepath, l_string);
+      }).catch(function (err) {
+        console.log(err);
+      });
+    })
 }
 
 function getItemDb(row_id, webcontents) {
@@ -303,41 +312,48 @@ function editUserDb(item) {
 }
 
 function initViewDb() {
-
-  var ddoc2 = {
-    _id: '_design/index',
-    views: {
-      index: {
-        map: function mapFun(doc) {
-          if (doc.type) {
-            emit(doc.type);
-          }
-        }.toString()
+  initDb()
+  .then(function(db) {
+    var ddoc2 = {
+      _id: '_design/index',
+      views: {
+        index: {
+          map: function mapFun(doc) {
+            if (doc.type) {
+              emit(doc.type);
+            }
+          }.toString()
+        }
       }
     }
-  }
+    return ddoc2;
+  })
+  .then(function(ddoc2) {
 
-  db.put(ddoc2).catch(function (err) {
-    if (err.name !== 'conflict') {
-      throw err;
-    }
-  }).then( function() {
-    return db.query('index', {
-      key: 'task',
-      include_docs: true
+    db.put(ddoc2).catch(function (err) {
+      if (err.name !== 'conflict') {
+        throw err;
+      }
+    }).then( function() {
+      return db.query('index', {
+        key: 'task',
+        include_docs: true
+      });
+    }).then(function (result) {
+      initTaskRowRenderView(result.rows);
+    }).then(function () {
+      return db.query('index', {
+        key: 'user',
+        include_docs: true
+      });
+    }).then(function (result) {
+      
+      initUserRowRenderView(result.rows);
+       
+    }).catch(function (err) {
+      console.log(err);
     });
-  }).then(function (result) {
-    initTaskRowRenderView(result.rows);
-  }).then(function () {
-    return db.query('index', {
-      key: 'user',
-      include_docs: true
-    });
-  }).then(function (result) {
-    
-    initUserRowRenderView(result.rows);
-     
-  }).catch(function (err) {
-    console.log(err);
-  });
+  })
+  
+
 }

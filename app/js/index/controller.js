@@ -118,44 +118,47 @@ function tasksController(action, rows) {
 }
 
 function showLogsController(rows) {
-  checkFolderExists(logsDir);
-  rows.forEach(function (row_id) {
-    var l_filepath = path.join(logsDir, row_id + ".txt");
-    if (fs.existsSync(l_filepath) ) {
-      let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
-      loggerView.setMenu(null)
-      loggerView.loadURL(url.format({
-        pathname: path.join(__dirname, 'html', 'log.html'),
-        protocol: 'file:',
-        slashes: true
-      }))
+  mkdirFolder(logsDir)
+  .then(function() {
+    rows.forEach(function (row_id) {
+      var l_filepath = path.join(logsDir, row_id + ".txt");
+      if (fs.existsSync(l_filepath) ) {
+        let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
+        loggerView.setMenu(null)
+        loggerView.loadURL(url.format({
+          pathname: path.join(__dirname, 'html', 'log.html'),
+          protocol: 'file:',
+          slashes: true
+        }))
 
-      loggerView.on('closed', function() {
-        // remove loggerView row_id from logControls 
-        _.remove(logControls, {
-            key: row_id
+        loggerView.on('closed', function() {
+          // remove loggerView row_id from logControls 
+          _.remove(logControls, {
+              key: row_id
+          });
+          loggerView = null;
         });
-        loggerView = null;
-      });
-      loggerView.webContents.on('did-finish-load', () => {
-        // append loggerView row_id to logControls 
-        var logControl = {
-          key: row_id,
-          control: loggerView.webContents
-        };
-        logControls.push(logControl);
+        loggerView.webContents.on('did-finish-load', () => {
+          // append loggerView row_id to logControls 
+          var logControl = {
+            key: row_id,
+            control: loggerView.webContents
+          };
+          logControls.push(logControl);
 
-        loggerView.webContents.send('log_data', l_filepath, row_id);
-      });
+          loggerView.webContents.send('log_data', l_filepath, row_id);
+        });
 
-      openDevTool(loggerView, devIsOpen);
-    } else {
-      dialog.showMessageBox({ 
-        message: `Логи для ${row_id} отсутствуют`,
-        buttons: ["OK"] 
-      });
-    }
-  }); 
+        openDevTool(loggerView, devIsOpen);
+      } else {
+        dialog.showMessageBox({ 
+          message: `Логи для ${row_id} отсутствуют`,
+          buttons: ["OK"] 
+        });
+      }
+    }); 
+
+  })
 }
 
 function addUsersController() {

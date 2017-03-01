@@ -192,57 +192,59 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
 }
 
 var filterSession = function(user, task) {
-  checkFolderExists(cookieDir);
-  setStateView(user._id, 'run');
-  loggerDb(user._id, 'Фильтрация аудитории');
-  fs.truncate(task.outputfile, 0, function(){ 
-    loggerDb(user._id, 'Файл подготовлен'); 
-  });
+  mkdirFolder(logsDir)
+  .then(function() {
 
-  if(user.proxy) { 
-    setProxyFunc(user.proxy);
-  }
-
-  const device = new Client.Device(user.username);
-  var cookiePath = path.join(cookieDir, user._id + ".json");
-  const storage = new Client.CookieFileStorage(cookiePath);
-  var ses = Client.Session.create(device, storage, user.username, user.password);
-
-  var iterator = 0;
-  var promiseWhile = function(action) {
-    var resolver = Promise.defer();
-    var func = function(iterator) {
-      if (iterator) {
-        filterSessionUser(user._id, ses, task, task.input_array[iterator], function() {
-          renderUserCompletedView(user._id, iterator+1, task.input_array.length);
-        });
-      }
-      if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
-        return resolver.reject(new Error("stop"));
-      }
-      return Promise.cast(action())
-        .then(func)
-        .catch(resolver.reject);
-    };
-    process.nextTick(func);
-    return resolver.promise;
-  }
-  promiseWhile(function() {
-    return new Promise(function(resolve, reject) {
-      setTimeout(function() {
-        resolve(iterator);
-        iterator++;
-      }, 3000);
+    setStateView(user._id, 'run');
+    loggerDb(user._id, 'Фильтрация аудитории');
+    fs.truncate(task.outputfile, 0, function(){ 
+      loggerDb(user._id, 'Файл подготовлен'); 
     });
-  }).catch(function (err) {
-    if(err.message == 'stop') {
-      loggerDb(user._id, 'Фильтрация остановлена');
-      setStateView(user._id, 'stopped');
-    } else {
-      console.log(err.message);
-    }
-  });
 
+    if(user.proxy) { 
+      setProxyFunc(user.proxy);
+    }
+
+    const device = new Client.Device(user.username);
+    var cookiePath = path.join(cookieDir, user._id + ".json");
+    const storage = new Client.CookieFileStorage(cookiePath);
+    var ses = Client.Session.create(device, storage, user.username, user.password);
+
+    var iterator = 0;
+    var promiseWhile = function(action) {
+      var resolver = Promise.defer();
+      var func = function(iterator) {
+        if (iterator) {
+          filterSessionUser(user._id, ses, task, task.input_array[iterator], function() {
+            renderUserCompletedView(user._id, iterator+1, task.input_array.length);
+          });
+        }
+        if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
+          return resolver.reject(new Error("stop"));
+        }
+        return Promise.cast(action())
+          .then(func)
+          .catch(resolver.reject);
+      };
+      process.nextTick(func);
+      return resolver.promise;
+    }
+    promiseWhile(function() {
+      return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          resolve(iterator);
+          iterator++;
+        }, 3000);
+      });
+    }).catch(function (err) {
+      if(err.message == 'stop') {
+        loggerDb(user._id, 'Фильтрация остановлена');
+        setStateView(user._id, 'stopped');
+      } else {
+        console.log(err.message);
+      }
+    });
+  })
 }
 
 function apiFilterAccounts(row) {
@@ -256,115 +258,119 @@ function apiFilterAccounts(row) {
 
 
 function apiParseAccounts(user, task) {
-  checkFolderExists(cookieDir);
-  setStateView(user._id, 'run');
-  loggerDb(user._id, 'Парсинг аудитории');
-  fs.truncate(task.outputfile, 0, function() { 
-    loggerDb(user._id, 'Файл подготовлен'); 
-  });
-  var indicator = 0;
-  
-  if(user.proxy) { 
-     setProxyFunc(user.proxy);
-  }
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(user._id, 'run');
+    loggerDb(user._id, 'Парсинг аудитории');
+    fs.truncate(task.outputfile, 0, function() { 
+      loggerDb(user._id, 'Файл подготовлен'); 
+    });
+    var indicator = 0;
+    
+    if(user.proxy) { 
+       setProxyFunc(user.proxy);
+    }
 
-  const device = new Client.Device(user.username);
-  var cookiePath = path.join(cookieDir, user._id + ".json");
-  const storage = new Client.CookieFileStorage(cookiePath);
-  var ses = Client.Session.create(device, storage, user.username, user.password);
+    const device = new Client.Device(user.username);
+    var cookiePath = path.join(cookieDir, user._id + ".json");
+    const storage = new Client.CookieFileStorage(cookiePath);
+    var ses = Client.Session.create(device, storage, user.username, user.password);
 
-  task.parsed_conc.forEach( function(conc_user) {
-    ses.then(function(session) {
-      return [session, Client.Account.searchForUser(session, conc_user)]   
-    }).all()
-    .then(function([session, account]) {
-      var feed;
-      if (task.parse_type == true) {
-        feed = new Client.Feed.AccountFollowers(session, account.id);
-      } else {
-        feed = new Client.Feed.AccountFollowing(session, account.id);
-      }
-   
-      var promiseWhile = function( action) {
-      var resolver = Promise.defer();
-      var indicator = 0;
-      var func = function(results) {
-        if (results) {
-          results.forEach(function (item, i , arr) {
-            if (indicator < task.max_limit * task.parsed_conc.length) {
-              appendStringFile(task.outputfile, item._params.username);
-              renderUserCompletedView(user._id, indicator + 1, task.max_limit * task.parsed_conc.length);
-            }
-            indicator++;
-          });
+    task.parsed_conc.forEach( function(conc_user) {
+      ses.then(function(session) {
+        return [session, Client.Account.searchForUser(session, conc_user)]   
+      }).all()
+      .then(function([session, account]) {
+        var feed;
+        if (task.parse_type == true) {
+          feed = new Client.Feed.AccountFollowers(session, account.id);
+        } else {
+          feed = new Client.Feed.AccountFollowing(session, account.id);
         }
-        if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit) {
-          // return resolver.resolve();
-          return resolver.reject(new Error("stop"));
-        }
-        return Promise.cast(action())
-          .then(func)
-          .catch(resolver.reject);
+     
+        var promiseWhile = function( action) {
+        var resolver = Promise.defer();
+        var indicator = 0;
+        var func = function(results) {
+          if (results) {
+            results.forEach(function (item, i , arr) {
+              if (indicator < task.max_limit * task.parsed_conc.length) {
+                appendStringFile(task.outputfile, item._params.username);
+                renderUserCompletedView(user._id, indicator + 1, task.max_limit * task.parsed_conc.length);
+              }
+              indicator++;
+            });
+          }
+          if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit) {
+            // return resolver.resolve();
+            return resolver.reject(new Error("stop"));
+          }
+          return Promise.cast(action())
+            .then(func)
+            .catch(resolver.reject);
+          };
+          process.nextTick(func);
+          return resolver.promise;
         };
-        process.nextTick(func);
-        return resolver.promise;
-      };
 
-      promiseWhile(function() {
-        return new Promise(function(resolve, reject) {
-          setTimeout(function() {
-            resolve(feed.get());
-          }, 2000);
+        promiseWhile(function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              resolve(feed.get());
+            }, 2000);
+          });
+        }).catch(function (err) {
+          if(err.message == 'stop') {
+            loggerDb(user._id, 'Парсинг остановлен');
+            setStateView(user._id, 'stopped');
+          } else {
+            console.log(err.message);
+          }
         });
       }).catch(function (err) {
-        if(err.message == 'stop') {
-          loggerDb(user._id, 'Парсинг остановлен');
-          setStateView(user._id, 'stopped');
+        if (err instanceof Client.Exceptions.APIError) {
+          updateUserStatusDb(user._id, err.name);
         } else {
-          console.log(err.message);
+          // updateUserStatusDb(user._id, 'Произошла ошибка');
+          console.log(err);
         }
       });
-    }).catch(function (err) {
-      if (err instanceof Client.Exceptions.APIError) {
-        updateUserStatusDb(user._id, err.name);
-      } else {
-        // updateUserStatusDb(user._id, 'Произошла ошибка');
-        console.log(err);
-      }
     });
-  });
+  })
 }
 
 function apiSessionCheck(user_id, username, password) { // add proxy
-  checkFolderExists(cookieDir);
-  setStateView(user_id, 'run');
-  loggerDb(user_id, 'Выполняется логин');
-  const device = new Client.Device(username);
-  var cookiePath = path.join(cookieDir, user_id + ".json");
-  const storage = new Client.CookieFileStorage(cookiePath);
-  Client.Session.create(device, storage, username, password)
-    .then(function(session) {
-      Client.Session.login(session, username, password).then(function(result) {
-        updateUserStatusDb(user_id, 'Активен');
-        setStateView(user_id, 'stopped');
-      }).catch(function (err) {
-        setStateView(user_id, 'stopped');
-          if (err instanceof Client.Exceptions.APIError) {
-            updateUserStatusDb(user_id, err.name);
-            console.log(err);
-          } else {
-            updateUserStatusDb(user_id, 'Произошла ошибка');
-            console.log(err);
-          }
-        });
-      
-  }).catch(function (err) {
-    if (err instanceof Client.Exceptions.APIError) {
-      updateUserStatusDb(user_id, err.name);
-      console.log(err);
-    } else {
-      updateUserStatusDb(user_id, 'Произошла ошибка');
-      console.log(err);
-    }
-  });
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(user_id, 'run');
+    loggerDb(user_id, 'Выполняется логин');
+    const device = new Client.Device(username);
+    var cookiePath = path.join(cookieDir, user_id + ".json");
+    const storage = new Client.CookieFileStorage(cookiePath);
+    Client.Session.create(device, storage, username, password)
+      .then(function(session) {
+        Client.Session.login(session, username, password).then(function(result) {
+          updateUserStatusDb(user_id, 'Активен');
+          setStateView(user_id, 'stopped');
+        }).catch(function (err) {
+          setStateView(user_id, 'stopped');
+            if (err instanceof Client.Exceptions.APIError) {
+              updateUserStatusDb(user_id, err.name);
+              console.log(err);
+            } else {
+              updateUserStatusDb(user_id, 'Произошла ошибка');
+              console.log(err);
+            }
+          });
+        
+    }).catch(function (err) {
+      if (err instanceof Client.Exceptions.APIError) {
+        updateUserStatusDb(user_id, err.name);
+        console.log(err);
+      } else {
+        updateUserStatusDb(user_id, 'Произошла ошибка');
+        console.log(err);
+      }
+    });
+  })
 }

@@ -33,6 +33,6 @@ var parseDataFileToArray = (selector) => {
   fs.readFile(filename, function(err, f) {
     var array = f.toString().split('\n').filter(isEmpty);
     ipc.send('users_add', array);
-    window.close(); 
+    // window.close(); 
   });
 }

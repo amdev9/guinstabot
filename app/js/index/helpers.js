@@ -5,7 +5,7 @@
 'use strict';
 
 var fs = require('fs');
-var mkdirp = require('mkdirp');
+const mkdirp = require('mkdirp-promise');
 
 function setProxyFunc(proxyString) {
   if(proxyString.split(":").length == 2) {
@@ -25,13 +25,8 @@ function setProxyFunc(proxyString) {
   }
 }
 
-function checkFolderExists(filepath) {
-  if (!fs.existsSync(filepath)){
-    fs.mkdirSync(filepath);
-  }
-  // mkdirp(filepath, function (err) {
-  //   if (err) throw(err);
-  // });
+function mkdirFolder(filepath) {
+  return mkdirp(filepath);
 }
 
 function appendStringFile(filepath, string) {
