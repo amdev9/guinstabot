@@ -170,7 +170,7 @@ function loggerDb(user_id, logString) {
     }
     var l_filepath = path.join(logsDir, user._id + ".txt");
     createFile(l_filepath);
-    emitLoggerMessage(user._id, l_string);  // emit message to opened views
+    // emitLoggerMessage(user._id, l_string);  // emit message to opened views  FIX 
     appendStringFile(l_filepath, l_string);
   }).catch(function (err) {
     console.log(err);

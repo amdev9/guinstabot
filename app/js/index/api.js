@@ -99,8 +99,6 @@ var filterNoSession = function(task) {
   fs.truncate(task.outputfile, 0, function() { 
     loggerDb(task._id, 'Файл подготовлен');
   });
- 
-
   
   async.forEach(task.partitions, function (taskpart, callback) {
  
@@ -118,8 +116,8 @@ var filterNoSession = function(task) {
           });
         }
 
-        if (getStateView(task._id) == 'stop' || iterator >= taskpart.end ) { 
-          return resolver.resolve(); 
+        if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
+          return resolver.reject(new Error("stop"));
         } 
         return Promise.cast(action())
           .then(func)
@@ -137,13 +135,20 @@ var filterNoSession = function(task) {
         }, 20);
       });
     }).then(function() {
-      loggerDb(task._id, 'Фильтрация остановлена');
-      setStateView(task._id, 'stopped');
-    }).catch(function (err) {
-      console.log(err);
-    });
-  // }
       callback();
+    }).catch(function (err) {
+      
+      if (err.message == 'stop') {
+        loggerDb(task._id, 'Фильтрация остановлена');
+       setStateView(task._id, 'stopped');
+       callback();
+      } else {
+        console.log(err.message);
+      }
+    });
+
+
+      
    }, function(err) {
     console.log(err);
       console.log('iterating done');
@@ -212,8 +217,8 @@ var filterSession = function(user, task) {
           renderUserCompletedView(user._id, iterator+1, task.input_array.length);
         });
       }
-      if (getStateView(user._id) == 'stop' || iterator >= task.input_array.length) { 
-        return resolver.resolve();
+      if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
+        return resolver.reject(new Error("stop"));
       }
       return Promise.cast(action())
         .then(func)
@@ -229,11 +234,13 @@ var filterSession = function(user, task) {
         iterator++;
       }, 3000);
     });
-  }).then(function() {
-    loggerDb(user._id, 'Фильтрация остановлена');
-    setStateView(user._id, 'stopped');
   }).catch(function (err) {
-    console.log(err);
+    if(err.message == 'stop') {
+      loggerDb(user._id, 'Фильтрация остановлена');
+      setStateView(user._id, 'stopped');
+    } else {
+      console.log(err.message);
+    }
   });
 
 }
@@ -291,8 +298,9 @@ function apiParseAccounts(user, task) {
             indicator++;
           });
         }
-        if (getStateView(user._id) == 'stop' || indicator > task.max_limit) {
-          return resolver.resolve();
+        if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit) {
+          // return resolver.resolve();
+          return resolver.reject(new Error("stop"));
         }
         return Promise.cast(action())
           .then(func)
@@ -308,13 +316,13 @@ function apiParseAccounts(user, task) {
             resolve(feed.get());
           }, 2000);
         });
-      }).then(function() {
-
-        loggerDb(user._id, 'Парсинг остановлен');
-        setStateView(user._id, 'stopped');
-
       }).catch(function (err) {
-        console.log(err);
+        if(err.message == 'stop') {
+          loggerDb(user._id, 'Парсинг остановлен');
+          setStateView(user._id, 'stopped');
+        } else {
+          console.log(err.message);
+        }
       });
     }).catch(function (err) {
       if (err instanceof Client.Exceptions.APIError) {
@@ -329,14 +337,18 @@ function apiParseAccounts(user, task) {
 
 function apiSessionCheck(user_id, username, password) { // add proxy
   checkFolderExists(cookieDir);
+  setStateView(user_id, 'run');
+  loggerDb(user_id, 'Выполняется логин');
   const device = new Client.Device(username);
   var cookiePath = path.join(cookieDir, user_id + ".json");
   const storage = new Client.CookieFileStorage(cookiePath);
   Client.Session.create(device, storage, username, password)
     .then(function(session) {
-      Client.Session.login(session, username, password).then(function(result){
+      Client.Session.login(session, username, password).then(function(result) {
         updateUserStatusDb(user_id, 'Активен');
+        setStateView(user_id, 'stopped');
       }).catch(function (err) {
+        setStateView(user_id, 'stopped');
           if (err instanceof Client.Exceptions.APIError) {
             updateUserStatusDb(user_id, err.name);
             console.log(err);
