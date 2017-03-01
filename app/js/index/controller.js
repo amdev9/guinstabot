@@ -35,6 +35,8 @@ ipc.on('add_task', (event, tasks, users) => {
 
 function emitLoggerMessage(row_id, message) {
   // search by row_id logControls 
+  // console.log("-----> EMIT emitLoggerMessage");
+  // console.log(logControls);
   var logView = _.find(logControls, function(obj) { return obj.key == row_id })
   if (logView) {
     logView.control.send('append', message);
@@ -121,9 +123,10 @@ function showLogsController(rows) {
   mkdirFolder(logsDir)
   .then(function() {
     rows.forEach(function (row_id) {
+      let loggerView;
       var l_filepath = path.join(logsDir, row_id + ".txt");
       if (fs.existsSync(l_filepath) ) {
-        let loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
+        loggerView = new BrowserWindow({width: 600, height: 300, frame: true});
         loggerView.setMenu(null)
         loggerView.loadURL(url.format({
           pathname: path.join(__dirname, 'html', 'log.html'),
@@ -132,12 +135,20 @@ function showLogsController(rows) {
         }))
 
         loggerView.on('closed', function() {
+          // console.log("*****->> CLOSED");
+          loggerView = null;
+        });
+
+        loggerView.webContents.on('close', function() {
+          // console.log("*****->> CLOSE");
           // remove loggerView row_id from logControls 
           _.remove(logControls, {
               key: row_id
           });
-          loggerView = null;
+          
+          // console.log(logControls);
         });
+
         loggerView.webContents.on('did-finish-load', () => {
           // append loggerView row_id to logControls 
           var logControl = {
@@ -145,7 +156,8 @@ function showLogsController(rows) {
             control: loggerView.webContents
           };
           logControls.push(logControl);
-
+          // console.log("-----> FINISH LOAD");
+          // console.log(logControls);
           loggerView.webContents.send('log_data', l_filepath, row_id);
         });
 

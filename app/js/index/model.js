@@ -22,8 +22,8 @@ function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
       db = new PouchDB(levelPath , {adapter: 'leveldb'});
-      PouchDB.debug.enable('*');
-      // PouchDB.debug.disable();
+      // PouchDB.debug.enable('*');
+      PouchDB.debug.disable();
       // dropDb();
       return db;
     });
@@ -178,7 +178,7 @@ function loggerDb(user_id, logString) {
         }
         var l_filepath = path.join(logsDir, user._id + ".txt");
         createFile(l_filepath);
-        // emitLoggerMessage(user._id, l_string);  // emit message to opened views  FIX 
+        emitLoggerMessage(user._id, l_string);  // emit message to opened views  FIX 
         appendStringFile(l_filepath, l_string);
       }).catch(function (err) {
         console.log(err);
