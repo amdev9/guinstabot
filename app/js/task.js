@@ -196,15 +196,24 @@ function filtrationUser(uiData) {
       var rem = to_parse_usernames % users.length;
       var dotation = [];
       dotation[0] = rem + div;
+      console.log(dotation[0]); // 2
       for (var i = 1; i < users.length; i++) {
         dotation[i] = dotation[i-1]+div;
+        console.log(dotation[i]); // 4
       }
-      task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
-     
+      // task.input_array = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
+      if (iter == 0) {
+        task.input_array = concurParsed.slice(0, dotation[iter]);
+      } else {
+        task.input_array = concurParsed.slice(dotation[iter-1], dotation[iter]);
+      }
+      
+    
       tasks.push(task);
-      if(iter == arr.length - 1) {      
+      if(iter == arr.length - 1) {   
+        console.log(tasks);   
         ipc.send('add_task_event', tasks, users);
-        window.close();
+        // window.close();
       }
     });
   });
