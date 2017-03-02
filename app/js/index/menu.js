@@ -107,27 +107,32 @@ function resizeListener() {
  * Turns the custom context menu on.
  */
 function toggleMenuOn() {
+   depends();
   if ( menuState !== 1 ) {
-    if (!taskItemInContext || !taskItemInContext[0] ) {
-      selectEmptyMenuOn();
-    } else if (taskItemInContext.length == 1) {
-      if($(".table-info").find("td").eq(2).html() == '-') {
-        selectOneNoTaskMenuOn();
-      } else if ($(".table-info").find("td").eq(1).html() == '-' && $(".table-info").find("td").eq(0).html() == '-') {
-        selectTaskMenuOn();
-      } else {
-        selectUserTaskMenuOn();
-      }
-    } else if (taskItemInContext.length > 1) {
-      multipleMenuOn(taskItemInContext);
-    }
     menuState = 1;
     menu.classList.add( contextMenuActive );
+   
+  }
+}
+
+function depends() {
+  if (!taskItemInContext || !taskItemInContext[0] ) {
+      selectEmptyMenuOn();
+  } else if (taskItemInContext.length == 1) {
+    if($(".table-info").find("td").eq(2).html() == '-') {
+      selectOneNoTaskMenuOn();
+    } else if ($(".table-info").find("td").eq(1).html() == '-' && $(".table-info").find("td").eq(0).html() == '-') {
+      selectTaskMenuOn();
+    } else {
+      selectUserTaskMenuOn();
+    }
+  } else if (taskItemInContext.length > 1) {
+    multipleMenuOn(taskItemInContext);
   }
 }
 
 function multipleMenuOn(taskItems) {
-  // console.log("multipleMenuOn");
+  console.log("multipleMenuOn");
   var toHideItems = ['tasks_start', 'tasks_stop' , 'edit_account', 'edit_tasks']; // 'add_tasks'
   var filled = true;
   $(".table-info").each(function (i, val) {
@@ -169,7 +174,7 @@ function multipleMenuOn(taskItems) {
 }
 
 function selectUserTaskMenuOn() {
-  // console.log("selectUserTaskMenuOn");
+  console.log("selectUserTaskMenuOn");
   var additionalItemsToHide = [];
   var state = taskItemInContext[0].getAttribute("state");
   if ( state == 'run' ) {
@@ -188,7 +193,7 @@ function selectUserTaskMenuOn() {
 }
 
 function selectTaskMenuOn() {
-  // console.log("selectTaskMenuOn");
+  console.log("selectTaskMenuOn");
   var additionalItemsToHide = [];
   var state = taskItemInContext[0].getAttribute("state");
   if ( state == 'run' ) {
@@ -207,7 +212,7 @@ function selectTaskMenuOn() {
 }
 
 function selectOneNoTaskMenuOn() {
-  // console.log("selectOneNoTaskMenu");
+  console.log("selectOneNoTaskMenu");
   $('.context-menu__item > a').each(function(i, val) {
     if($(this).attr("data-action") == 'tasks_start' || $(this).attr("data-action") == 'tasks_stop' || $(this).attr("data-action") == 'edit_tasks') {
       $('.context-menu__item').eq(i).addClass("hidden");
@@ -216,7 +221,7 @@ function selectOneNoTaskMenuOn() {
 }
 
 function selectEmptyMenuOn() {
-  // console.log("selectEmptyMenuOn");
+  console.log("selectEmptyMenuOn");
   $('.context-menu__item > a').each(function(i, val) {
     if($(this).attr("data-action") != 'add_tasks' && $(this).attr("data-action") != 'add_accounts') {
       $('.context-menu__item').eq(i).addClass("hidden");
@@ -225,7 +230,7 @@ function selectEmptyMenuOn() {
 }
 
 function selectEmptyMenuOff() {
-  // console.log("selectEmptyMenuOff"); 
+  console.log("selectEmptyMenuOff"); 
   $('.context-menu__item > a').each(function(i, val) {
     $('.context-menu__item').eq(i).removeClass("hidden");
   });
@@ -235,10 +240,12 @@ function selectEmptyMenuOff() {
  * Turns the custom context menu off.
  */
 function toggleMenuOff() {
+  selectEmptyMenuOff();
   if ( menuState !== 0 ) {
-    selectEmptyMenuOff();
+    
     menuState = 0;
     menu.classList.remove( contextMenuActive );
+    
   }
 }
 
@@ -273,6 +280,7 @@ function positionMenu(e) {
  * @param {HTMLElement} link The link that was clicked
  */
 function menuItemListener( link ) {
+  toggleMenuOff();
   var array_child = [];
   if (taskItemInContext) {
     for (var i = 0; i < taskItemInContext.length; i++) {
@@ -312,7 +320,7 @@ function menuItemListener( link ) {
     default:
       break;
   }
-  toggleMenuOff();
+  
 }
 
 /**

@@ -92,6 +92,7 @@ function addUsersDb(users) {
 
 function runTasksDb(rows) {
   rows.forEach(function (row_id) {
+    
     db.get(row_id).then(function(row) {
       if (row.type == 'user' && row.task.name == 'parse_concurrents') {
         apiParseAccounts(row, row.task);

@@ -95,6 +95,8 @@ var apiFilterNoSession = function(task) {
     setStateView(task._id, 'run');
     renderNewTaskCompletedView(task._id);
     loggerDb(task._id, 'Фильтрация аудитории');
+
+    /////////FIX
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(task._id, 'Файл подготовлен');
     });
@@ -210,6 +212,7 @@ var apiFilterSession = function(user, task) {
 
     setStateView(user._id, 'run');
     loggerDb(user._id, 'Фильтрация аудитории');
+    ////////FIX
     fs.truncate(task.outputfile, 0, function(){ 
       loggerDb(user._id, 'Файл подготовлен'); 
     });
@@ -251,7 +254,7 @@ var apiFilterSession = function(user, task) {
         setTimeout(function() {
           resolve(iterator);
           iterator++;
-        }, 1000);
+        }, 3000);
       });
     }).catch(function (err) {
       if(err.message == 'stop') {
@@ -276,9 +279,11 @@ function apiParseAccounts(user, task) {
 
     loggerDb(user._id, 'Парсинг аудитории');
 
+    //////FIX
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(user._id, 'Файл подготовлен'); 
     });
+
     var indicator = 0;
     
     if(user.proxy && user.proxy != '') { 
