@@ -70,9 +70,6 @@ function filterFunction(json, task, cb) {
         var fullName = json.fullName ? json.fullName.toLowerCase() : '';
         var biography = json.biography ? json.biography.toLowerCase() : '';
         if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
-          // console.log(fullName + " -> "+ word);
-          // console.log(biography + " -> "+  word);
- 
           if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
             mediaFilter(json, task, cb);
           } else {
@@ -87,7 +84,6 @@ function filterFunction(json, task, cb) {
       cb(true);
     }
   } else {
-    // console.log("not included " + json);
     cb(false);
   }
 }
@@ -105,8 +101,9 @@ var apiFilterNoSession = function(task) {
     
     async.forEach(task.partitions, function (taskpart, callback) {
    
-      console.log(taskpart.proxy_parc);
-      // setProxyFunc(taskpart.proxy_parc);
+      if(taskpart.proxy_parc != '') {
+        setProxyFunc(taskpart.proxy_parc);
+      }
    
       var filterRequest = new Client.Web.FilterRequest();   
       var iterator = taskpart.start;
@@ -115,7 +112,7 @@ var apiFilterNoSession = function(task) {
         var func = function(json) {
           if (json) {
             filterFunction(json, task, function() {
-              renderTaskCompletedView(task._id); // +1 //, iterator, task.input_array.length
+              renderTaskCompletedView(task._id);
             });
           }
 
@@ -149,9 +146,6 @@ var apiFilterNoSession = function(task) {
           console.log(err.message);
         }
       });
-
-
-        
      }, function(err) {
       console.log(err);
         console.log('iterating done');
@@ -163,39 +157,40 @@ var apiFilterNoSession = function(task) {
 }
 
 function filterSessionUser(user_id, ses, task, userFilter, cb) {
-  ses.then(function(session) {
-            if(session) {
-          updateUserStatusDb(user_id, 'Активен');
-        }
+  ses
+  .then(function(session) {
+    if(session) {
+      updateUserStatusDb(user_id, 'Активен');
+    }
     return new Promise((resolve, reject) => {
-      // setTimeout(() => {
-        resolve([session, Client.Account.searchForUser(session, userFilter)]);
-      // }, 2000);
+      resolve([session, Client.Account.searchForUser(session, userFilter)]);
     });
   }).all()
   .then(function([session, account]) {
      Client.Account.getById(session, account.id)
-    .then(function(account) {
-      filterFunction(account.params, task, cb);
-      // if (task.anonym_profile == true) {
-      //   var hasAnonymousProfilePictureCond = !account.params.hasAnonymousProfilePicture;
-      // } else {
-      //   var hasAnonymousProfilePictureCond = true;
-      // }
-    }).catch(function (err) {
+      .then(function(account) {
+        filterFunction(account.params, task, cb);
+        // if (task.anonym_profile == true) {
+        //   var hasAnonymousProfilePictureCond = !account.params.hasAnonymousProfilePicture;
+        // } else {
+        //   var hasAnonymousProfilePictureCond = true;
+        // }
+      })
+      .catch(function (err) {
         if (err instanceof Client.Exceptions.APIError) {
           console.log(err);
           loggerDb(user_id, err.name);
         } else {
-          loggerDb(user_id, 'Произошла ошибка');
+          loggerDb(user_id, 'Ошибка');
           console.log(err);
         }
       });
-  }).catch(function (err) {
+  })
+  .catch(function (err) {
     if (err instanceof Client.Exceptions.APIError) {
       loggerDb(user_id, err.name);
     } else {
-      loggerDb(user_id, 'Произошла ошибка');
+      loggerDb(user_id, 'Ошибка');
       console.log(err);
     }
   });
@@ -219,7 +214,7 @@ var apiFilterSession = function(user, task) {
       loggerDb(user._id, 'Файл подготовлен'); 
     });
 
-    if(user.proxy) { 
+    if(user.proxy && user.proxy != '') { 
       setProxyFunc(user.proxy);
     }
 
@@ -286,8 +281,8 @@ function apiParseAccounts(user, task) {
     });
     var indicator = 0;
     
-    if(user.proxy) { 
-       setProxyFunc(user.proxy);
+    if(user.proxy && user.proxy != '') { 
+      setProxyFunc(user.proxy);
     }
 
     const device = new Client.Device(user.username);
@@ -319,7 +314,6 @@ function apiParseAccounts(user, task) {
               if (indicator < task.max_limit * task.parsed_conc.length) {
                 appendStringFile(task.outputfile, item._params.username);
                 renderTaskCompletedView(user._id);
-                
               }
               indicator++;
             });
@@ -341,7 +335,8 @@ function apiParseAccounts(user, task) {
               resolve(feed.get());
             }, 2000);
           });
-        }).catch(function (err) {
+        })
+        .catch(function (err) {
           if(err.message == 'stop') {
             loggerDb(user._id, 'Парсинг остановлен');
             setStateView(user._id, 'stopped');
@@ -349,11 +344,12 @@ function apiParseAccounts(user, task) {
             console.log(err.message);
           }
         });
-      }).catch(function (err) {
+      })
+      .catch(function (err) {
         if (err instanceof Client.Exceptions.APIError) {
           updateUserStatusDb(user._id, err.name);
         } else {
-          // updateUserStatusDb(user._id, 'Произошла ошибка');
+          updateUserStatusDb(user._id, 'Ошибка');
           console.log(err);
         }
       });
@@ -381,16 +377,17 @@ function apiSessionCheck(user_id, username, password, proxy) { // FIX proxy chec
       .then(function(session) {
         updateUserStatusDb(user_id, 'Активен');
         setStateView(user_id, 'stopped');
-    }).catch(function (err) {
-      setStateView(user_id, 'stopped');
-      if (err instanceof Client.Exceptions.APIError) {
-        updateUserStatusDb(user_id, err.name);
-        console.log(err);
-      } else {
-        updateUserStatusDb(user_id, 'Произошла ошибка');
-        console.log(err);
-      }
-    });
+      })
+      .catch(function (err) {
+        setStateView(user_id, 'stopped');
+        if (err instanceof Client.Exceptions.APIError) {
+          updateUserStatusDb(user_id, err.name);
+          console.log(err);
+        } else {
+          updateUserStatusDb(user_id, 'Произошла ошибка');
+          console.log(err);
+        }
+      });
   })
   .catch(function(err) {
     setStateView(user_id, 'stopped');
