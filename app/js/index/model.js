@@ -22,8 +22,8 @@ function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
       db = new PouchDB(levelPath , {adapter: 'leveldb'});
-      PouchDB.debug.enable('*');
-      // PouchDB.debug.disable();
+      // PouchDB.debug.enable('*');
+      PouchDB.debug.disable();
       // dropDb();
       return db;
     });
@@ -164,9 +164,8 @@ function completeUserTaskDb(rows, taskName, params) {
 
 function checkAccountsDb(user_ids) {
   user_ids.forEach(function(user_id) {
-    // updateStateView(user_id, 'В работе');
     db.get(user_id).then(function(user) {
-      apiSessionCheck(user._id, user.username, user.password); // add proxy
+      apiSessionCheck(user._id, user.username, user.password, user.proxy); 
     }).catch(function(err) {
       console.log(err);
     });

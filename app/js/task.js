@@ -267,7 +267,7 @@ function filtrationTask(taskName) {
       }
       
       ipc.send('add_task_event', task);
-      // window.close();
+      window.close();
     });
   });
 }

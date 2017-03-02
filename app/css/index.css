@@ -1,3 +1,7 @@
+.table th,td {
+  text-align: center;
+}
+
 .container{ 
   padding-top:60px; 
 }

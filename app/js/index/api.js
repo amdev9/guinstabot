@@ -42,7 +42,7 @@ function mediaSessionFilter(json, task, cb) {
       // console.log (results[0]._params.takenAt);  
       // console.log("not private && data checked")
       appendStringFile(task.outputfile, json.username);
-      cb();
+      cb(true);
     }
   }).catch(error => {
     console.log(error);
@@ -77,90 +77,100 @@ function filterFunction(json, task, cb) {
             mediaFilter(json, task, cb);
           } else {
             appendStringFile(task.outputfile, json.username);
-            cb();
+            cb(true);
           }
         }
       })
     });
     } else {
       appendStringFile(task.outputfile, json.username);
-      cb();
+      cb(true);
     }
   } else {
     // console.log("not included " + json);
-    cb();
+    cb(false);
   }
 }
 
-var filterNoSession = function(task) {
-  setStateView(task._id, 'run');
-  renderNewTaskCompletedView(task._id);
-  loggerDb(task._id, 'Фильтрация аудитории');
-  fs.truncate(task.outputfile, 0, function() { 
-    loggerDb(task._id, 'Файл подготовлен');
-  });
+var apiFilterNoSession = function(task) {
+  mkdirFolder(logsDir)
+  .then(function() {
   
-  async.forEach(task.partitions, function (taskpart, callback) {
- 
-    console.log(taskpart.proxy_parc);
-    // setProxyFunc(taskpart.proxy_parc);
- 
-    var filterRequest = new Client.Web.FilterRequest();   
-    var iterator = taskpart.start;
-    var promiseWhile = function( action) {
-      var resolver = Promise.defer();
-      var func = function(json) {
-        if (json) {
-          filterFunction(json, task, function() {
-            renderTaskCompletedView(task._id); // +1 //, iterator, task.input_array.length
-          });
-        }
-
-        if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
-          return resolver.reject(new Error("stop"));
-        } 
-        return Promise.cast(action())
-          .then(func)
-          .catch(resolver.reject);
-      };
-      process.nextTick(func);
-      return resolver.promise;
-    }
-
-    promiseWhile(function() {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
-          resolve(filterRequest.getUser(task.input_array[iterator])); // FIX pass param 
-          iterator++;
-        }, 20);
-      });
-    }).then(function() {
-      callback();
-    }).catch(function (err) {
-      
-      if (err.message == 'stop') {
-        loggerDb(task._id, 'Фильтрация остановлена');
-       setStateView(task._id, 'stopped');
-       callback();
-      } else {
-        console.log(err.message);
-      }
+    setStateView(task._id, 'run');
+    renderNewTaskCompletedView(task._id);
+    loggerDb(task._id, 'Фильтрация аудитории');
+    fs.truncate(task.outputfile, 0, function() { 
+      loggerDb(task._id, 'Файл подготовлен');
     });
+    
+    async.forEach(task.partitions, function (taskpart, callback) {
+   
+      console.log(taskpart.proxy_parc);
+      // setProxyFunc(taskpart.proxy_parc);
+   
+      var filterRequest = new Client.Web.FilterRequest();   
+      var iterator = taskpart.start;
+      var promiseWhile = function( action) {
+        var resolver = Promise.defer();
+        var func = function(json) {
+          if (json) {
+            filterFunction(json, task, function() {
+              renderTaskCompletedView(task._id); // +1 //, iterator, task.input_array.length
+            });
+          }
+
+          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
+            return resolver.reject(new Error("stop"));
+          } 
+          return Promise.cast(action())
+            .then(func)
+            .catch(resolver.reject);
+        };
+        process.nextTick(func);
+        return resolver.promise;
+      }
+
+      promiseWhile(function() {
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve(filterRequest.getUser(task.input_array[iterator])); // FIX pass param 
+            iterator++;
+          }, 20);
+        });
+      }).then(function() {
+        callback();
+      }).catch(function (err) {
+        
+        if (err.message == 'stop') {
+          loggerDb(task._id, 'Фильтрация остановлена');
+         setStateView(task._id, 'stopped');
+         callback();
+        } else {
+          console.log(err.message);
+        }
+      });
 
 
-      
-   }, function(err) {
+        
+     }, function(err) {
+      console.log(err);
+        console.log('iterating done');
+    }); 
+  })
+  .catch(function(err) {
     console.log(err);
-      console.log('iterating done');
-  }); 
+  })
 }
 
 function filterSessionUser(user_id, ses, task, userFilter, cb) {
   ses.then(function(session) {
+            if(session) {
+          updateUserStatusDb(user_id, 'Активен');
+        }
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
+      // setTimeout(() => {
         resolve([session, Client.Account.searchForUser(session, userFilter)]);
-      }, 2000);
+      // }, 2000);
     });
   }).all()
   .then(function([session, account]) {
@@ -191,7 +201,15 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
   });
 }
 
-var filterSession = function(user, task) {
+function apiFilterAccounts(row) {
+  if (row.type == 'user') {
+    apiFilterSession(row, row.task);
+  } else if(row.type == 'task') {
+    apiFilterNoSession(row);
+  }
+}
+
+var apiFilterSession = function(user, task) {
   mkdirFolder(logsDir)
   .then(function() {
 
@@ -210,13 +228,17 @@ var filterSession = function(user, task) {
     const storage = new Client.CookieFileStorage(cookiePath);
     var ses = Client.Session.create(device, storage, user.username, user.password);
 
-    var iterator = 0;
+    var iterator = 1;
+    var filterSuccess = 0;
     var promiseWhile = function(action) {
       var resolver = Promise.defer();
       var func = function(iterator) {
         if (iterator) {
-          filterSessionUser(user._id, ses, task, task.input_array[iterator], function() {
-            renderUserCompletedView(user._id, iterator+1, task.input_array.length);
+          filterSessionUser(user._id, ses, task, task.input_array[iterator], function(success) {
+            if(success) {
+              filterSuccess += 1;
+            }
+            renderUserCompletedView(user._id, task.input_array.length, iterator, filterSuccess); 
           });
         }
         if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
@@ -234,7 +256,7 @@ var filterSession = function(user, task) {
         setTimeout(function() {
           resolve(iterator);
           iterator++;
-        }, 3000);
+        }, 1000);
       });
     }).catch(function (err) {
       if(err.message == 'stop') {
@@ -245,23 +267,20 @@ var filterSession = function(user, task) {
       }
     });
   })
+  .catch(function(err) {
+    setStateView(user_id, 'stopped');
+    console.log(err);
+  })
 }
-
-function apiFilterAccounts(row) {
-  if (row.type == 'user') {
-    filterSession(row, row.task);
-  } else if(row.type == 'task') {
-    filterNoSession(row);
-  }
-}
-
-
 
 function apiParseAccounts(user, task) {
   mkdirFolder(cookieDir)
   .then(function() {
     setStateView(user._id, 'run');
+    renderNewTaskCompletedView(user._id);
+
     loggerDb(user._id, 'Парсинг аудитории');
+
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(user._id, 'Файл подготовлен'); 
     });
@@ -278,6 +297,9 @@ function apiParseAccounts(user, task) {
 
     task.parsed_conc.forEach( function(conc_user) {
       ses.then(function(session) {
+        if(session) {
+          updateUserStatusDb(user._id, 'Активен');
+        }
         return [session, Client.Account.searchForUser(session, conc_user)]   
       }).all()
       .then(function([session, account]) {
@@ -296,13 +318,13 @@ function apiParseAccounts(user, task) {
             results.forEach(function (item, i , arr) {
               if (indicator < task.max_limit * task.parsed_conc.length) {
                 appendStringFile(task.outputfile, item._params.username);
-                renderUserCompletedView(user._id, indicator + 1, task.max_limit * task.parsed_conc.length);
+                renderTaskCompletedView(user._id);
+                
               }
               indicator++;
             });
           }
-          if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit) {
-            // return resolver.resolve();
+          if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit * task.parsed_conc.length) {
             return resolver.reject(new Error("stop"));
           }
           return Promise.cast(action())
@@ -337,33 +359,30 @@ function apiParseAccounts(user, task) {
       });
     });
   })
+  .catch(function(err) {
+    setStateView(user_id, 'stopped');
+    console.log(err);
+  })
 }
 
-function apiSessionCheck(user_id, username, password) { // add proxy
+function apiSessionCheck(user_id, username, password, proxy) { // FIX proxy check for url && error
   mkdirFolder(cookieDir)
   .then(function() {
     setStateView(user_id, 'run');
     loggerDb(user_id, 'Выполняется логин');
-    const device = new Client.Device(username);
+    var device = new Client.Device(username);
     var cookiePath = path.join(cookieDir, user_id + ".json");
-    const storage = new Client.CookieFileStorage(cookiePath);
-    Client.Session.create(device, storage, username, password)
+    var storage = new Client.CookieFileStorage(cookiePath);
+    var session = new Client.Session(device, storage);
+    if(_.isString(proxy) && !_.isEmpty(proxy)) {
+      session.proxyUrl = proxy;
+    }
+    Client.Session.login(session, username, password)
       .then(function(session) {
-        Client.Session.login(session, username, password).then(function(result) {
-          updateUserStatusDb(user_id, 'Активен');
-          setStateView(user_id, 'stopped');
-        }).catch(function (err) {
-          setStateView(user_id, 'stopped');
-            if (err instanceof Client.Exceptions.APIError) {
-              updateUserStatusDb(user_id, err.name);
-              console.log(err);
-            } else {
-              updateUserStatusDb(user_id, 'Произошла ошибка');
-              console.log(err);
-            }
-          });
-        
+        updateUserStatusDb(user_id, 'Активен');
+        setStateView(user_id, 'stopped');
     }).catch(function (err) {
+      setStateView(user_id, 'stopped');
       if (err instanceof Client.Exceptions.APIError) {
         updateUserStatusDb(user_id, err.name);
         console.log(err);
@@ -372,5 +391,9 @@ function apiSessionCheck(user_id, username, password) { // add proxy
         console.log(err);
       }
     });
+  })
+  .catch(function(err) {
+    setStateView(user_id, 'stopped');
+    console.log(err);
   })
 }
