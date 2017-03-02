@@ -162,7 +162,7 @@ function renderTaskRowView(task_id, taskName) {
     <td>Остановлен</td>
     <td>-</td>
     <td>-</td></tr>`;
-  $('#table1').append(taskHtml);
+  $(taskHtml).prependTo('#table1');
 }
 
 function initTaskRowRenderView(tasks) {
