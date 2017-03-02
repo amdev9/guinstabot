@@ -22,8 +22,8 @@ function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
       db = new PouchDB(levelPath , {adapter: 'leveldb'});
-      // PouchDB.debug.enable('*');
-      PouchDB.debug.disable();
+      PouchDB.debug.enable('*');
+      // PouchDB.debug.disable();
       // dropDb();
       return db;
     });
@@ -48,33 +48,40 @@ function addTaskDb(tasks, users) {
   }
 }
 
+function userObj(userArr) {
+  this._id = userArr[0];
+  this.username = userArr[0];   
+  this.password = userArr[1];
+  this.proxy = userArr[2];
+  this.type = 'user';
+  this.cookie = '';
+  this.task = '-';
+  this.status = '-';
+}
+
 function addUsersDb(users) {
   // pass user data fill to add js
   var usersObjArr = [];
-   users.forEach(function(userString, i, fullArr) {
+  var usersRender = [];
+  users.forEach(function(userString, i, fullArr) {
     var userArr = userString.split('|');
     if (userArr.length == 3) {
-      var user = {};
-      user._id = userArr[0];
-      user.username = userArr[0];   
-      user.password = userArr[1];
-      user.proxy = userArr[2];
-      user.type = 'user';
-      user.cookie = '';
-      user.task = '-';
-      user.status = '-';
+      var user = new userObj(userArr);
       usersObjArr.push(user);
       if ( i == fullArr.length - 1) {
+        
         db.bulkDocs(usersObjArr)
           .then(function (response) {
+
             response.forEach(function(item, i, arr) {
-              if (item.error == true) {
-                usersObjArr.splice(i, 1);
-              }
-              if (i == arr.length - 1) {
-                renderUserRowView(usersObjArr);
+              if (item.ok) {
+                usersRender.push(usersObjArr[i]);
+                if (i == arr.length - 1) {
+                  renderUserRowView(usersRender);
+                }
               }
             });
+
         }).catch(function (err) {
           console.log(err);
         });

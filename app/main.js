@@ -36,7 +36,7 @@ app.on('window-all-closed', function() {
 });
 
 app.on('ready', function() {
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow = new BrowserWindow({width: 800, height: 600}); // , show: false
   mainWindow.setMenu(null)
    
   mainWindow.loadURL(url.format({
@@ -49,6 +49,7 @@ app.on('ready', function() {
   });
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('sync_db');
+    // mainWindow.show();
   })
   openDevTool(mainWindow, devIsOpen);
 });
