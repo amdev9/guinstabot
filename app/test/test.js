@@ -214,7 +214,8 @@ describe('navigation menu', function () {
 })
 
 
-describe('possible to add users from file', function () {
+describe.only('possible to add users from file', function () {
+
   helpers.setupTimeout(this)
 
   var app = null
@@ -290,7 +291,7 @@ describe('possible to add users from file', function () {
 
   })
 
-  it('possible to edit user record records', function () {
+  it('possible to edit user credentials', function () {
     return app.client.waitUntilWindowLoaded()
       .waitUntil(function () {
         return this.getWindowCount().then(function (count) {
@@ -349,29 +350,26 @@ describe('possible to add users from file', function () {
       .windowByIndex(2)
       .waitForVisible('#parse_concurrents_tab').should.eventually.be.true
       .webContents.getTitle().should.eventually.equal('Добавление задания | ' + softname)
-
   })
-  
 
   it('possible to delete all exist records [Ctrl+A]', function () {
-    return app.client.waitUntilWindowLoaded()
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 2
-        })
+  return app.client.waitUntilWindowLoaded()
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 2
       })
-      .windowByIndex(1)
-      .waitForVisible('#table1 > tbody > tr:nth-child(1)').should.eventually.be.true
-      .keys(['Control', 'a', 'NULL'])
-      .rightClick("#table1", 10, 10)
-      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
-      .click('#context-menu > ul > li:nth-child(7)', 5, 5)
-      // .waitForVisible('#table1 > tbody > tr').should.eventually.be.true
-      .then(function() {
-        app.client.getText('#table1 > tbody > tr').then(function (text) {
-          expect(text.length).to.equal(0)
-        })
+    })
+    .windowByIndex(1)
+    .waitForVisible('#table1 > tbody > tr:nth-child(1)').should.eventually.be.true
+    .keys(['Control', 'a', 'NULL'])
+    .rightClick("#table1", 10, 10)
+    .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+    .click('#context-menu > ul > li:nth-child(7)', 5, 5)
+    .then(function() {
+      app.client.getText('#table1 > tbody > tr').then(function (text) {
+        expect(text.length).to.equal(0)
       })
+    })
   })
-
+  
 })
