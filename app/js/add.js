@@ -2,6 +2,7 @@ ipc = require('electron').ipcRenderer;
 var fs = require("fs");
 window.$ = window.jQuery = require('jquery');
 var config = require('../config/default');
+const {dialog} = require('electron').remote;
 var softname = config.App.softname;
 document.title = "Добавить аккаунты | " + softname
 
@@ -21,7 +22,6 @@ function isEmpty(x) {
 }
 
 var openFile = function(selector) {
-  const {dialog} = require('electron').remote
   var path = dialog.showOpenDialog({properties: ['openFile']});
   if (path) {
     document.getElementById(selector).value = path;
@@ -30,9 +30,17 @@ var openFile = function(selector) {
 
 var parseDataFileToArray = (selector) => {
   var filename = document.getElementById(selector).value;
-  fs.readFile(filename, function(err, f) {
-    var array = f.toString().split('\n').filter(isEmpty);
-    ipc.send('users_add', array);
-    window.close(); 
-  });
+  if(fs.existsSync(filename)) {
+    fs.readFile(filename, function(err, f) {
+      if(err) throw err;
+      var array = f.toString().split('\n').filter(isEmpty);
+      ipc.send('users_add', array);
+      window.close(); 
+    });
+  } else {
+    dialog.showMessageBox({ 
+      message: `Файл не найден: ${filename}`,
+      buttons: ["OK"] 
+    });
+  }
 }

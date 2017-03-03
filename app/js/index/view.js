@@ -85,7 +85,6 @@ function setStateView(id, state) {
 }
 
 function taskRenderNames(taskDbName) {
-  console.log(taskDbName);
   switch(taskDbName) {
     case 'filtration': return 'Фильтрация'
     case 'parse_concurrents': return 'Парсинг по конкурентам'

@@ -67,7 +67,9 @@ function addUsersDb(users) {
     var userArr = userString.split('|');
     if (userArr.length == 3) {
       var user = new userObj(userArr);
-      usersObjArr.push(user);
+      if(validateProxyString(user.proxy)) {
+        usersObjArr.push(user);
+      }
       if ( i == fullArr.length - 1) {
         
         db.bulkDocs(usersObjArr)

@@ -132,7 +132,7 @@ function depends() {
 }
 
 function multipleMenuOn(taskItems) {
-  console.log("multipleMenuOn");
+  // console.log("multipleMenuOn");
   var toHideItems = ['tasks_start', 'tasks_stop' , 'edit_account', 'edit_tasks']; // 'add_tasks'
   var filled = true;
   $(".table-info").each(function (i, val) {
@@ -174,7 +174,7 @@ function multipleMenuOn(taskItems) {
 }
 
 function selectUserTaskMenuOn() {
-  console.log("selectUserTaskMenuOn");
+  // console.log("selectUserTaskMenuOn");
   var additionalItemsToHide = [];
   var state = taskItemInContext[0].getAttribute("state");
   if ( state == 'run' ) {
@@ -193,7 +193,7 @@ function selectUserTaskMenuOn() {
 }
 
 function selectTaskMenuOn() {
-  console.log("selectTaskMenuOn");
+  // console.log("selectTaskMenuOn");
   var additionalItemsToHide = [];
   var state = taskItemInContext[0].getAttribute("state");
   if ( state == 'run' ) {
@@ -212,7 +212,7 @@ function selectTaskMenuOn() {
 }
 
 function selectOneNoTaskMenuOn() {
-  console.log("selectOneNoTaskMenu");
+  // console.log("selectOneNoTaskMenu");
   $('.context-menu__item > a').each(function(i, val) {
     if($(this).attr("data-action") == 'tasks_start' || $(this).attr("data-action") == 'tasks_stop' || $(this).attr("data-action") == 'edit_tasks') {
       $('.context-menu__item').eq(i).addClass("hidden");
@@ -221,7 +221,7 @@ function selectOneNoTaskMenuOn() {
 }
 
 function selectEmptyMenuOn() {
-  console.log("selectEmptyMenuOn");
+  // console.log("selectEmptyMenuOn");
   $('.context-menu__item > a').each(function(i, val) {
     if($(this).attr("data-action") != 'add_tasks' && $(this).attr("data-action") != 'add_accounts') {
       $('.context-menu__item').eq(i).addClass("hidden");
@@ -230,7 +230,7 @@ function selectEmptyMenuOn() {
 }
 
 function selectEmptyMenuOff() {
-  console.log("selectEmptyMenuOff"); 
+  // console.log("selectEmptyMenuOff"); 
   $('.context-menu__item > a').each(function(i, val) {
     $('.context-menu__item').eq(i).removeClass("hidden");
   });

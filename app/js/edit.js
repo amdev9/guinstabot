@@ -21,5 +21,5 @@ function saveAccountData() {
   user.proxy = document.getElementById("proxy").value;
   user.password = document.getElementById("password").value;
   ipc.send('user_edit', user );
-  // window.close();
+  window.close();
 }
