@@ -366,7 +366,7 @@ function apiParseAccounts(user, task) {
   })
 }
 
-function apiSessionCheck(user_id, username, password, proxy) { // FIX proxy check for url && error
+function apiSessionCheck(user_id, username, password, proxy) { 
   mkdirFolder(cookieDir)
   .then(function() {
     setStateView(user_id, 'run');
@@ -376,7 +376,7 @@ function apiSessionCheck(user_id, username, password, proxy) { // FIX proxy chec
     var storage = new Client.CookieFileStorage(cookiePath);
     var session = new Client.Session(device, storage);
     if(_.isString(proxy) && !_.isEmpty(proxy)) {
-      session.proxyUrl = proxy;
+      setProxyFunc(proxy); //session proxy
     }
     Client.Session.login(session, username, password)
       .then(function(session) {

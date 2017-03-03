@@ -1,5 +1,6 @@
 .table th,td {
   text-align: center;
+  font-size: .875rem;
 }
 
 .container{ 
@@ -9,6 +10,7 @@
 .context-menu {
   display: none;
   position: absolute;
+  font-size: .875rem;
   z-index: 10;
   padding: 12px 0;
   width: 240px;

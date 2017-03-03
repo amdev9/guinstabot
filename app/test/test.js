@@ -136,8 +136,8 @@ describe('navigation menu', function () {
         })
       })
       .windowByIndex(1)
-      .waitForVisible('#table1 tbody tr:nth-child(2)').should.eventually.be.true
-      .click("#table1 tbody tr:nth-child(2)", 10, 10)
+      .waitForVisible('tr[data-id="ratm9111"]').should.eventually.be.true
+      .click('tr[data-id="ratm9111"]', 10, 10)
       .rightClick("#table1", 10, 10)
       .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
       .then(function() {
@@ -164,11 +164,11 @@ describe('navigation menu', function () {
         })
       })
       .windowByIndex(1)
-      .waitForVisible('#table1 tbody tr:nth-child(2)').should.eventually.be.true
-      .waitForVisible('#table1 tbody tr:nth-child(3)').should.eventually.be.true
-      .click("#table1 tbody tr:nth-child(2)", 10, 10)
+      .waitForVisible('tr[data-id="ratm9111"]').should.eventually.be.true
+      .waitForVisible('tr[data-id="ratm922"]').should.eventually.be.true
+      .click('tr[data-id="ratm9111"]', 10, 10)
       .keys('Shift')
-      .click("#table1 tbody tr:nth-child(3)", 10, 10)
+      .click('tr[data-id="ratm922"]', 10, 10)
       .keys('NULL')
       .rightClick("#table1", 10, 10)
       .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
@@ -194,8 +194,8 @@ describe('navigation menu', function () {
         })
       })
       .windowByIndex(1)
-      .waitForVisible('#table1 tbody tr:nth-child(2)').should.eventually.be.true
-      .waitForVisible('#table1 tbody tr:nth-child(3)').should.eventually.be.true
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .waitForVisible('tr[data-id="ratm9111"]').should.eventually.be.true
       .keys(['Control', 'a', 'NULL'])
       .rightClick("#table1", 10, 10)
       .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
@@ -210,11 +210,12 @@ describe('navigation menu', function () {
         })
       })
   })
-
 })
 
 
-describe.only('possible to add users from file', function () {
+
+
+describe('possible to add users from file', function () {
 
   helpers.setupTimeout(this)
 
@@ -229,6 +230,27 @@ describe.only('possible to add users from file', function () {
 
   afterEach(function () {
     return helpers.stopApplication(app)
+  })
+
+
+  it('possible to delete all exist records [Ctrl+A]', function () {
+  return app.client.waitUntilWindowLoaded()
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 2
+      })
+    })
+    .windowByIndex(1)
+    .waitForVisible('#table1 > tbody > tr:nth-child(1)').should.eventually.be.true
+    .keys(['Control', 'a', 'NULL'])
+    .rightClick("#table1", 10, 10)
+    .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+    .click('#context-menu > ul > li:nth-child(7)', 5, 5)
+    .then(function() {
+      app.client.getText('#table1 > tbody > tr').then(function (text) {
+        expect(text.length).to.equal(0)
+      })
+    })
   })
 
   it('possible to add users from file', function () {
@@ -267,69 +289,7 @@ describe.only('possible to add users from file', function () {
       })
   })
 
-  it('possible to check logs for user account', function () {
-    return app.client.waitUntilWindowLoaded()
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 2
-        })
-      })
-      .windowByIndex(1)
-      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
-      .click("#table1 tbody tr:nth-child(1)", 10, 10)
-      .rightClick("#table1", 10, 10)
-      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
-      .click('#context-menu > ul > li:nth-child(9)', 5, 5)
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 3
-        })
-      })
-      .windowByIndex(2)
-      .waitForVisible('#text').should.eventually.be.true
-      .webContents.getTitle().should.eventually.equal(`Лог ratm9111 | ${softname}`)
-
-  })
-
-  it('possible to edit user credentials', function () {
-    return app.client.waitUntilWindowLoaded()
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 2
-        })
-      })
-      .windowByIndex(1)
-      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
-      .click("#table1 tbody tr:nth-child(1)", 10, 10)
-      .rightClick("#table1", 10, 10)
-      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
-      .click('#context-menu > ul > li:nth-child(3)', 5, 5)
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 3
-        })
-      })
-      .windowByIndex(2)
-      .waitForVisible('#edit_form').should.eventually.be.true
-      .webContents.getTitle().should.eventually.equal('Редактирование аккаунта | ' + softname)
-      .setValue('#username', 'ratmChanged')
-      .click('button[type="submit"]')
-      .waitUntil(function () {
-        return this.getWindowCount().then(function (count) {
-          return count === 1
-        })
-      })
-      .windowByIndex(0)
-      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
-      .then(function() {
-        app.client.getText('#table1 > tbody > tr').then(function (text) {
-          expect(text.length).to.equal(2)
-        })
-      })
-  })
-
-
-  it('possible to add task to the user record', function () {
+  it('possible to add parse_concurrents task to the user record', function() {
     return app.client.waitUntilWindowLoaded()
       .waitUntil(function () {
         return this.getWindowCount().then(function (count) {
@@ -348,11 +308,172 @@ describe.only('possible to add users from file', function () {
         })
       })
       .windowByIndex(2)
-      .waitForVisible('#parse_concurrents_tab').should.eventually.be.true
+      .click("#parse_concurrents_tab", 10, 10)
+      .waitForVisible('#parse_concurrents').should.eventually.be.true
       .webContents.getTitle().should.eventually.equal('Добавление задания | ' + softname)
+      .setValue('#parsed_conc', 'instagram')
+      .click('span[name="follow"]')
+      .setValue('#max_limit', '300')
+      .setValue('#parsed_accounts', '/Users/alex/dev/nodejs/guinstabot/app/test/parsed')
+      .click('button[name="parse_concurrents"]')
+      .waitUntil(function() {
+        return this.getWindowCount().then(function(count) {
+          return count === 1
+        })
+      })
+      .windowByIndex(0)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      // check for correct task added
   })
 
-  it('possible to delete all exist records [Ctrl+A]', function () {
+  it('possible to add filtration task to the user record', function() {
+    return app.client.waitUntilWindowLoaded()
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 2
+        })
+      })
+      .windowByIndex(1)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .click("#table1 tbody tr:nth-child(1)", 10, 10)
+      .rightClick("#table1", 10, 10)
+      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+      .click('#context-menu > ul > li:nth-child(4)', 5, 5)
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 3
+        })
+      })
+      .windowByIndex(2)
+      .click("#filtration_tab", 10, 10)
+      .waitForVisible('#filtration').should.eventually.be.true
+      .webContents.getTitle().should.eventually.equal('Добавление задания | ' + softname)
+      .setValue('#inputfile', '/Users/alex/dev/nodejs/guinstabot/app/test/parsed')
+      .setValue('#followers_from', '0').setValue('#followers_to', '300')
+      .setValue('#subscribers_from', '0').setValue('#subscribers_to', '300')
+      .setValue('#publications_from', '0').setValue('#publications_to', '300')
+      .click('span[name="avatar"]')
+      .selectByValue('#private', 'open')
+      .click('span[name="date_checker"]')
+      // .setValue('#lastdate', '2017-02-19')
+      .setValue('#stop_words_file', '/Users/alex/dev/nodejs/guinstabot/app/test/stop')
+      .setValue('#filtered_accounts', '/Users/alex/dev/nodejs/guinstabot/app/test/filtrated')
+      .click('button[name="filtration"]')
+      .waitUntil(function() {
+        return this.getWindowCount().then(function(count) {
+          return count === 1
+        })
+      })
+      .windowByIndex(0)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      // check for correct task added
+  })
+
+  it('possible to add filtration task', function() {
+    return app.client.waitUntilWindowLoaded()
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 2
+        })
+      })
+      .windowByIndex(1)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .rightClick("#table1", 10, 10)
+      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+      .click('#context-menu > ul > li:nth-child(4)', 5, 5)
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 3
+        })
+      })
+      .windowByIndex(2)
+      .click("#filtration_tab", 10, 10)
+      .waitForVisible('#filtration').should.eventually.be.true
+      .webContents.getTitle().should.eventually.equal('Добавление задания | ' + softname)
+      .setValue('#inputfile', '/Users/alex/dev/nodejs/guinstabot/app/test/parsed')
+      .setValue('#proxy_file', '/Users/alex/dev/nodejs/guinstabot/app/test/proxy')
+      .setValue('#followers_from', '0').setValue('#followers_to', '300')
+      .setValue('#subscribers_from', '0').setValue('#subscribers_to', '300')
+      .setValue('#publications_from', '0').setValue('#publications_to', '300')
+      .click('span[name="avatar"]')
+      .selectByValue('#private', 'open')
+      .click('span[name="date_checker"]')
+      // .setValue('#lastdate', '2017-02-19')
+      .setValue('#stop_words_file', '/Users/alex/dev/nodejs/guinstabot/app/test/stop')
+      .setValue('#filtered_accounts', '/Users/alex/dev/nodejs/guinstabot/app/test/filtrated')
+      .click('button[name="filtration"]')
+      .waitUntil(function() {
+        return this.getWindowCount().then(function(count) {
+          return count === 1
+        })
+      })
+      .windowByIndex(0)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      // check for correct task added
+  })
+
+  it('possible to check logs for user account', function () {
+    return app.client.waitUntilWindowLoaded()
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 2
+        })
+      })
+      .windowByIndex(1)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .click('tr[data-id="ratm9111"]', 10, 10)
+      .rightClick("#table1", 10, 10)
+      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+      .click('#context-menu > ul > li:nth-child(9)', 5, 5)
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 3
+        })
+      })
+      .windowByIndex(2)
+      .waitForVisible('#text').should.eventually.be.true
+      .webContents.getTitle().should.eventually.equal(`Лог ratm9111 | ${softname}`)
+
+  })
+
+  it('possible to edit user username', function () {
+    return app.client.waitUntilWindowLoaded()
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 2
+        })
+      })
+      .windowByIndex(1)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .click('tr[data-id="ratm9111"]', 10, 10)
+      .rightClick("#table1", 10, 10)
+      .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+      .click('#context-menu > ul > li:nth-child(3)', 5, 5)
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 3
+        })
+      })
+      .windowByIndex(2)
+      .waitForVisible('#edit_form').should.eventually.be.true
+      .webContents.getTitle().should.eventually.equal('Редактирование аккаунта | ' + softname)
+      .setValue('#username', 'username')
+      .click('button[type="submit"]')
+      .waitUntil(function () {
+        return this.getWindowCount().then(function (count) {
+          return count === 1
+        })
+      })
+      .windowByIndex(0)
+      .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+      .then(function() {
+        app.client.getText('#table1 > tbody > tr').then(function (text) {
+          expect(text.length).to.equal(2)
+        })
+      })
+  })
+
+  it('possible to edit user password', function () {
   return app.client.waitUntilWindowLoaded()
     .waitUntil(function () {
       return this.getWindowCount().then(function (count) {
@@ -360,16 +481,75 @@ describe.only('possible to add users from file', function () {
       })
     })
     .windowByIndex(1)
-    .waitForVisible('#table1 > tbody > tr:nth-child(1)').should.eventually.be.true
-    .keys(['Control', 'a', 'NULL'])
+    .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+    .click('tr[data-id="ratm9111"]', 10, 10)
     .rightClick("#table1", 10, 10)
     .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
-    .click('#context-menu > ul > li:nth-child(7)', 5, 5)
+    .click('#context-menu > ul > li:nth-child(3)', 5, 5)
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 3
+      })
+    })
+    .windowByIndex(2)
+    .waitForVisible('#edit_form').should.eventually.be.true
+    .webContents.getTitle().should.eventually.equal('Редактирование аккаунта | ' + softname)
+    .setValue('#password', 'password')
+    .click('button[type="submit"]')
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 1
+      })
+    })
+    .windowByIndex(0)
+    .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
     .then(function() {
       app.client.getText('#table1 > tbody > tr').then(function (text) {
-        expect(text.length).to.equal(0)
+        expect(text.length).to.equal(2)
       })
     })
   })
-  
+
+  it('possible to edit user proxy', function () {
+    return app.client.waitUntilWindowLoaded()
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 2
+      })
+    })
+    .windowByIndex(1)
+    .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+    .click('tr[data-id="ratm9111"]', 10, 10)
+    .rightClick("#table1", 10, 10)
+    .getAttribute('#context-menu', 'class').should.eventually.equal('context-menu context-menu--active')
+    .click('#context-menu > ul > li:nth-child(3)', 5, 5)
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 3
+      })
+    })
+    .windowByIndex(2)
+    .waitForVisible('#edit_form').should.eventually.be.true
+    .webContents.getTitle().should.eventually.equal('Редактирование аккаунта | ' + softname)
+    .setValue('#proxy', '1.1.1.1:3030')
+    .click('button[type="submit"]')
+    .waitUntil(function () {
+      return this.getWindowCount().then(function (count) {
+        return count === 1
+      })
+    })
+    .windowByIndex(0)
+    .waitForVisible('#table1 tbody tr:nth-child(1)').should.eventually.be.true
+    .then(function() {
+      app.client.getText('#table1 > tbody > tr').then(function (text) {
+        expect(text.length).to.equal(2)
+      })
+    })
+  })
+
 })
+
+
+
+// session proxy check tests
+// validations tests

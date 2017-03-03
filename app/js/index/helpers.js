@@ -69,7 +69,7 @@ function setProxyFunc(proxyString) {
     console.log(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
     Client.Request.setProxy(`http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`);
   } else {
-    console.log("Proxy format wrong");
+    console.log("Proxy format wrong"); // -- init dialog message ?
   }
 }
 
