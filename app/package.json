@@ -62,7 +62,7 @@
     },
     "win": {
       "target": "squirrel",
-      "iconUrl": ""
+      "iconUrl": "http://192.168.1.33:5014/favicon.ico"
     }
   }
 }

@@ -11,7 +11,7 @@ var config = require('./config/default');
 const devIsOpen = config.App.devTools;
 const os = require('os');
 
-// >>??
+
 // let template = []
 // if (process.platform === 'darwin') {
 //   // OS X
