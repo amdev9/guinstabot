@@ -17,6 +17,19 @@ var _ = require('lodash')
 
 var logControls = [];
 
+
+// Display the current version
+let version = window.location.hash.substring(1);
+document.getElementById('version').innerText = version;
+
+ipc.on('message', function(event, text) {
+  var container = document.getElementById('messages');
+  var message = document.createElement('div');
+  message.innerHTML = text;
+  container.appendChild(message);
+})
+//
+
 ipc.on('add', (event, users) => {
   addUsersDb(users);
 });
