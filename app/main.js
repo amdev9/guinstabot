@@ -39,12 +39,7 @@ function createDefaultWindow() {
   mainWindow = new BrowserWindow({width: 800, height: 600}); // , show: false
   mainWindow.setMenu(null)
    
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, `index.html#v${app.getVersion()}`),
-    protocol: 'file:',
-    slashes: true
-  }));
-
+  mainWindow.loadURL(`file://${__dirname}/index.html#v${app.getVersion()}`);
   mainWindow.on('closed', function() {
     mainWindow = null;
   });
