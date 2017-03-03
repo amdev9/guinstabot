@@ -78,7 +78,7 @@ function clearTextArea (selector) {
   document.getElementById(selector).value = "";
 }
 
-function openFile ( selector ) {
+function openFile(selector) {
   var path = dialog.showOpenDialog({properties: ['openFile']}); 
   if (path) {
     document.getElementById(selector).value = path;

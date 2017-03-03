@@ -21,14 +21,14 @@ function isEmpty(x) {
   }
 }
 
-var openFile = function(selector) {
+function openFile(selector) {
   var path = dialog.showOpenDialog({properties: ['openFile']});
   if (path) {
     document.getElementById(selector).value = path;
   }
 }
 
-var parseDataFileToArray = (selector) => {
+function parseDataFileToArray(selector) {
   var filename = document.getElementById(selector).value;
   if(fs.existsSync(filename)) {
     fs.readFile(filename, function(err, f) {

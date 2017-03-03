@@ -10,6 +10,8 @@ var beforeEach = global.beforeEach
 var afterEach = global.afterEach
 
 var appPath = path.resolve(__dirname, '../'); 
+console.log(appPath);
+
 var config = require('../config/default');
 var softname = config.App.softname;
 var electronPath = path.resolve('/usr/local/bin/electron');
@@ -212,7 +214,7 @@ describe('navigation menu', function () {
 })
 
 
-describe.only('possible to add users from file', function () {
+describe('possible to add users from file', function () {
   helpers.setupTimeout(this)
 
   var app = null
@@ -372,6 +374,4 @@ describe.only('possible to add users from file', function () {
       })
   })
 
- 
-  // folder to add use case Uncaught TypeError: Cannot read property 'toString' of undefined  // ADD FEATURE
 })
