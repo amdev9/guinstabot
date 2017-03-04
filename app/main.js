@@ -121,32 +121,16 @@ function openDevTool(win, isOpen) {
   }
 }
 
-// function sendStatus(text) {
-//   mainWindow.webContents.send('message', text);
-// }
-
-autoUpdater.on('checking-for-update', () => {
-  // sendStatus('Выполняется проверка обновлений...');
-})
-autoUpdater.on('update-available', (ev, info) => {
-  // sendStatus('Доступно обновление.');
-})
-autoUpdater.on('update-not-available', (ev, info) => {
-  // sendStatus('Обновления отсутствуют.');
-})
+autoUpdater.on('checking-for-update', () => {})
+autoUpdater.on('update-available', (ev, info) => {})
+autoUpdater.on('update-not-available', (ev, info) => {})
 autoUpdater.on('error', (ev, err) => {
   dialog.showErrorBox('Ошибка обновления', 'Произошла ошибка при обновлении программы')
-
-  // sendStatus('Ошибка при обновлении.');
-  // sendStatus(err); // no need
 })
-autoUpdater.on('download-progress', (ev, progressObj) => {
-  // sendStatus('Скачиваем обновление...');
-  // sendStatus('progressObj', progressObj); // no need
-})
+autoUpdater.on('download-progress', (ev, progressObj) => {})
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  let message = 'Доступно обновление ' + app.getName() + ' ' + releaseName + ' . Оно будет установлено при следующем запуске программы.';
+  let message = 'Доступно обновление ' + app.getName() + ' ' + releaseName + '. Оно будет установлено при следующем запуске программы.';
   if (releaseNotes) {
     const splitNotes = releaseNotes.split(/[^\r]\n/);
     message += '\n\nОписание обновления:\n';
