@@ -4,7 +4,7 @@
   "productName": "InstaBOT",
   "version": "0.0.1",
   "description": "GUI instagram activities application",
-  "author": "Alex <alexpro@mail.gnu>",
+  "author": "AlexSoft <alexpro@mail.gnu>",
   "main": "main.js",
   "scripts": {
     "postinstall": "electron-rebuild -p",

@@ -15,12 +15,15 @@ var logsDir = path.join(os.tmpdir(), softname, 'logs');
 const ipc = require('electron').ipcRenderer;
 var _ = require('lodash')
 
-var logControls = [];
+ 
+document.title = softname
 
+var logControls = [];
 
 // Display the current version
 let version = window.location.hash.substring(1);
-document.getElementById('version').innerText = version;
+// document.getElementById('version').innerText = version;
+document.title = softname + " " + version
 
 ipc.on('message', function(event, text) {
   var container = document.getElementById('messages');
@@ -28,7 +31,6 @@ ipc.on('message', function(event, text) {
   message.innerHTML = text;
   container.appendChild(message);
 })
-//
 
 ipc.on('add', (event, users) => {
   addUsersDb(users);
