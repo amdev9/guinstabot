@@ -14,24 +14,45 @@ const devIsOpen = config.App.devTools;
 const os = require('os');
 
 let template = []
-// if (process.platform === 'darwin') {
-  // OS X
 const name = app.getName();
-template.unshift({
-  label: name,
-  submenu: [
-    {
-      label: 'About ' + name,
-      role: 'about'
-    },
-    {
-      label: 'Quit',
-      accelerator: 'Command+Q',
-      click() { app.quit(); }
-    },
-    {
-      label: "Edit",
-      submenu: [
+if (process.platform === 'darwin') {
+  // OS X
+  template.unshift({
+    label: name,
+    submenu: [
+      {
+        label: 'About ' + name,
+        role: 'about'
+      },
+      {
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        click() { app.quit(); }
+      },
+      {
+        label: "Edit",
+        submenu: [
+          { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+          { type: "separator" },
+          { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+          { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+      ]}
+    ]
+  })
+} else {
+  // Win test?
+  template = [{
+    label: name,
+    submenu: [
+        { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
+        { type: "separator" },
+        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+    ]}, {
+    label: "Edit",
+    submenu: [
         { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
         { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
         { type: "separator" },
@@ -40,33 +61,8 @@ template.unshift({
         { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
         { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
     ]}
-  ]
-})
-// }
-
-   // // Create the Application's main menu
-   //  var template = [{
-   //      label: "Application",
-   //      submenu: [
-   //          { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
-   //          { type: "separator" },
-   //          { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
-   //      ]}, {
-   //      label: "Edit",
-   //      submenu: [
-   //          { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-   //          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-   //          { type: "separator" },
-   //          { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-   //          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-   //          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-   //          { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-   //      ]}
-   //  ];
-
-   //  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-
-
+  ];
+}
 
 let mainWindow;
 function createDefaultWindow() {
