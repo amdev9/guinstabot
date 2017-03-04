@@ -43,25 +43,15 @@ if (process.platform === 'darwin') {
     ]
   })
 } else {
-  // Win test?
+  // Win 
   template = [{
     label: name,
-    submenu: [
-        { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
-        { type: "separator" },
-        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
-    ]}, {
-    label: "Edit",
-    submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-        { type: "separator" },
-        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-    ]}
-  ];
+    submenu: [{
+        label: 'Выход',
+        accelerator: 'Command+Q',
+        click() { app.quit(); }
+    }]
+  }];
 }
 
 let mainWindow;
