@@ -2,6 +2,25 @@
   text-align: center;
   font-size: .875rem;
 }
+ 
+.modal, .modal-body, .modal-footer, .modal-header {
+  text-align: center;
+}
+
+@media screen and (min-width: 768px) { 
+  .modal:before {
+    display: inline-block;
+    vertical-align: middle;
+    content: " ";
+    height: 100%;
+  }
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
 
 .container{ 
   padding-top:60px; 

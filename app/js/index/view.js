@@ -8,20 +8,21 @@ window.$ = window.jQuery = require('jquery');
 
 $(document).ready(function () {
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
-  checkSecurityController(function(result) {
-    if(result == 'ok') {
-      $('#memberModal').modal('hide');
-    } else if (result == 'fail') {
-      $("#memberModalBody > p").text("Проверьте подключение к интернету и наличие лицензии") 
-      console.log(result);
-    } else if (result == 'vm') {
-      $("#memberModalBody > p").text("Виртуальные машины не поддерживаются") 
-    } else {
-      $("#memberModalBody > p").text("Произошла ошибка") 
-    }
-  });
+  checkSecurityController(setModalStatus);
 });
  
+function setModalStatus(result) {
+  if(result == 'ok') {
+    $('#memberModal').modal('hide');
+  } else if (result == 'fail') {
+    $("#memberModalBody").text("Проверьте подключение к интернету и наличие лицензии")
+  } else if (result == 'vm') {
+    $("#memberModalBody").text("Виртуальные машины не поддерживаются") 
+  } else {
+    $("#memberModalBody").text("Ошибка проверки лицензии") 
+  }
+}
+
 function showLicenseTokenView(token) {
   $("#memberLicense > p").text("Лицензионный ключ: " + token + "")
 }

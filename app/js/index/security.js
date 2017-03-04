@@ -3,6 +3,7 @@
 //////////////////////////////
 
 var https = require('https');
+var http = require('http');
 var Registry = require('winreg');
 const crypto = require('crypto');
 var config = require('./config/default');
@@ -10,41 +11,39 @@ var host = config.App.hostname;
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-  // networkInt((res) => {
-  //   if(res == "vm") {
-  //     cb('vm');
-  //   } else {
-  //     taskList((res) => {
-  //       if(res == "vm") {
-  //         cb('vm');
-  //       } else {
-  //         openWin((res) => {
-  //           if(res == "vm") {
-  //             cb('vm');
-  //           } else {
-   
-              bios(function(obj) {
-                var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-                  "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-                var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-                makePost(sendData, serialKey, cb);
-              });
-
-  //           }
-  //         });
-  //       }
-  //     });
-  //   }
-  // });
+    networkInt((res) => {
+      if(res == "vm") {
+        cb('vm');
+      } else {
+        taskList((res) => {
+          if(res == "vm") {
+            cb('vm');
+          } else {
+            openWin((res) => {
+              if(res == "vm") {
+                cb('vm');
+              } else {
+                bios(function(obj) {
+                  var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+                    "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+                  var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+                  makePost(sendData, serialKey, cb);
+                });
+              }
+            });
+          }
+        });
+      }
+    });
   } else {
-    cb('ok');
+    cb('ok')
   }
 }
 
 function makePost(sendData, serialKey, cb) {
   var options = {
     hostname: host,
-    port: 443,
+    port: 413,
     path: '/api/uploader',
     method: 'POST',
     headers: {
@@ -59,7 +58,7 @@ function makePost(sendData, serialKey, cb) {
     });
     response.on('end', function () {  
       var resp = JSON.parse(str);
-      // console.log(resp);
+      console.log(resp);
       if (resp.status == 'ok') {
         var hash = sha256(sendData, secretSerial);
         if (resp.message == hash) {
