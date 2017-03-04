@@ -11,30 +11,30 @@ var host = config.App.hostname;
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-    networkInt((res) => {
-      if(res == "vm") {
-        cb('vm');
-      } else {
-        taskList((res) => {
-          if(res == "vm") {
-            cb('vm');
-          } else {
-            openWin((res) => {
-              if(res == "vm") {
-                cb('vm');
-              } else {
+    // networkInt((res) => {
+    //   if(res == "vm") {
+    //     cb('vm');
+    //   } else {
+    //     taskList((res) => {
+    //       if(res == "vm") {
+    //         cb('vm');
+    //       } else {
+    //         openWin((res) => {
+    //           if(res == "vm") {
+    //             cb('vm');
+    //           } else {
                 bios(function(obj) {
                   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
                     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
                   var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
                   makePost(sendData, serialKey, cb);
                 });
-              }
-            });
-          }
-        });
-      }
-    });
+    //           }
+    //         });
+    //       }
+    //     });
+    //   }
+    // });
   } else {
     cb('ok')
   }
