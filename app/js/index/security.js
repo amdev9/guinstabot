@@ -43,7 +43,7 @@ function checkLicense(cb) {
 function makePost(sendData, serialKey, cb) {
   var options = {
     hostname: host,
-    port: 413,
+    port: 5014,
     path: '/api/uploader',
     method: 'POST',
     headers: {
@@ -78,7 +78,7 @@ function makePost(sendData, serialKey, cb) {
     "token": token,
     "message": message
   });
-  var req = https.request(options, callback);
+  var req = http.request(options, callback);
   // console.log(postData);
   req.write(postData);
   req.end();

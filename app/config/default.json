@@ -2,7 +2,7 @@
   "App": {
     "softname": "InstaBOT",
     "devTools": true,
-    "hostname": "calm-beyond-91310.herokuapp.com"
+    "hostname": "192.168.1.33"
   }
 }
 
