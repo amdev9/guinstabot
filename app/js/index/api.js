@@ -286,7 +286,7 @@ function apiParseAccounts(user, task) {
 
     var indicator = 0;
     
-    if(user.proxy && user.proxy != '') { 
+    if(user.proxy && user.proxy != '') {
       setProxyFunc(user.proxy);
     }
 
@@ -313,7 +313,7 @@ function apiParseAccounts(user, task) {
         var promiseWhile = function( action) {
         var resolver = Promise.defer();
         var indicator = 0;
-        var func = function(results) {
+        var func = function(results) { // add token
           if (results) {
             results.forEach(function (item, i , arr) {
               if (indicator < task.max_limit * task.parsed_conc.length) {
@@ -324,6 +324,7 @@ function apiParseAccounts(user, task) {
             });
           }
           if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit * task.parsed_conc.length) {
+            // token.abort()
             return resolver.reject(new Error("stop"));
           }
           return Promise.cast(action())
@@ -337,7 +338,7 @@ function apiParseAccounts(user, task) {
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
             setTimeout(function() {
-              resolve(feed.get());
+              resolve(feed.get()); // feed.get(token), token
             }, 2000);
           });
         })
