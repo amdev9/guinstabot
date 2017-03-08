@@ -1,20 +1,14 @@
-if(require('electron-squirrel-startup')) return;
+if(require('electron-squirrel-startup')) return
 
-const electron = require('electron');
-const ipc = require('electron').ipcMain; 
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
-const autoUpdater = electron.autoUpdater;
-const dialog = electron.dialog;
-const Menu = electron.Menu;
-const path = require('path');
-const url = require('url');
-var config = require('./config/default');
-const devIsOpen = config.App.devTools;
-const os = require('os');
+const {ipcMain, app, BrowserWindow, autoUpdater, dialog, Menu} = require('electron')
+const path = require('path')
+const url = require('url')
+var config = require('./config/default')
+const devIsOpen = config.App.devTools
+const os = require('os')
 
 let template = []
-const name = app.getName();
+const name = app.getName()
 if (process.platform === 'darwin') {
   // OS X
   template.unshift({
@@ -27,7 +21,7 @@ if (process.platform === 'darwin') {
       {
         label: 'Quit',
         accelerator: 'Command+Q',
-        click() { app.quit(); }
+        click() { app.quit() }
       },
       {
         label: "Edit",
@@ -49,75 +43,72 @@ if (process.platform === 'darwin') {
     submenu: [{
         label: 'Выход',
         accelerator: 'Command+Q',
-        click() { app.quit(); }
+        click() { app.quit() }
     }]
-  }];
+  }]
 }
 
-let mainWindow;
+let mainWindow
 function createDefaultWindow() {
-  mainWindow = new BrowserWindow({width: 800, height: 600}); // , show: false
-  // mainWindow.setMenu(null)
-   
-  mainWindow.loadURL(`file://${__dirname}/index.html#v${app.getVersion()}`);
+  mainWindow = new BrowserWindow({width: 800, height: 600})    //show: false
+  mainWindow.loadURL(`file://${__dirname}/index.html#v${app.getVersion()}`)
+  
   mainWindow.on('closed', function() {
-    mainWindow = null;
-  });
-  mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow.webContents.send('sync_db');
-    // mainWindow.show();
+    mainWindow = null
   })
-  openDevTool(mainWindow, devIsOpen);
-  return mainWindow;
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('sync_db')
+    // mainWindow.show()
+  })
+  openDevTool(mainWindow, devIsOpen)
+  return mainWindow
 }
 
-ipc.on('users_add', (event, users) => {
-  mainWindow.webContents.send('add', users);
-});
+ipcMain.on('users_add', (event, users) => {
+  mainWindow.webContents.send('add', users)
+})
 
-ipc.on('user_edit', (event, user) => {
-  mainWindow.webContents.send('edit', user);
-});
+ipcMain.on('user_edit', (event, user) => {
+  mainWindow.webContents.send('edit', user)
+})
 
-ipc.on('add_task_event', (event, tasks, users) => {
-  mainWindow.webContents.send('add_task', tasks, users);
-});
+ipcMain.on('add_task_event', (event, tasks, users) => {
+  mainWindow.webContents.send('add_task', tasks, users)
+})
 
 app.on('window-all-closed', function() {
   if (process.platform != 'darwin') {
-    app.quit();
+    app.quit()
   }
-});
+})
 
 app.on('ready', function() {
-
-  let platform = 'win';
+  let platform = 'win'
+  let url = `http://192.168.1.33:5014/update/${platform}_${os.arch()}/${app.getVersion()}`
   if (process.platform === 'darwin') {
-    platform = 'osx';
+    platform = 'osx'
   }
   if (platform == 'osx') {
-    autoUpdater.setFeedURL(`http://192.168.1.33:5014/update/${platform}_${os.arch()}/${app.getVersion()}`);
+    autoUpdater.setFeedURL(url)
   } else if (platform == 'win') {
-    autoUpdater.setFeedURL(`http://192.168.1.33:5014/update/${platform}_${os.arch()}/${app.getVersion()}/RELEASES`);
+    autoUpdater.setFeedURL(url + '/RELEASES')
   }
-
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-
-  createDefaultWindow();
-});
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+  createDefaultWindow()
+})
 
 app.on('window-all-closed', () => {
-  app.quit();
-});
+  app.quit()
+})
 
 function openDevTool(win, isOpen) {
   if (isOpen) {
     win.webContents.openDevTools()
   } else {
     win.webContents.on("devtools-opened", () => {
-      win.webContents.closeDevTools();
-    });
+      win.webContents.closeDevTools()
+    })
   }
 }
 
@@ -130,13 +121,13 @@ autoUpdater.on('error', (ev, err) => {
 autoUpdater.on('download-progress', (ev, progressObj) => {})
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  let message = 'Доступно обновление ' + app.getName() + ' ' + releaseName + '. Оно будет установлено при следующем запуске программы.';
+  let message = 'Доступно обновление ' + app.getName() + ' ' + releaseName + '. Оно будет установлено при следующем запуске программы.'
   if (releaseNotes) {
-    const splitNotes = releaseNotes.split(/[^\r]\n/);
-    message += '\n\nОписание обновления:\n';
+    const splitNotes = releaseNotes.split(/[^\r]\n/)
+    message += '\n\nОписание обновления:\n'
     splitNotes.forEach(notes => {
-      message += notes + '\n\n';
-    });
+      message += notes + '\n\n'
+    })
   }
   dialog.showMessageBox({
     type: 'question',
@@ -146,11 +137,11 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     detail: message
   }, response => {
     if (response === 0) {
-      setTimeout(() => autoUpdater.quitAndInstall(), 1);
+      setTimeout(() => autoUpdater.quitAndInstall(), 1)
     }
-  });
-});
+  })
+})
 
 setTimeout(function() {
   autoUpdater.checkForUpdates()
-}, 1000);
+}, 1000)

@@ -363,6 +363,4 @@ function initViewDb() {
       console.log(err);
     });
   })
-  
-
 }

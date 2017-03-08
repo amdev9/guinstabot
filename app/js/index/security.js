@@ -2,43 +2,50 @@
 //// SECURITY CHECK //////////
 //////////////////////////////
 
-var https = require('https');
-var http = require('http');
-var Registry = require('winreg');
-const crypto = require('crypto');
-var config = require('./config/default');
-var host = config.App.hostname;
+var https = require('https')
+var http = require('http')
+var Promise = require('bluebird')
+var Registry = require('winreg')
+const crypto = require('crypto')
+var config = require('./config/default')
+var host = config.App.hostname
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-    networkInt((res) => {
-      if(res == "vm") {
-        cb('vm');
-      } else {
-        taskList((res) => {
-          if(res == "vm") {
-            cb('vm');
-          } else {
-            openWin((res) => {
-              if(res == "vm") {
-                cb('vm');
-              } else {
-                bios(function(obj) {
-                  var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-                    "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-                  var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-                  makePost(sendData, serialKey, cb);
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+
+    new Promise(function(resolve, reject) {
+      networkInt((res) => {
+        if(res == "vm") {
+          cb('vm');
+        }
+      })
+    })
+    .then(function() {
+      taskList((res) => {
+        if(res == "vm") {
+          cb('vm');
+        } 
+      })
+    })
+    .then(function() {
+      openWin((res) => {
+        if(res == "vm") {
+          cb('vm');
+        }
+      })
+    })
+    .then(function() {
+      bios(function(obj) {
+        var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+          "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+        var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+        makePost(sendData, serialKey, cb);
+      });
+    })
   } else {
-    // setTimeout(() => {
+    setTimeout( () => {
       cb('ok')
-    // }, 6000)
+    }, 2000)
   }
 }
 

@@ -49,9 +49,6 @@ ipc.on('add_task', (event, tasks, users) => {
 });
 
 function emitLoggerMessage(row_id, message) {
-  // search by row_id logControls 
-  // console.log("-----> EMIT emitLoggerMessage");
-  // console.log(logControls);
   var logView = _.find(logControls, function(obj) { return obj.key == row_id })
   if (logView) {
     logView.control.send('append', message);
@@ -150,29 +147,21 @@ function showLogsController(rows) {
         }))
 
         loggerView.on('closed', function() {
-          // console.log("*****->> CLOSED");
           loggerView = null;
         });
 
         loggerView.webContents.on('close', function() {
-          // console.log("*****->> CLOSE");
-          // remove loggerView row_id from logControls 
           _.remove(logControls, {
               key: row_id
           });
-          
-          // console.log(logControls);
         });
 
         loggerView.webContents.on('did-finish-load', () => {
-          // append loggerView row_id to logControls 
           var logControl = {
             key: row_id,
             control: loggerView.webContents
           };
           logControls.push(logControl);
-          // console.log("-----> FINISH LOAD");
-          // console.log(logControls);
           loggerView.webContents.send('log_data', l_filepath, row_id);
         });
 

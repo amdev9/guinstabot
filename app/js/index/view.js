@@ -5,9 +5,13 @@
 'use strict';
 
 window.$ = window.jQuery = require('jquery');
+var config = require('./config/default');
+var softname = config.App.softname;
 
 $(document).ready(function () {
+  $('#navbarBrand').text(softname)
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
+  $('#memberLicense').html(`<small>Спасибо за использование ${softname}</small>`)
   checkSecurityController(setModalStatus);
 });
  
