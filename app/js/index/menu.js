@@ -107,7 +107,7 @@ function resizeListener() {
  * Turns the custom context menu on.
  */
 function toggleMenuOn() {
-   depends();
+   // depends();
   if ( menuState !== 1 ) {
     menuState = 1;
     menu.classList.add( contextMenuActive );
@@ -133,7 +133,7 @@ function depends() {
 
 function multipleMenuOn(taskItems) {
   // console.log("multipleMenuOn");
-  var toHideItems = ['tasks_start', 'tasks_stop' , 'edit_account', 'edit_tasks']; // 'add_tasks'
+  var toHideItems = ['tasks_start', 'tasks_stop' , 'edit_account', 'edit_tasks'];  
   var filled = true;
   $(".table-info").each(function (i, val) {
     if ( $(this).find("td").eq(2).html() == '-') {
@@ -149,9 +149,9 @@ function multipleMenuOn(taskItems) {
       }  
     }
     if (stopFlag == true) {
-       toHideItems = ['tasks_stop', 'edit_account', 'edit_tasks']; //'add_tasks'
+      toHideItems = ['tasks_stop', 'edit_account', 'edit_tasks'];  
     } else {
-       toHideItems = ['tasks_start', 'edit_account', 'edit_tasks']; //  'add_tasks'
+      toHideItems = ['tasks_start', 'edit_account', 'edit_tasks']; 
     }
   }
   var checkFlag = true;

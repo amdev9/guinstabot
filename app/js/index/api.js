@@ -367,9 +367,15 @@ function apiParseAccounts(user, task) {
   })
 }
 
+function tokenCancel() {
+  Client.Request.initStop();
+}
+
 function apiSessionCheck(user_id, username, password, proxy) { 
   mkdirFolder(cookieDir)
   .then(function() {
+    var token = {}
+    Client.Request.setStopToken(token); // how to stop FIX
     setStateView(user_id, 'run');
     loggerDb(user_id, 'Выполняется логин');
     var device = new Client.Device(username);
@@ -379,6 +385,7 @@ function apiSessionCheck(user_id, username, password, proxy) {
     if(_.isString(proxy) && !_.isEmpty(proxy)) {
       setProxyFunc(proxy); //session proxy
     }
+    
     Client.Session.login(session, username, password)
       .then(function(session) {
         updateUserStatusDb(user_id, 'Активен');
@@ -388,7 +395,7 @@ function apiSessionCheck(user_id, username, password, proxy) {
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
           updateUserStatusDb(user_id, err.name);
-          console.log(err);
+          // console.log(err);
         } else {
           updateUserStatusDb(user_id, 'Произошла ошибка');
           console.log(err);

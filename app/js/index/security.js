@@ -36,7 +36,9 @@ function checkLicense(cb) {
       }
     });
   } else {
-    cb('ok')
+    // setTimeout(() => {
+      cb('ok')
+    // }, 6000)
   }
 }
 

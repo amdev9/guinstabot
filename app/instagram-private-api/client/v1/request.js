@@ -3,6 +3,7 @@ var Promise = require("bluebird");
 var request = require('request-promise');
 var JSONbig = require('json-bigint');
 var Agent = require('socks5-https-client/lib/Agent');
+var concat = require('concat-stream')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -51,6 +52,14 @@ Request.defaultHeaders = {
 
 
 Request.requestClient = request.defaults({});
+
+Request.setStopToken = function(token) {
+    Request.token = token;
+}
+
+Request.initStop = function() {
+    Request.token.cancel();
+}
 
 Request.setTimeout = function (ms) {
     var object = { 'timeout': parseInt(ms) };
@@ -296,6 +305,7 @@ Request.prototype._mergeOptions = function(options) {
 
 
 Request.prototype.parseMiddleware = function (response) {
+
     if(response.req._headers.host==='upload.instagram.com' && response.statusCode===201){
         var loaded = /(\d+)-(\d+)\/(\d+)/.exec(response.body);
         response.body = {status:"ok",start:loaded[1],end:loaded[2],total:loaded[3]};
@@ -305,6 +315,7 @@ Request.prototype.parseMiddleware = function (response) {
         response.body = JSONbig.parse(response.body);
         return response;
     } catch (err) {
+
         throw new Exceptions.ParseError(response, this);
     }
 };
@@ -320,7 +331,9 @@ Request.prototype.errorMiddleware = function (response) {
     if (json.message == 'login_required')
         throw new Exceptions.AuthenticationError("Login required to process this request");
     if (response.statusCode===429 || _.isString(json.message) && json.message.toLowerCase().indexOf('too many requests') !== -1)
+    {
         throw new Exceptions.RequestsLimitError();
+    }
     if (_.isString(json.message) && json.message.toLowerCase().indexOf('not authorized to view user') !== -1) 
         throw new Exceptions.PrivateUserError();
     throw new Exceptions.RequestError(json);
@@ -355,40 +368,76 @@ Request.prototype.send = function (options, attemps) {
         })
         .then(function(opts) { 
             options = opts;
-            return [Request.requestClient(options), options, attemps]
-        })
+            
+
+            var p = new Promise(function(resolve, reject) {
+              var xhr = Request.requestClient(options)
+              var res;
+              var body = concat(function(data) {
+                res.body = data.toString();
+                resolve([res, options, attemps]);
+              })
+              
+              xhr.on('response', function(response) {
+                res = response;
+              }).on('data', function(chunk) {
+                body.write(chunk);
+              }).on('end', function() {
+                body.end()
+              });
+            
+              if (Request.token) {          
+                Request.token.cancel = function() { 
+                  xhr.abort();
+                  reject(new Error("Cancelled"));
+                };
+              }
+            })
+            return p;
+
+            // return [Request.requestClient(options), options, attemps]
+        }) 
+
+        
         .spread(_.bind(this.beforeParse, this))
         .then(_.bind(this.parseMiddleware, this))
         .then(function (response) {
-            var json = response.body;
-            if (_.isObject(json) && json.status == "ok")
-                return _.omit(response.body, 'status');
-            if (_.isString(json.message) && json.message.toLowerCase().indexOf('transcode timeout') !== -1)
-                throw new Exceptions.TranscodeTimeoutError();
-            throw new Exceptions.RequestError(json);
+          var json = response.body;
+          if (_.isObject(json) && json.status == "ok") {
+            return _.omit(response.body, 'status');
+          }
+          if (_.isString(json.message) && json.message.toLowerCase().indexOf('transcode timeout') !== -1) {
+            throw new Exceptions.TranscodeTimeoutError();
+          }
+          throw new Exceptions.RequestError(json);
         })
         .catch(function(error) {
             return that.beforeError(error, options, attemps)
         })
         .catch(function (err) {
-            if (err instanceof Exceptions.APIError)
-                throw err;
-            if(!err || !err.response)
-                throw err;    
+            
+            if (err instanceof Exceptions.APIError) {
+              throw err;
+            }
+            if(!err || !err.response) {
+              throw err;    
+            }
+
             var response = err.response;
             if (response.statusCode == 404)
-                throw new Exceptions.NotFoundError(response);
+              throw new Exceptions.NotFoundError(response);
             if (response.statusCode >= 500) {
-                if (attemps <= that.attemps) {
-                    attemps += 1;
-                    return that.send(options, attemps)
-                } else {
-                    throw new Exceptions.ParseError(response, that);
-                }
+              if (attemps <= that.attemps) {
+                attemps += 1;
+                return that.send(options, attemps)
+              } else {
+                throw new Exceptions.ParseError(response, that);
+              }
             } else {
-                that.errorMiddleware(response)
+              that.errorMiddleware(response)
             }
         })
+
         .catch(function (error) {
             if (error instanceof Exceptions.APIError)
                 throw error;

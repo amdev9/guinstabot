@@ -2,8 +2,6 @@ var _ = require("underscore");
 var util = require("util");
 var routes = require('./routes');
 
-
-
 // Basic error
 function APIError(message) {
     this.name = "APIError";
@@ -18,7 +16,6 @@ APIError.prototype.serialize = function () {
         errorMessage: this.message
     }
 };
-
 
 
 function NotImplementedError(message) {
@@ -40,11 +37,12 @@ exports.NotAbleToSignError = NotAbleToSignError;
 
 
 function RequestError(payload) {
+    console.log(payload);
     this.name = "RequestError";
     this.message = "It's not possible to make request!";
     this.json = {};
     if(_.isString(payload.message))
-        this.message = payload.message;
+        this.message = payload.message; // message from instagram
     if(_.isObject(payload)) {
         this.json = payload
     }
@@ -274,9 +272,6 @@ NotPossibleToResolveChallenge.CODE = {
     UNABLE_TO_PARSE: "UNABLE_TO_PARSE",
     NOT_ACCEPTED: "NOT_ACCEPTED"
 };
-
-
-
 
 function NotPossibleToVerify() {
     this.name = 'NotPossibleToVerify';
