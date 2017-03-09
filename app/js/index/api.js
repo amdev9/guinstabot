@@ -364,21 +364,21 @@ function tokenCancel() {
   Client.Request.initStop();
 }
 
-function fastCreateAccount(email, username, password, cb) {
-  // add proxy
+function fastCreateAccount(email, username, password, proxy, cb) {
+
   var storage = path.join(cookieDir, email + '.json')
   var device = new Client.Device(email);
-  var session = new Client.Session(device, storage);
+  var session = new Client.Session(device, storage, proxy);
   new Client.AccountEmailCreator(session)
-  .setEmail(email)
-  .setUsername(username)
-  .setPassword(password)
-  .setName('')
-  .register()
-  .spread(function(account, discover) {
-    console.log("Created Account", account)
-    console.log("Discovery Feed", discover);
-  })
+    .setEmail(email)
+    .setUsername(username)
+    .setPassword(password)
+    .setName('')
+    .register()
+    .spread(function(account, discover) {
+      console.log("Created Account", account)
+      console.log("Discovery Feed", discover);
+    })
 }
 
 function apiCreateAccounts(task) {
@@ -398,7 +398,7 @@ function apiCreateAccounts(task) {
     if (!task.own_emails) {
       for(var i = 0; i < task.emails_cnt; i++) {
         var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-        email_array.push(name + 'llman@mailglobals.co');
+        email_array.push(name + 'llman@gmail.com');
       }
     } else {
       email_array = task.email_parsed;
@@ -430,9 +430,7 @@ function apiCreateAccounts(task) {
       var func = function(results) {
         
         async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
-          if(config.App.devTools == false) {
-            setProxyFunc(proxy);
-          }
+         
           var storage = path.join(cookieDir, email + '.json')
           fs.closeSync(fs.openSync(storage, 'w') );
           
@@ -440,7 +438,7 @@ function apiCreateAccounts(task) {
           var name = email.split("@")[0];
  
 
-          fastCreateAccount(email, name, password, function(session) {
+          fastCreateAccount(email, name, password, proxy, function(session) {
             appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
             renderTaskCompletedView(task._id);
             callback();

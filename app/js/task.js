@@ -32,7 +32,7 @@ ipc.on('edit', (event, item) => {
       editParseConcurrents(user.task);
     } else if (user.task.name == 'filtration') {
       editFiltration(user.task);
-    }
+    } 
 
   } else {
 
@@ -45,6 +45,8 @@ ipc.on('edit', (event, item) => {
     } else if (task.name == 'filtration') {
       updateElementsAccessibility('task');
       editFiltration(task);
+    } else if (task.name == 'create_accounts') {
+      editCreateAccounts(task);
     }
   }
 });
@@ -340,7 +342,7 @@ function editCreateAccounts(task) {
   updateElemView(['create_accounts']);
   document.getElementById("own_emails").checked = task.own_emails;
   document.getElementById("reg_timeout").value = task.reg_timeout;
-  document.getElementById("proxy_file").value = task.proxy_file;
+  document.getElementById("proxy_create").value = task.proxy_file;
   document.getElementById("output_file").value = task.output_file;
   if (document.getElementById("own_emails").checked) {
     document.getElementById("parsed_own_emails").value = task.email_parsed.join('\n');
@@ -373,7 +375,7 @@ function createAccounts(taskName) {
     task.emails_cnt = document.getElementById("reg_count").value;
   }
   task.reg_timeout = document.getElementById("reg_timeout").value;
-  task.proxy_file = document.getElementById("proxy_file").value;
+  task.proxy_file = document.getElementById("proxy_create").value;
   task.output_file = document.getElementById("output_file").value;
 
   ipc.send('add_task_event', task);
