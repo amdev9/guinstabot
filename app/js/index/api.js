@@ -500,7 +500,7 @@ function apiSessionCheck(user_id, username, password, proxy) {
       .catch(function (err) {
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
-          updateUserStatusDb(user_id, err.name);
+          updateUserStatusDb(user_id, err.ui); 
           // console.log(err);
         } else {
           updateUserStatusDb(user_id, 'Произошла ошибка');

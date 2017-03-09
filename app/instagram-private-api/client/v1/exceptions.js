@@ -37,7 +37,7 @@ exports.NotAbleToSignError = NotAbleToSignError;
 
 
 function RequestError(payload) {
-    console.log(payload);
+    // console.log(payload);
     this.name = "RequestError";
     this.message = "It's not possible to make request!";
     this.json = {};
@@ -51,9 +51,27 @@ util.inherits(RequestError, APIError);
 exports.RequestError = RequestError;
 
 
+function InvalidLoginError(message) {
+    this.name = "InvalidLoginError";
+    this.ui = "Неверный логин"
+    this.message = message || "The username you entered doesn't appear to belong to an account";
+}
+util.inherits(InvalidLoginError, APIError);
+exports.InvalidLoginError = InvalidLoginError;
+
+
+function InvalidPasswordError(message) {
+    this.name = "InvalidPasswordError";
+    this.ui = "Неверный пароль"
+    this.message = message || "The password you entered is incorrect";
+}
+util.inherits(InvalidPasswordError, APIError);
+exports.InvalidPasswordError = InvalidPasswordError;
+
 
 function AuthenticationError(message) {
     this.name = "AuthenticationError";
+    this.ui = "Ошибка входа"
     this.message = message || "Not possible to authenticate";
 }
 util.inherits(AuthenticationError, APIError);

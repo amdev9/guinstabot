@@ -135,7 +135,14 @@ Session.login = function(session, username, password) {
             if (error.name == "RequestError" && 
                 _.isObject(error.json) && 
                 error.json.invalid_credentials) {
+
+                if (error.json.error_type == "invalid_user") {
+                    throw new Exceptions.InvalidLoginError(error.message);
+                } else if (error.json.error_type == "bad_password") {
+                    throw new Exceptions.InvalidPasswordError(error.message);
+                } else {
                     throw new Exceptions.AuthenticationError(error.message);
+                }
             }
             throw error;
         })
