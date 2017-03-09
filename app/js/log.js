@@ -20,7 +20,6 @@ ipc.on('log_data', (event, l_filepath, title) => {
 });
 
 ipc.on('append', (event, string) => {
-  console.log(string);
   var text = document.getElementById("text");
   text.innerHTML += string + "<br>";
   window.scrollTo(0, document.body.scrollHeight);

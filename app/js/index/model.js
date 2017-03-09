@@ -17,7 +17,6 @@ var levelPath = path.join(os.tmpdir(), softname, 'levdb');
 var logsDir = path.join(os.tmpdir(), softname, 'logs');
 var db;
 
-
 function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
@@ -43,7 +42,7 @@ function addTaskDb(tasks, users) {
   } else {
     var task = tasks;
     if (task.name == 'filtration') {
-      filtrationTaskDb(task);
+      TaskDb(task);
     }
   }
 }
@@ -94,7 +93,6 @@ function addUsersDb(users) {
 
 function runTasksDb(rows) {
   rows.forEach(function (row_id) {
-    
     db.get(row_id).then(function(row) {
       if (row.type == 'user' && row.task.name == 'parse_concurrents') {
         apiParseAccounts(row, row.task);
@@ -126,31 +124,6 @@ function getExistedUserRows(rows) {
   })
 }
 
-function usersTaskDb(tasks, users) {
-  users.forEach(function(user_id, i) {
-    db.get(user_id).then(function(user) {
-      user.task = tasks[i];
-      db.put(user).then(function(result) {
-        setTaskView(user._id, user.task.name);
-      }).catch(function (err) {
-        console.log(err);
-      });
-    }).catch(function (err) {
-      console.log(err);
-    });
-  });
-}
-
-function filtrationTaskDb(task) {
-
-  db.put(task).then(function (response) {
-    if(!task._rev) {
-      renderTaskRowView(response.id, task.name);
-    }
-  }).catch(function (err) {
-    console.log(err);
-  });
-}
 
 function completeUserTaskDb(rows, taskName, params) {
   getExistedUserRows(rows)
@@ -220,6 +193,21 @@ function updateUserStatusDb(user_id, statusValue) {
     userRowRenderView(user_id);
   }).catch(function (err) {
     console.log(err);
+  });
+}
+
+function usersTaskDb(tasks, users) {
+  users.forEach(function(user_id, i) {
+    db.get(user_id).then(function(user) {
+      user.task = tasks[i];
+      db.put(user).then(function(result) {
+        setTaskView(user._id, user.task.name);
+      }).catch(function (err) {
+        console.log(err);
+      });
+    }).catch(function (err) {
+      console.log(err);
+    });
   });
 }
 
@@ -364,3 +352,14 @@ function initViewDb() {
     });
   })
 }
+
+function TaskDb(task) {
+  db.put(task).then(function (response) {
+    if(!task._rev) {
+      renderTaskRowView(response.id, task.name);
+    }
+  }).catch(function (err) {
+    console.log(err);
+  });
+}
+

@@ -7,6 +7,10 @@
 var fs = require('fs');
 const mkdirp = require('mkdirp-promise');
 
+function mkdirFolder(filepath) {
+  return mkdirp(filepath);
+}
+
 function isIpBlock(number) {
   return number >= 0 && number < 256;
 }
@@ -55,6 +59,24 @@ function validateProxyString(proxyString) {
   return good;
 } 
 
+function returnProxyFunc(proxyString) {
+  if(proxyString.split(":").length == 2) {
+    let proxy_ip = proxyString.split(":")[0];
+    let proxy_port = proxyString.split(":")[1];
+    return `http://${proxy_ip}:${proxy_port}`
+     
+  } else if(proxyString.split(":").length == 4) {
+    let proxy_name = proxyString.split(":")[0];
+    let proxy_pass = proxyString.split(":")[1];
+    let proxy_ip = proxyString.split(":")[2];
+    let proxy_port = proxyString.split(":")[3];
+    return `http://${proxy_name}:${proxy_pass}@${proxy_ip}:${proxy_port}`
+    
+  } else {
+    console.log("Proxy format wrong"); // -- init dialog message ?
+  }
+}
+
 function setProxyFunc(proxyString) {
   if(proxyString.split(":").length == 2) {
     let proxy_ip = proxyString.split(":")[0];
@@ -71,10 +93,6 @@ function setProxyFunc(proxyString) {
   } else {
     console.log("Proxy format wrong"); // -- init dialog message ?
   }
-}
-
-function mkdirFolder(filepath) {
-  return mkdirp(filepath);
 }
 
 function appendStringFile(filepath, string) {

@@ -103,7 +103,7 @@ var apiFilterNoSession = function(task) {
     
     async.forEach(task.partitions, function (taskpart, callback) {
    
-      if(taskpart.proxy_parc != '') {
+      if(taskpart.proxy_parc != '') { ///////???
         setProxyFunc(taskpart.proxy_parc);
       }
    
@@ -217,14 +217,10 @@ var apiFilterSession = function(user, task) {
       loggerDb(user._id, 'Файл подготовлен'); 
     });
 
-    if(user.proxy && user.proxy != '') { 
-      setProxyFunc(user.proxy);
-    }
-
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
-    var ses = Client.Session.create(device, storage, user.username, user.password);
+    var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy));
 
     var iterator = 1;
     var filterSuccess = 0;
@@ -286,14 +282,10 @@ function apiParseAccounts(user, task) {
 
     var indicator = 0;
     
-    if(user.proxy && user.proxy != '') {
-      setProxyFunc(user.proxy);
-    }
-
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
-    var ses = Client.Session.create(device, storage, user.username, user.password);
+    var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy));
 
     task.parsed_conc.forEach( function(conc_user) {
       ses.then(function(session) {
@@ -371,6 +363,107 @@ function tokenCancel() {
   Client.Request.initStop();
 }
 
+function apiCreateAccounts(task) {
+  mkdirFolder(logsDir)
+  .then(function() {
+    
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Регистрация аккаунтов');
+    setCompleteView(task._id, 0);
+    const NAMES = require('./config/names').names;
+    const SURNAMES = require('./config/names').surnames;
+   
+    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+
+    var email_array = [];
+
+    if (!task.own_emails) {
+      for(var i = 0; i < task.emails_cnt; i++) {
+        var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
+        email_array.push(name + 'llman@mailglobals.co');
+      }
+    } else {
+      email_array = task.email_parsed;
+    }
+
+    if(!proxy_array || email_array.length == 0) {
+      console.log("empty");
+      return;
+    }
+
+    var chunked = _.chunk(email_array, proxy_array.length);
+    _.object = function(list, values) {
+      if (list == null) return {};
+      var result = {};
+      for (var i = 0, l = list.length; i < l; i++) {
+        if (values) {
+          result[list[i]] = values[i];
+        } else {
+          result[list[i][0]] = list[i][1];
+        }
+      }
+      return result;
+    };
+    
+    var promiseWhile = function( action, email_tuple) {
+      var resolver = Promise.defer();
+      var indicator = 0;
+      var i = 0;
+      var func = function(results) {
+        
+        async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
+          if(config.App.devTools == false) {
+            setProxyFunc(proxy);
+          }
+          var storage = path.join(cookieDir, email + '.json')
+          fs.closeSync(fs.openSync(storage, 'w') );
+          var session = new Session(storage);
+          var password = generatePassword(); 
+          var name = email.split("@")[0];
+
+          session.setName(name);
+          session.setEmail(email);
+          session.setPassword(password);
+
+          fastCreateAccount(session, function(session) {
+            appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
+            renderTaskCompletedView(task._id);
+            callback();
+             
+          });
+        }, function(err, result) {
+          console.log("DONE!");
+        });
+
+        i++;
+        if(getStateView(task._id) == 'stop' || i > email_tuple.length -1) {
+          return resolver.resolve(); 
+        }
+        return Promise.cast(action(email_tuple))
+          .then(func)
+          .catch(resolver.reject);
+      };
+      process.nextTick(func);
+      return resolver.promise;
+    };
+
+    var actionFunc = function() {
+      return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          resolve(chunked);
+        }, task.reg_timeout * 1000);
+      });
+    };
+    promiseWhile(actionFunc, chunked)
+      .then(function() {
+        setStateView(task._id, 'stopped');
+        loggerDb(task._id, 'Регистрация остановлена');  
+      }).catch(function (err) {
+        console.log(err);
+      });
+  })
+}
+
 function apiSessionCheck(user_id, username, password, proxy) { 
   mkdirFolder(cookieDir)
   .then(function() {
@@ -383,7 +476,7 @@ function apiSessionCheck(user_id, username, password, proxy) {
     var storage = new Client.CookieFileStorage(cookiePath);
     var session = new Client.Session(device, storage);
     if(_.isString(proxy) && !_.isEmpty(proxy)) {
-      setProxyFunc(proxy); //session proxy
+      session.proxyUrl = returnProxyFunc(proxy);
     }
     
     Client.Session.login(session, username, password)

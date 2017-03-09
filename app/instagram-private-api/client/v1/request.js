@@ -370,32 +370,32 @@ Request.prototype.send = function (options, attemps) {
             options = opts;
             
 
-            var p = new Promise(function(resolve, reject) {
-              var xhr = Request.requestClient(options)
-              var res;
-              var body = concat(function(data) {
-                res.body = data.toString();
-                resolve([res, options, attemps]);
-              })
+            // var p = new Promise(function(resolve, reject) {
+            //   var xhr = Request.requestClient(options)
+            //   var res;
+            //   var body = concat(function(data) {
+            //     res.body = data.toString();
+            //     resolve([res, options, attemps]);
+            //   })
               
-              xhr.on('response', function(response) {
-                res = response;
-              }).on('data', function(chunk) {
-                body.write(chunk);
-              }).on('end', function() {
-                body.end()
-              });
+            //   xhr.on('response', function(response) {
+            //     res = response;
+            //   }).on('data', function(chunk) {
+            //     body.write(chunk);
+            //   }).on('end', function() {
+            //     body.end()
+            //   });
             
-              if (Request.token) {          
-                Request.token.cancel = function() { 
-                  xhr.abort();
-                  reject(new Error("Cancelled"));
-                };
-              }
-            })
-            return p;
+            //   if (Request.token) {          
+            //     Request.token.cancel = function() { 
+            //       xhr.abort();
+            //       reject(new Error("Cancelled"));
+            //     };
+            //   }
+            // })
+            // return p;
 
-            // return [Request.requestClient(options), options, attemps]
+            return [Request.requestClient(options), options, attemps]
         }) 
 
         

@@ -6,7 +6,12 @@ window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
 var config = require('../config/default');
 var softname = config.App.softname;
+
 document.title = "Добавление задания | " + softname
+document.getElementById("own_emails").addEventListener("click",function(){
+  checkDisabler();
+}, false)
+checkDisabler();
 
 ipc.on('closing', () => {});
 
@@ -48,7 +53,7 @@ function updateElementsAccessibility(type) {
   if (type == 'user') {
     updateElemView(['parse_concurrents', 'filtration']);
   } else {
-    updateElemView(['filtration']);
+    updateElemView(['filtration', 'create_accounts']);
     disableCustomElem();
   }
 }
@@ -315,6 +320,36 @@ function parseConcurrents(taskName) {
   });
 }
 
+ 
+function checkDisabler() {
+  if (document.getElementById('own_emails').checked == true) {
+    document.getElementById("parsed_own_emails").disabled = false;
+    document.getElementById("clean_own_emails").disabled = false;
+    document.getElementById("open_own_emails").disabled = false;
+    document.getElementById("reg_count").disabled = true;
+  } else {
+    document.getElementById("open_own_emails").disabled = true;
+    document.getElementById("parsed_own_emails").disabled = true;
+    document.getElementById("clean_own_emails").disabled = true;
+    document.getElementById("reg_count").disabled = false;
+  }
+}
+
+function editCreateAccounts(task) {
+  $("div.container").data('task', { _id: task._id, _rev: task._rev });
+  updateElemView(['create_accounts']);
+  document.getElementById("own_emails").checked = task.own_emails;
+  document.getElementById("reg_timeout").value = task.reg_timeout;
+  document.getElementById("proxy_file").value = task.proxy_file;
+  document.getElementById("output_file").value = task.output_file;
+  if (document.getElementById("own_emails").checked) {
+    document.getElementById("parsed_own_emails").value = task.email_parsed.join('\n');
+  } else {
+    document.getElementById("reg_count").value = task.emails_cnt;
+  }
+  checkDisabler();
+}
+ 
 
 function createAccounts(taskName) {
 

@@ -4,20 +4,18 @@
 
 'use strict';
 
-var path = require('path');
-const url = require('url');
-const BrowserWindow = require('electron').remote.BrowserWindow;
-const {dialog} = require('electron').remote;
-var config = require('./config/default');
-const devIsOpen = config.App.devTools;
-var softname = config.App.softname;
-var logsDir = path.join(os.tmpdir(), softname, 'logs');
-const ipc = require('electron').ipcRenderer;
+var path = require('path')
+const url = require('url')
 var _ = require('lodash')
+const {dialog, BrowserWindow} = require('electron').remote
+const ipcRenderer = require('electron').ipcRenderer
 
- 
+var config = require('./config/default')
+const devIsOpen = config.App.devTools
+var softname = config.App.softname
+var logsDir = path.join(os.tmpdir(), softname, 'logs')
+
 document.title = softname
-
 var logControls = [];
 
 // Display the current version
@@ -25,26 +23,26 @@ let version = window.location.hash.substring(1);
 // document.getElementById('version').innerText = version;
 document.title = softname + " " + version
 
-ipc.on('message', function(event, text) {
+ipcRenderer.on('message', function(event, text) {
   var container = document.getElementById('messages');
   var message = document.createElement('div');
   message.innerHTML = text;
   container.appendChild(message);
 })
 
-ipc.on('add', (event, users) => {
+ipcRenderer.on('add', (event, users) => {
   addUsersDb(users);
 });
 
-ipc.on('edit', (event, user) => {
+ipcRenderer.on('edit', (event, user) => {
   editUserDb(user);
 });
 
-ipc.on('sync_db', (event) => {
+ipcRenderer.on('sync_db', (event) => {
   initViewDb();
 });
 
-ipc.on('add_task', (event, tasks, users) => {
+ipcRenderer.on('add_task', (event, tasks, users) => {
   addTaskDb(tasks, users);
 });
 
@@ -164,7 +162,6 @@ function showLogsController(rows) {
           logControls.push(logControl);
           loggerView.webContents.send('log_data', l_filepath, row_id);
         });
-
         openDevTool(loggerView, devIsOpen);
       } else {
         dialog.showMessageBox({ 
@@ -173,7 +170,6 @@ function showLogsController(rows) {
         });
       }
     }); 
-
   })
 }
 

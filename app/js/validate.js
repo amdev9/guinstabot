@@ -4,6 +4,37 @@
 
 $(function() {
 
+  $("#create_accounts_form").validate({
+    rules: {
+      proxy_file: "required",
+      output_file: "required",
+      reg_count: "required",
+      parsed_own_emails: "required",
+      reg_timeout: "required"
+    },
+    messages: {
+      proxy_file: "Выберите файл",
+      output_file: "Выберите файл",
+      reg_count: "Введите кол-во",
+      parsed_own_emails: "Введите почты для регистрации",
+      reg_timeout: "Введите задержку"
+    },
+    highlight: function(element) {
+      $(element).closest('.form-group').addClass('has-danger');
+    },
+    unhighlight: function(element) {
+      $(element).closest('.form-group').removeClass('has-danger');
+    },
+    errorElement: 'span',
+    errorClass: 'form-control-feedback form-control-sm',
+
+    submitHandler: function(form) {
+      completeTask('create_accounts');
+    }
+  });
+
+
+
   $("#add_accounts_form").validate({
     rules: {
       add_acc_txt_file: "required",
