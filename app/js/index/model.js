@@ -41,9 +41,7 @@ function addTaskDb(tasks, users) {
     usersTaskDb(tasks, users);
   } else {
     var task = tasks;
-    if (task.name == 'filtration') {
-      TaskDb(task);
-    }
+    TaskDb(task);
   }
 }
 

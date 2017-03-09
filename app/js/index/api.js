@@ -22,6 +22,7 @@ function mediaFilter(json, task, cb) {
   }
 }
 
+
 function mediaNoSessionFilter(json, task, cb) {
   var filterRequest = new Client.Web.FilterRequest();
   filterRequest.media(json.username).then(function(response) {
@@ -363,6 +364,23 @@ function tokenCancel() {
   Client.Request.initStop();
 }
 
+function fastCreateAccount(email, username, password, cb) {
+  // add proxy
+  var storage = path.join(cookieDir, email + '.json')
+  var device = new Client.Device(email);
+  var session = new Client.Session(device, storage);
+  new Client.AccountEmailCreator(session)
+  .setEmail(email)
+  .setUsername(username)
+  .setPassword(password)
+  .setName('')
+  .register()
+  .spread(function(account, discover) {
+    console.log("Created Account", account)
+    console.log("Discovery Feed", discover);
+  })
+}
+
 function apiCreateAccounts(task) {
   mkdirFolder(logsDir)
   .then(function() {
@@ -417,15 +435,12 @@ function apiCreateAccounts(task) {
           }
           var storage = path.join(cookieDir, email + '.json')
           fs.closeSync(fs.openSync(storage, 'w') );
-          var session = new Session(storage);
+          
           var password = generatePassword(); 
           var name = email.split("@")[0];
+ 
 
-          session.setName(name);
-          session.setEmail(email);
-          session.setPassword(password);
-
-          fastCreateAccount(session, function(session) {
+          fastCreateAccount(email, name, password, function(session) {
             appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
             renderTaskCompletedView(task._id);
             callback();
