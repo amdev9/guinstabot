@@ -3,15 +3,15 @@ const Client = require('../client/v1');
 // amahuisoardsvil933 pasaqwrds123
 
 // Create empty session
-var device = new Client.Device('ratm9111');
-var storage = new Client.CookieFileStorage(__dirname + '/cookies/'+ 'ratm9111'+'.json');
+var device = new Client.Device('ratm922');
+var storage = new Client.CookieFileStorage(__dirname + '/cookies/'+ 'ratm922'+'.json');
 var session = new Client.Session(device, storage);
 
 
 var token = {}
 Client.Request.setStopToken(token)
 
-new Client.Session.login(session, 'ratm9111', 'qwe123qwe').then(function(session) {
+new Client.Session.login(session, 'ratm922', 'qwe123qwe').then(function(session) {
   console.log(session)
 })
 

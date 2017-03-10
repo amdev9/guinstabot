@@ -1,11 +1,13 @@
 var _ = require("underscore");
 var Promise = require("bluebird");
+Promise.longStackTraces();
 var request = require('request-promise');
 var JSONbig = require('json-bigint');
 var Agent = require('socks5-https-client/lib/Agent');
 var concat = require('concat-stream')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 
 function Request(session) {
     this._id = _.uniqueId();
@@ -355,6 +357,11 @@ Request.prototype.afterError = function (error, request, attemps) {
 }
 
 
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    // application specific logging here
+});
+
 Request.prototype.send = function (options, attemps) {
     var that = this;
     if (!attemps) attemps = 0;
@@ -368,40 +375,51 @@ Request.prototype.send = function (options, attemps) {
         })
         .then(function(opts) { 
             options = opts;
-            
+                
 
-            // var p = new Promise(function(resolve, reject) {
-            //   var xhr = Request.requestClient(options)
-            //   var res;
-            //   var body = concat(function(data) {
-            //     res.body = data.toString();
-            //     resolve([res, options, attemps]);
-            //   })
+            return new Promise(function(resolve, reject) {
+              var xhr = Request.requestClient(options)
+              var res;
+              var body = concat(function(data) {
+                res.body = data.toString();
+                if (res.statusCode == 200 ) {
+                    resolve([res, options, attemps]);
+                }
+                else {
+                    reject(res)
+                }
+               
+              })
               
-            //   xhr.on('response', function(response) {
-            //     res = response;
-            //   }).on('data', function(chunk) {
-            //     body.write(chunk);
-            //   }).on('end', function() {
-            //     body.end()
-            //   });
+              xhr.on('response', function(response) {
+                res = response;
+              }).on('data', function(chunk) {
+                body.write(chunk);
+              }).on('end', function() {
+                body.end()
+              }).catch(function(err) {
+                // console.log(err)
+              })
+              .then(function(res) {
+                // console.log('+')
+              });
             
-            //   if (Request.token) {          
-            //     Request.token.cancel = function() { 
-            //       xhr.abort();
-            //       reject(new Error("Cancelled"));
-            //     };
-            //   }
-            // })
-            // return p;
+              if (Request.token) {          
+                Request.token.cancel = function() { 
+                  xhr.abort();
+                  reject(new Error("Cancelled"));
+                };
+              }
+            })
+        
 
-            return [Request.requestClient(options), options, attemps]
+            // return [Request.requestClient(options), options, attemps]
         }) 
 
-        
-        .spread(_.bind(this.beforeParse, this))
+        .spread(_.bind(this.beforeParse, this)) 
         .then(_.bind(this.parseMiddleware, this))
         .then(function (response) {
+            // console.log('resp')
           var json = response.body;
           if (_.isObject(json) && json.status == "ok") {
             return _.omit(response.body, 'status');
@@ -412,18 +430,22 @@ Request.prototype.send = function (options, attemps) {
           throw new Exceptions.RequestError(json);
         })
         .catch(function(error) {
-            return that.beforeError(error, options, attemps)
+
+            // console.log('возвращает первый элемент массива')
+
+            return that.beforeError(error, options, attemps) // возвращает первый элемент массива
         })
         .catch(function (err) {
-            
-            if (err instanceof Exceptions.APIError) {
-              throw err;
-            }
-            if(!err || !err.response) {
-              throw err;    
-            }
+            // console.log(err.response)
+            // if (err instanceof Exceptions.APIError) {
+            //   throw err;
+            // }
+            // if(!err || !err.response) {
+            //   throw err;    
+            // }
 
-            var response = err.response;
+            var response = err //.response; // IncomingMessage + body
+            
             if (response.statusCode == 404)
               throw new Exceptions.NotFoundError(response);
             if (response.statusCode >= 500) {
@@ -437,14 +459,14 @@ Request.prototype.send = function (options, attemps) {
               that.errorMiddleware(response)
             }
         })
-
         .catch(function (error) {
             if (error instanceof Exceptions.APIError)
-                throw error;
+                throw error; // проброс ошибки в следующий catch
             error = _.defaults(error, { message: 'Fatal internal error!' });
             throw new Exceptions.RequestError(error);
         })
         .catch(function(error) {
+            // console.log('пробрасываем ошибку в session')  
             return that.afterError(error, options, attemps)
         })
 }

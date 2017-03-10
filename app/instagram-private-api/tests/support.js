@@ -21,7 +21,7 @@ var inquirer = require('inquirer');
 
 exports.credentials = function() {
     var credentials = [
-        'ratm9111',
+        'ratm922',
         'qwe123qwe',
         ''
         // process.env['IG_USERNAME'],

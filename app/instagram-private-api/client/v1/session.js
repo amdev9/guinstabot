@@ -153,6 +153,13 @@ Session.login = function(session, username, password) {
             var autocomplete = Relationship.autocompleteUserList(session)
                 .catch(Exceptions.RequestsLimitError, function() {
                     // autocompleteUserList has ability to fail often
+                    // console.log('autocompleteUserList')
+                    return false;                                       // fail catcher
+                })
+                .catch(function(err) {
+                    console.log('other')
+                    // autocompleteUserList has ability to fail often
+                    // console.log(err)
                     return false;                                       // fail catcher
                 })
             return [session, autocomplete];
@@ -185,7 +192,6 @@ Session.login = function(session, username, password) {
                     throw error;
                 })
         })
-        
 }
 
 Session.create = function(device, storage, username, password, proxy) {
