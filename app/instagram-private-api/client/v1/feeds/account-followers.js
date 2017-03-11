@@ -33,4 +33,5 @@ AccountFollowersFeed.prototype.get = function () {
                 return new Account(that.session, user);
             });
         })
+         
 };

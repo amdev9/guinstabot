@@ -16,6 +16,7 @@ var softname = config.App.softname;
 var levelPath = path.join(os.tmpdir(), softname, 'levdb');
 var logsDir = path.join(os.tmpdir(), softname, 'logs');
 var db;
+var tokens = new Map();
 
 function initDb() {
   return mkdirFolder(levelPath)
@@ -93,7 +94,11 @@ function runTasksDb(rows) {
   rows.forEach(function (row_id) {
     db.get(row_id).then(function(row) {
       if (row.type == 'user' && row.task.name == 'parse_concurrents') {
-        apiParseAccounts(row, row.task);
+        var token = {
+          row: row._id
+        }
+        tokens.set(row._id, token)
+        apiParseAccounts(row, row.task, token);
       } else if (row.task && row.task.name == 'filtration') {
         apiFilterAccounts(row);
       } else if (row.name && row.name == 'filtration') {
@@ -137,9 +142,14 @@ function completeUserTaskDb(rows, taskName, params) {
 }
 
 function checkAccountsDb(user_ids) {
+  tokens.clear()
   user_ids.forEach(function(user_id) {
     db.get(user_id).then(function(user) {
-      apiSessionCheck(user._id, user.username, user.password, user.proxy); 
+      var token = {
+          row: user._id
+      }
+      tokens.set(user._id, token)
+      apiSessionCheck(user._id, user.username, user.password, user.proxy, token); 
     }).catch(function(err) {
       console.log(err);
     });

@@ -111,23 +111,25 @@ var apiFilterNoSession = function(task) {
       var filterRequest = new Client.Web.FilterRequest();   
       var iterator = taskpart.start;
       var promiseWhile = function( action) {
-        var resolver = Promise.defer();
-        var func = function(json) {
-          if (json) {
-            filterFunction(json, task, function() {
-              renderTaskCompletedView(task._id);
-            });
-          }
+        return new Promise(function(resolve, reject) {
+          var func = function(json) {
+            if (json) {
+              filterFunction(json, task, function() {
+                renderTaskCompletedView(task._id);
+              });
+            }
 
-          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
-            return resolver.reject(new Error("stop"));
-          } 
-          return Promise.cast(action())
-            .then(func)
-            .catch(resolver.reject);
-        };
-        process.nextTick(func);
-        return resolver.promise;
+            if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
+              reject(new Error("stop"));
+            } 
+            return Promise.resolve(action())
+              .then(func)
+              .catch(function() {
+                reject()
+              });
+          };
+          process.nextTick(func);
+        })
       }
 
       promiseWhile(function() {
@@ -226,25 +228,27 @@ var apiFilterSession = function(user, task) {
     var iterator = 1;
     var filterSuccess = 0;
     var promiseWhile = function(action) {
-      var resolver = Promise.defer();
-      var func = function(iterator) {
-        if (iterator) {
-          filterSessionUser(user._id, ses, task, task.input_array[iterator], function(success) {
-            if(success) {
-              filterSuccess += 1;
-            }
-            renderUserCompletedView(user._id, task.input_array.length, iterator, filterSuccess); 
-          });
+      return new Promise(function(resolve, reject) {
+        var func = function(iterator) {
+          if (iterator) {
+            filterSessionUser(user._id, ses, task, task.input_array[iterator], function(success) {
+              if(success) {
+                filterSuccess += 1;
+              }
+              renderUserCompletedView(user._id, task.input_array.length, iterator, filterSuccess); 
+            });
+          }
+          if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
+            reject(new Error("stop"));
+          }
+          return Promise.resolve(action())
+            .then(func)
+            .catch(function() {
+              reject();
+            });
         }
-        if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
-          return resolver.reject(new Error("stop"));
-        }
-        return Promise.cast(action())
-          .then(func)
-          .catch(resolver.reject);
-      };
-      process.nextTick(func);
-      return resolver.promise;
+        process.nextTick(func)
+      })
     }
     promiseWhile(function() {
       return new Promise(function(resolve, reject) {
@@ -268,9 +272,10 @@ var apiFilterSession = function(user, task) {
   })
 }
 
-function apiParseAccounts(user, task) {
+function apiParseAccounts(user, task, token) {
   mkdirFolder(cookieDir)
   .then(function() {
+    Client.Request.setToken(token)
     setStateView(user._id, 'run');
     renderNewTaskCompletedView(user._id);
 
@@ -288,7 +293,7 @@ function apiParseAccounts(user, task) {
     const storage = new Client.CookieFileStorage(cookiePath);
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy));
 
-    task.parsed_conc.forEach( function(conc_user) {
+    task.parsed_conc.forEach(function(conc_user) {
       ses.then(function(session) {
         if(session) {
           updateUserStatusDb(user._id, 'Активен');
@@ -302,40 +307,45 @@ function apiParseAccounts(user, task) {
         } else {
           feed = new Client.Feed.AccountFollowing(session, account.id);
         }
-     
-        var promiseWhile = function( action) {
-        var resolver = Promise.defer();
-        var indicator = 0;
-        var func = function(results) { // add token
-          if (results) {
-            results.forEach(function (item, i , arr) {
-              if (indicator < task.max_limit * task.parsed_conc.length) {
-                appendStringFile(task.outputfile, item._params.username);
-                renderTaskCompletedView(user._id);
+        
+        var promiseWhile = function(action) {
+          return new Promise(function(resolve, reject) { 
+            var indicator = 0;
+
+            var func = function(results) { 
+              if (results) {
+                results.forEach(function (item, i , arr) {
+                  if (indicator < task.max_limit * task.parsed_conc.length) {
+                    appendStringFile(task.outputfile, item._params.username);
+                    renderTaskCompletedView(user._id);
+                  }
+                  indicator++;
+                });
               }
-              indicator++;
-            });
-          }
-          if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  || indicator > task.max_limit * task.parsed_conc.length) {
-            // token.abort()
-            return resolver.reject(new Error("stop"));
-          }
-          return Promise.cast(action())
-            .then(func)
-            .catch(resolver.reject);
-          };
-          process.nextTick(func);
-          return resolver.promise;
-        };
+              if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||  indicator > task.max_limit * task.parsed_conc.length) {  
+                reject(new Error("stop"));  
+              }
+              return Promise.resolve(action())
+                .then(func)
+                .catch(function(err) {
+                  reject(err)
+                }) 
+            }
+
+            process.nextTick(func)
+          }) 
+        }
 
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
             setTimeout(function() {
-              resolve(feed.get()); // feed.get(token), token
+              resolve(feed.get()); 
             }, 2000);
           });
         })
         .catch(function (err) {
+
+          console.log(err);
           if(err.message == 'stop') {
             loggerDb(user._id, 'Парсинг остановлен');
             setStateView(user._id, 'stopped');
@@ -345,6 +355,8 @@ function apiParseAccounts(user, task) {
         });
       })
       .catch(function (err) {
+
+        console.log(2, err)
         if (err instanceof Client.Exceptions.APIError) {
           updateUserStatusDb(user._id, err.name);
         } else {
@@ -358,10 +370,6 @@ function apiParseAccounts(user, task) {
     setStateView(user_id, 'stopped');
     console.log(err);
   })
-}
-
-function tokenCancel() {
-  Client.Request.initStop();
 }
 
 function fastCreateAccount(email, username, password, proxy, cb) {
@@ -424,40 +432,45 @@ function apiCreateAccounts(task) {
     };
     
     var promiseWhile = function( action, email_tuple) {
-      var resolver = Promise.defer();
-      var indicator = 0;
-      var i = 0;
-      var func = function(results) {
-        
-        async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
-         
-          var storage = path.join(cookieDir, email + '.json')
-          fs.closeSync(fs.openSync(storage, 'w') );
+       
+      return new Promise(function(resolve, reject) {
+        var indicator = 0;
+        var i = 0;
+        var func = function(results) {
           
-          var password = generatePassword(); 
-          var name = email.split("@")[0];
- 
+          async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
+           
+            var storage = path.join(cookieDir, email + '.json')
+            fs.closeSync(fs.openSync(storage, 'w') );
+            
+            var password = generatePassword(); 
+            var name = email.split("@")[0];
+   
 
-          fastCreateAccount(email, name, password, proxy, function(session) {
-            appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
-            renderTaskCompletedView(task._id);
-            callback();
-             
+            fastCreateAccount(email, name, password, proxy, function(session) {
+              appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
+              renderTaskCompletedView(task._id);
+              callback();
+               
+            });
+          }, function(err, result) {
+            console.log("DONE!");
           });
-        }, function(err, result) {
-          console.log("DONE!");
-        });
 
-        i++;
-        if(getStateView(task._id) == 'stop' || i > email_tuple.length -1) {
-          return resolver.resolve(); 
-        }
-        return Promise.cast(action(email_tuple))
-          .then(func)
-          .catch(resolver.reject);
-      };
-      process.nextTick(func);
-      return resolver.promise;
+          i++;
+          if(getStateView(task._id) == 'stop' || i > email_tuple.length -1) {
+            resolve(); 
+          }
+          return Promise.resolve(action(email_tuple))
+            .then(func)
+            .catch(function() {
+              reject(); 
+            });
+        };
+        process.nextTick(func);
+      
+      })
+
     };
 
     var actionFunc = function() {
@@ -477,39 +490,48 @@ function apiCreateAccounts(task) {
   })
 }
 
-function apiSessionCheck(user_id, username, password, proxy) { 
+function apiSessionCheck(user_id, username, password, proxy, token) {
   mkdirFolder(cookieDir)
   .then(function() {
-    var token = {}
-    Client.Request.setStopToken(token); // how to stop FIX
+   
     setStateView(user_id, 'run');
     loggerDb(user_id, 'Выполняется логин');
     var device = new Client.Device(username);
-    var cookiePath = path.join(cookieDir, user_id + ".json");
+    var cookiePath = path.join(cookieDir, username + ".json");
     var storage = new Client.CookieFileStorage(cookiePath);
     var session = new Client.Session(device, storage);
     if(_.isString(proxy) && !_.isEmpty(proxy)) {
       session.proxyUrl = returnProxyFunc(proxy);
     }
-    
+    Client.Request.setToken(token)
     Client.Session.login(session, username, password)
       .then(function(session) {
-        updateUserStatusDb(user_id, 'Активен');
-        setStateView(user_id, 'stopped');
+        console.log(session)
+        // updateUserStatusDb(user_id, 'Активен');
+        // setStateView(user_id, 'stopped');
       })
+      // .catch(function(error) {
+      //   console.log(error)
+      // })
+
       .catch(function (err) {
-        setStateView(user_id, 'stopped');
-        if (err instanceof Client.Exceptions.APIError) {
-          updateUserStatusDb(user_id, err.ui); 
-          // console.log(err);
-        } else {
-          updateUserStatusDb(user_id, 'Произошла ошибка');
-          console.log(err);
-        }
+        console.log(username, err)
+        // setStateView(user_id, 'stopped');
+        // if (err instanceof Client.Exceptions.APIError) {
+        //   if(err.ui) {
+        //     updateUserStatusDb(user_id, err.ui); 
+        //   } else if (err.name == 'RequestCancel') {
+        //     console.log(username, 'Cancelled')
+        //   }
+        //   else {
+        //     updateUserStatusDb(user_id, err.name);
+        //   }
+        //   // console.log(err);
+        // } else {
+        //   updateUserStatusDb(user_id, 'Произошла ошибка');
+        //   console.log(err);
+        // }
       });
   })
-  .catch(function(err) {
-    setStateView(user_id, 'stopped');
-    console.log(err);
-  })
+
 }

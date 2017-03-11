@@ -320,7 +320,6 @@ function menuItemListener( link ) {
     default:
       break;
   }
-  
 }
 
 /**

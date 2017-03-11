@@ -156,12 +156,7 @@ Session.login = function(session, username, password) {
                     // console.log('autocompleteUserList')
                     return false;                                       // fail catcher
                 })
-                .catch(function(err) {
-                    console.log('other')
-                    // autocompleteUserList has ability to fail often
-                    // console.log(err)
-                    return false;                                       // fail catcher
-                })
+                 
             return [session, autocomplete];
         })
         .spread(function (session) {

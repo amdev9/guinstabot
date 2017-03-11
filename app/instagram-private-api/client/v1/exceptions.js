@@ -35,6 +35,13 @@ util.inherits(NotAbleToSignError, APIError);
 exports.NotAbleToSignError = NotAbleToSignError;
 
 
+function RequestCancel() {
+    this.name = "RequestCancel";
+    this.message = "Cancelled";
+}
+util.inherits(RequestCancel, APIError);
+exports.RequestCancel = RequestCancel;
+
 
 function RequestError(payload) {
     // console.log(payload);
@@ -136,6 +143,7 @@ function CheckpointError(json, session) {
     this.json = json;
     this.name = "CheckpointError";
     this.message = "Instagram call checkpoint for this action!";
+    this.ui = "Верификация аккаунта"
     if(_.isString(json.checkpoint_url))
         this.url = json.checkpoint_url;
     if(!this.url && _.isObject(json.checkpoint) && _.isString(json.checkpoint.url))
@@ -147,7 +155,15 @@ function CheckpointError(json, session) {
 util.inherits(CheckpointError, APIError);
 exports.CheckpointError = CheckpointError;
 
-
+function SentryBlockError(json, session) {
+    this.json = json;
+    this.name = "SentryBlockError";
+    this.message = "Entry block error";
+    this.ui = "Блок на вход"
+    this.session = session;
+}
+util.inherits(SentryBlockError, APIError);
+exports.SentryBlockError = SentryBlockError;
 
 function OnlyRankedItemsError() {
     this.name = "OnlyRankedItemsError";
