@@ -358,7 +358,7 @@ Request.setToken =  function(token) {
 
 Request.prototype.send = function (options, attemps) {
      
-    // console.log(this) 
+    console.log(this) 
     var that = this;
     if (!attemps) attemps = 0;
     return this._mergeOptions(options)

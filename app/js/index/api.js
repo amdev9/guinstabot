@@ -120,7 +120,7 @@ var apiFilterNoSession = function(task) {
             }
 
             if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
-              reject(new Error("stop"));
+              return reject(new Error("stop"));
             } 
             return Promise.resolve(action())
               .then(func)
@@ -239,7 +239,7 @@ var apiFilterSession = function(user, task) {
             });
           }
           if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped' || iterator >= task.input_array.length) { 
-            reject(new Error("stop"));
+            return reject(new Error("stop"));
           }
           return Promise.resolve(action())
             .then(func)
@@ -323,7 +323,7 @@ function apiParseAccounts(user, task, token) {
                 });
               }
               if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||  indicator > task.max_limit * task.parsed_conc.length) {  
-                reject(new Error("stop"));  
+                return reject(new Error("stop"));  
               }
               return Promise.resolve(action())
                 .then(func)
