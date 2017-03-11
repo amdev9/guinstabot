@@ -275,7 +275,7 @@ var apiFilterSession = function(user, task) {
 function apiParseAccounts(user, task, token) {
   mkdirFolder(cookieDir)
   .then(function() {
-    Client.Request.setToken(token)
+    
     setStateView(user._id, 'run');
     renderNewTaskCompletedView(user._id);
 
@@ -291,6 +291,7 @@ function apiParseAccounts(user, task, token) {
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
+    Client.Request.setToken(token)
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy));
 
     task.parsed_conc.forEach(function(conc_user) {
@@ -326,8 +327,12 @@ function apiParseAccounts(user, task, token) {
                 return reject(new Error("stop"));  
               }
               return Promise.resolve(action())
+                // .delay(2000)        // clear timeout on 
                 .then(func)
+                // add timer here
+
                 .catch(function(err) {
+                  console.log("--CATCH----")
                   reject(err)
                 }) 
             }
@@ -338,20 +343,36 @@ function apiParseAccounts(user, task, token) {
 
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
-            setTimeout(function() {
+            // setTimeout(function() {
               resolve(feed.get()); 
-            }, 2000);
+            // }, 2000);
           });
         })
         .catch(function (err) {
 
-          console.log(err);
-          if(err.message == 'stop') {
-            loggerDb(user._id, 'Парсинг остановлен');
-            setStateView(user._id, 'stopped');
+          setStateView(user._id, 'stopped');
+          if (err instanceof Client.Exceptions.APIError) {
+            if(err.ui) {
+              updateUserStatusDb(user._id, err.ui); 
+            } else if (err.name == 'RequestCancel') {
+              console.log('Cancelled')
+            }
+            else {
+              updateUserStatusDb(user._id, err.name);
+            }
+            // console.log(err);
           } else {
-            console.log(err.message);
+            updateUserStatusDb(user._id, 'Произошла ошибка');
+            console.log(err);
           }
+
+          // console.log(err);
+          // if(err.message == 'stop') {
+          //   loggerDb(user._id, 'Парсинг остановлен');
+          //   setStateView(user._id, 'stopped');
+          // } else {
+          //   console.log(err.message);
+          // }
         });
       })
       .catch(function (err) {
@@ -507,8 +528,8 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
     Client.Session.login(session, username, password)
       .then(function(session) {
         console.log(session)
-        // updateUserStatusDb(user_id, 'Активен');
-        // setStateView(user_id, 'stopped');
+        updateUserStatusDb(user_id, 'Активен');
+        setStateView(user_id, 'stopped');
       })
       // .catch(function(error) {
       //   console.log(error)
@@ -516,21 +537,21 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
 
       .catch(function (err) {
         console.log(username, err)
-        // setStateView(user_id, 'stopped');
-        // if (err instanceof Client.Exceptions.APIError) {
-        //   if(err.ui) {
-        //     updateUserStatusDb(user_id, err.ui); 
-        //   } else if (err.name == 'RequestCancel') {
-        //     console.log(username, 'Cancelled')
-        //   }
-        //   else {
-        //     updateUserStatusDb(user_id, err.name);
-        //   }
-        //   // console.log(err);
-        // } else {
-        //   updateUserStatusDb(user_id, 'Произошла ошибка');
-        //   console.log(err);
-        // }
+        setStateView(user_id, 'stopped');
+        if (err instanceof Client.Exceptions.APIError) {
+          if(err.ui) {
+            updateUserStatusDb(user_id, err.ui); 
+          } else if (err.name == 'RequestCancel') {
+            console.log(username, 'Cancelled')
+          }
+          else {
+            updateUserStatusDb(user_id, err.name);
+          }
+          // console.log(err);
+        } else {
+          updateUserStatusDb(user_id, 'Произошла ошибка');
+          console.log(err);
+        }
       });
   })
 

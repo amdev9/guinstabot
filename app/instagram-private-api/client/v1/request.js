@@ -358,7 +358,7 @@ Request.setToken =  function(token) {
 
 Request.prototype.send = function (options, attemps) {
      
-    console.log(this) 
+    // console.log(this) 
     var that = this;
     if (!attemps) attemps = 0;
     return this._mergeOptions(options)
@@ -377,9 +377,11 @@ Request.prototype.send = function (options, attemps) {
               var res;
               var body = concat(function(data) {
                 res.body = data.toString();
-                if (res.statusCode == 200 ) {
+                if (res.statusCode == 200 ) { // fix 
+                    console.log('resolve')
                     resolve([res, options, attemps]);
                 } else {
+                    console.log('reject')
                     reject(res)
                 }
               })
@@ -399,9 +401,10 @@ Request.prototype.send = function (options, attemps) {
             
               if (Request.token) {          
                 Request.token.cancel = function() { 
-                  console.log('Cancelled');
+                   
                   xhr.abort();
-                  reject(new Error("Cancelled"));
+                  console.log(xhr._aborted)
+                  return reject(new Error("Cancelled"));
                 };
               }
             })
@@ -411,7 +414,7 @@ Request.prototype.send = function (options, attemps) {
         .spread(_.bind(this.beforeParse, this)) 
         .then(_.bind(this.parseMiddleware, this))
         .then(function (response) {
-            console.log(response)
+            // console.log(response)
           var json = response.body;
           if (_.isObject(json) && json.status == "ok") {
             return _.omit(response.body, 'status');
@@ -422,11 +425,12 @@ Request.prototype.send = function (options, attemps) {
           throw new Exceptions.RequestError(json);
         })
         .catch(function(error) {
+            console.log('--> Cancelled')
             return that.beforeError(error, options, attemps) // возвращает первый элемент массива
         })
         .catch(function (err) {
             if(err.message == 'Cancelled') {
-                // console.log('--> Cancelled')
+                
                 throw new Exceptions.RequestCancel();
             }
  
