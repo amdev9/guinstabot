@@ -315,15 +315,19 @@ function apiParseAccounts(user, task, token) {
 
             var func = function(results) { 
               if (results) {
-                results.forEach(function (item, i , arr) {
-                  if (indicator < task.max_limit * task.parsed_conc.length) {
-                    appendStringFile(task.outputfile, item._params.username);
-                    renderTaskCompletedView(user._id);
-                  }
-                  indicator++;
-                });
+
+                 
+                  results.forEach(function (item, i , arr) {
+                    if (indicator < task.max_limit * task.parsed_conc.length) {
+                      appendStringFile(task.outputfile, item._params.username);
+                      renderTaskCompletedView(user._id);
+                    }
+                    indicator++;
+                  });
+                 
               }
               if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||  indicator > task.max_limit * task.parsed_conc.length) {  
+                 
                 return reject(new Error("stop"));  
               }
               return Promise.resolve(action())
@@ -343,9 +347,9 @@ function apiParseAccounts(user, task, token) {
 
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
-            // setTimeout(function() {
+            setTimeout(function() {
               resolve(feed.get()); 
-            // }, 2000);
+            }, 2000);
           });
         })
         .catch(function (err) {

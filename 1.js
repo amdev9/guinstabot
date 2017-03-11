@@ -35,6 +35,38 @@
 // });
 
 
-var timerId = setTimeout(function() { console.log('Привет') }, 1000);
+// var timerId = setTimeout(function() { console.log('Привет') }, 1000);
 // clearTimeout(timerId);
+
+function setBgPosition() {
+    var c = 0,
+        timer = 0;
+    var numbers = [0, -120, -240, -360, -480, -600, -720];
+    function run(a) {
+      console.log(a, numbers);
+      // Ext.get('common-spinner').setStyle('background-position', numbers[c++] + 'px 0px');
+      // if (c >= numbers.length) {
+      //     c = 0;
+      // }
+      c++;
+      console.log(c)
+      timer = setTimeout(run, 2000, c);
+    }
+    timer = setTimeout(run, 2000);
+
+    return stop;
+
+    function stop() {
+        if (timer) {
+            clearTimeout(timer);
+            timer = 0;
+        }
+    }
+}
+
+
+var stop = setBgPosition();
+// ...later, when you're ready to stop...
+// stop();
+
 
