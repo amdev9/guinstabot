@@ -348,6 +348,8 @@ function apiParseAccounts(user, task, token) {
             else {
               updateUserStatusDb(user._id, err.name);
             }
+          } else if (err.message == 'stop') {
+
           } else {
             updateUserStatusDb(user._id, 'Произошла ошибка');
             console.log(err);
