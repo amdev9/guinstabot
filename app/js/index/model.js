@@ -76,9 +76,9 @@ function addUsersDb(users) {
             response.forEach(function(item, i, arr) {
               if (item.ok) {
                 usersRender.push(usersObjArr[i]);
-                if (i == arr.length - 1) {
-                  renderUserRowView(usersRender);
-                }
+              }
+              if (i == arr.length - 1) {
+                renderUserRowView(usersRender);
               }
             });
 
