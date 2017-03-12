@@ -275,19 +275,15 @@ var apiFilterSession = function(user, task) {
 function apiParseAccounts(user, task, token) {
   mkdirFolder(cookieDir)
   .then(function() {
-    
     setStateView(user._id, 'run');
     renderNewTaskCompletedView(user._id);
-
     loggerDb(user._id, 'Парсинг аудитории');
-
     //////FIX
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(user._id, 'Файл подготовлен'); 
     });
-
     var indicator = 0;
-    
+
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
@@ -312,44 +308,32 @@ function apiParseAccounts(user, task, token) {
         var promiseWhile = function(action) {
           return new Promise(function(resolve, reject) { 
             var indicator = 0;
-
             var func = function(results) { 
               if (results) {
-
-                 
-                  results.forEach(function (item, i , arr) {
-                    if (indicator < task.max_limit * task.parsed_conc.length) {
-                      appendStringFile(task.outputfile, item._params.username);
-                      renderTaskCompletedView(user._id);
-                    }
-                    indicator++;
-                  });
-                 
+                results.forEach(function (item, i , arr) {
+                  if (indicator < task.max_limit * task.parsed_conc.length) {
+                    appendStringFile(task.outputfile, item._params.username);
+                    renderTaskCompletedView(user._id);
+                  }
+                  indicator++;
+                });
               }
-              if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||  indicator > task.max_limit * task.parsed_conc.length) {  
-                 
+              if (getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||  indicator > task.max_limit * task.parsed_conc.length) {
                 return reject(new Error("stop"));  
               }
               return Promise.resolve(action())
-                // .delay(2000)        // clear timeout on 
                 .then(func)
-                // add timer here
-
                 .catch(function(err) {
-                  console.log("--CATCH----")
                   reject(err)
                 }) 
             }
-
             process.nextTick(func)
           }) 
         }
 
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
-            // setTimeout(function() {
-              resolve(feed.get()); 
-            // }, 2000);
+            resolve(feed.get());
           });
         })
         .catch(function (err) {
@@ -359,12 +343,11 @@ function apiParseAccounts(user, task, token) {
             if(err.ui) {
               updateUserStatusDb(user._id, err.ui); 
             } else if (err.name == 'RequestCancel') {
-              console.log('Cancelled')
+              
             }
             else {
               updateUserStatusDb(user._id, err.name);
             }
-            // console.log(err);
           } else {
             updateUserStatusDb(user._id, 'Произошла ошибка');
             console.log(err);
@@ -540,13 +523,12 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
       // })
 
       .catch(function (err) {
-        console.log(username, err)
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
           if(err.ui) {
             updateUserStatusDb(user_id, err.ui); 
           } else if (err.name == 'RequestCancel') {
-            console.log(username, 'Cancelled')
+
           }
           else {
             updateUserStatusDb(user_id, err.name);
