@@ -107,7 +107,7 @@ function resizeListener() {
  * Turns the custom context menu on.
  */
 function toggleMenuOn() {
-   // depends();
+  depends();
   if ( menuState !== 1 ) {
     menuState = 1;
     menu.classList.add( contextMenuActive );
@@ -133,7 +133,7 @@ function depends() {
 
 function multipleMenuOn(taskItems) {
   // console.log("multipleMenuOn");
-  var toHideItems = ['tasks_start', 'tasks_stop' , 'edit_account', 'edit_tasks'];  
+  var toHideItems = ['tasks_start', 'edit_account', 'edit_tasks'];   // 'tasks_stop' 
   var filled = true;
   $(".table-info").each(function (i, val) {
     if ( $(this).find("td").eq(2).html() == '-') {
@@ -214,7 +214,7 @@ function selectTaskMenuOn() {
 function selectOneNoTaskMenuOn() {
   // console.log("selectOneNoTaskMenu");
   $('.context-menu__item > a').each(function(i, val) {
-    if($(this).attr("data-action") == 'tasks_start' || $(this).attr("data-action") == 'tasks_stop' || $(this).attr("data-action") == 'edit_tasks') {
+    if($(this).attr("data-action") == 'tasks_start' || $(this).attr("data-action") == 'edit_tasks') { // $(this).attr("data-action") == 'tasks_stop'
       $('.context-menu__item').eq(i).addClass("hidden");
     }
   });

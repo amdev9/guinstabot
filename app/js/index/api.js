@@ -514,7 +514,6 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
     Client.Request.setToken(token)
     Client.Session.login(session, username, password)
       .then(function(session) {
-        console.log(session)
         updateUserStatusDb(user_id, 'Активен');
         setStateView(user_id, 'stopped');
       })
