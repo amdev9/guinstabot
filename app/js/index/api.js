@@ -347,9 +347,9 @@ function apiParseAccounts(user, task, token) {
 
         promiseWhile(function() {
           return new Promise(function(resolve, reject) {
-            setTimeout(function() {
+            // setTimeout(function() {
               resolve(feed.get()); 
-            }, 2000);
+            // }, 2000);
           });
         })
         .catch(function (err) {
