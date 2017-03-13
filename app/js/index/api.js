@@ -22,13 +22,12 @@ function mediaFilter(json, task, cb) {
   }
 }
 
-
 function mediaNoSessionFilter(json, task, cb) {
-  var filterRequest = new Client.Web.FilterRequest();
-  filterRequest.media(json.username).then(function(response) {
-    appendStringFile(task.outputfile, json.username);
+  // var filterRequest = new Client.Web.FilterRequest();
+  // filterRequest.media(json.username).then(function(response) {
+    // appendStringFile(task.outputfile, json.username);
     cb();
-  });
+  // });
 }
 
 function mediaSessionFilter(json, task, cb) {
@@ -96,18 +95,14 @@ var apiFilterNoSession = function(task) {
     setStateView(task._id, 'run');
     renderNewTaskCompletedView(task._id);
     loggerDb(task._id, 'Фильтрация аудитории');
-
-    /////////FIX
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(task._id, 'Файл подготовлен');
     });
     
     async.forEach(task.partitions, function (taskpart, callback) {
-   
-      if(taskpart.proxy_parc != '') { ///////???
-        setProxyFunc(taskpart.proxy_parc);
-      }
-   
+  
+      console.log(taskpart.proxy_parc);
+
       var filterRequest = new Client.Web.FilterRequest();   
       var iterator = taskpart.start;
       var promiseWhile = function( action) {
@@ -135,18 +130,17 @@ var apiFilterNoSession = function(task) {
       promiseWhile(function() {
         return new Promise(function(resolve, reject) {
           setTimeout(function() {
-            resolve(filterRequest.getUser(task.input_array[iterator])); // FIX pass param 
+            resolve(filterRequest.getUser(task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); // FIX pass param 
             iterator++;
           }, 20);
         });
       }).then(function() {
         callback();
       }).catch(function (err) {
-        
         if (err.message == 'stop') {
           loggerDb(task._id, 'Фильтрация остановлена');
-         setStateView(task._id, 'stopped');
-         callback();
+          setStateView(task._id, 'stopped');
+          callback();
         } else {
           console.log(err.message);
         }
@@ -344,8 +338,7 @@ function apiParseAccounts(user, task, token) {
               updateUserStatusDb(user._id, err.ui); 
             } else if (err.name == 'RequestCancel') {
               
-            }
-            else {
+            } else {
               updateUserStatusDb(user._id, err.name);
             }
           } else if (err.message == 'stop') {
@@ -367,12 +360,22 @@ function apiParseAccounts(user, task, token) {
       .catch(function (err) {
 
         console.log(2, err)
+        setStateView(user._id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
-          updateUserStatusDb(user._id, err.name);
+          if(err.ui) {
+            updateUserStatusDb(user._id, err.ui); 
+          } else if (err.name == 'RequestCancel') {
+
+          }
+          else {
+            updateUserStatusDb(user._id, err.name);
+          }
+          // console.log(err);
         } else {
-          updateUserStatusDb(user._id, 'Ошибка');
+          updateUserStatusDb(user._id, 'Произошла ошибка');
           console.log(err);
         }
+
       });
     });
   })

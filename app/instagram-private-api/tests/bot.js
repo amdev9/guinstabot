@@ -4,20 +4,18 @@ const Client = require('../client/v1');
 
 // Create empty session
 
-var user = 'ratm9111';
+var username = 'ratm9111';
 var password = 'qwe123qwe';
-var device = new Client.Device(user);
-var storage = new Client.CookieFileStorage(__dirname + '/cookies/'+ user+'.json');
+var device = new Client.Device(username);
+var storage = new Client.CookieFileStorage(__dirname + '/cookies/'+ username +'.json');
 var session = new Client.Session(device, storage);
+var proxy = 'http://blackking:Name0123Space@45.76.34.156:30002'
+session.proxyUrl = proxy;
 
-
-var token = {}
-Client.Request.setStopToken(token)
-
-new Client.Session.login(session, 'ratm9111', 'qwe123qwe').then(function(session) {
+new Client.Session.login(session, username, password)
+.then(function(session) {
   console.log(session)
 })
-
 
 
 // var device, storage, user, password;

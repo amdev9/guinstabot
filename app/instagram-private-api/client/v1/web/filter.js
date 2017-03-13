@@ -41,7 +41,7 @@ FilterRequest.prototype.media = function (_username) {
         });
 }
 
-FilterRequest.prototype.getUser = function (_username) {
+FilterRequest.prototype.getUser = function (_username, _proxy) {
     return new WebRequest( )
         .setMethod('GET')
         .setResource('userInfoAnonym', {username: _username}) //   userInfoAnonym
@@ -56,7 +56,10 @@ FilterRequest.prototype.getUser = function (_username) {
             'User-Agent': iPhoneUserAgent,
            
         })
-        .send({followRedirect: true}) // false
+        .send({
+            followRedirect: true,
+            proxy: _proxy
+        }) // false
         .then(function(response) {
             var json_obj = new Object();
             json_obj.followerCount = response.user.follows.count;
