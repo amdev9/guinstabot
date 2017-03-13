@@ -14,20 +14,20 @@ var softname = config.App.softname;
 
 var cookieDir = path.join(os.tmpdir(), softname, 'cookie');
 
-function mediaFilter(json, task, cb) {
+function mediaFilter(json, task, proxy, cb) {
   if (json.isBusiness) {
     mediaSessionFilter(json, task, cb);
   } else {
-    mediaNoSessionFilter(json, task, cb);
+    mediaNoSessionFilter(json, task, proxy, cb);
   }
 }
 
-function mediaNoSessionFilter(json, task, cb) {
-  // var filterRequest = new Client.Web.FilterRequest();
-  // filterRequest.media(json.username).then(function(response) {
-    // appendStringFile(task.outputfile, json.username);
+function mediaNoSessionFilter(json, task, proxy, cb) {
+  var filterRequest = new Client.Web.FilterRequest();
+  filterRequest.media(json.username, proxy).then(function(response) {
+    appendStringFile(task.outputfile, json.username);
     cb();
-  // });
+  });
 }
 
 function mediaSessionFilter(json, task, cb) {
@@ -49,7 +49,7 @@ function mediaSessionFilter(json, task, cb) {
   });     
 }
 
-function filterFunction(json, task, cb) {
+function filterFunction(json, task, proxy, cb) {
 
   var followersCond = json.followerCount > task.followers.from && json.followerCount < task.followers.to;
   var subscribersCond = json.followingCount > task.subscribers.from && json.followingCount < task.subscribers.to;
@@ -71,7 +71,7 @@ function filterFunction(json, task, cb) {
         var biography = json.biography ? json.biography.toLowerCase() : '';
         if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
           if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
-            mediaFilter(json, task, cb);
+            mediaFilter(json, task, proxy, cb);
           } else {
             appendStringFile(task.outputfile, json.username);
             cb(true);
@@ -109,7 +109,7 @@ var apiFilterNoSession = function(task) {
         return new Promise(function(resolve, reject) {
           var func = function(json) {
             if (json) {
-              filterFunction(json, task, function() {
+              filterFunction(json, task, taskpart.proxy_parc, function() {
                 renderTaskCompletedView(task._id);
               });
             }

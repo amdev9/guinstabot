@@ -16,7 +16,7 @@ var Exceptions = require("../exceptions");
 var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
  
 
-FilterRequest.prototype.media = function (_username) {
+FilterRequest.prototype.media = function (_username, _proxy) {
     return new WebRequest( )
         .setMethod('GET')
         .setResource('mediaInfoAnonym', {username: _username, maxId: ''}) //   userInfoAnonym
@@ -30,8 +30,10 @@ FilterRequest.prototype.media = function (_username) {
             'Connection': 'keep-alive',
             'User-Agent': iPhoneUserAgent,
         })
-         
-        .send({followRedirect: true}) // false
+        .send({
+            followRedirect: true,
+            proxy: _proxy
+        }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
                 resolve(response);
