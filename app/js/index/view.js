@@ -116,8 +116,11 @@ function setStatusView(id, status) {
 
 function addStopStateView(rows_ids) {
   rows_ids.forEach( function(row_id) {
+    
     var t = tokens.get(row_id);
-    t.cancel();
+    if (typeof t.cancel !== "undefined") { 
+      t.cancel();
+    }
     var state = getStateView(row_id);
     if (state != 'stopped') {
       setStateView(row_id, 'stop');

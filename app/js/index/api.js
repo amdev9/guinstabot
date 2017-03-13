@@ -88,7 +88,7 @@ function filterFunction(json, task, proxy, cb) {
   }
 }
 
-var apiFilterNoSession = function(task) {
+var apiFilterNoSession = function(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
   
@@ -98,11 +98,11 @@ var apiFilterNoSession = function(task) {
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(task._id, 'Файл подготовлен');
     });
-    
+     Client.Request.setToken(token)
     async.forEach(task.partitions, function (taskpart, callback) {
   
       console.log(taskpart.proxy_parc);
-
+     
       var filterRequest = new Client.Web.FilterRequest();   
       var iterator = taskpart.start;
       var promiseWhile = function( action) {
@@ -155,7 +155,7 @@ var apiFilterNoSession = function(task) {
   })
 }
 
-function filterSessionUser(user_id, ses, task, userFilter, cb) {
+function filterSessionUser(user_id, ses, task, userFilter, proxy, cb) {
   ses
   .then(function(session) {
     if(session) {
@@ -168,7 +168,7 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
   .then(function([session, account]) {
      Client.Account.getById(session, account.id)
       .then(function(account) {
-        filterFunction(account.params, task, cb);
+        filterFunction(account.params, task, proxy, cb);
         // if (task.anonym_profile == true) {
         //   var hasAnonymousProfilePictureCond = !account.params.hasAnonymousProfilePicture;
         // } else {
@@ -195,15 +195,15 @@ function filterSessionUser(user_id, ses, task, userFilter, cb) {
   });
 }
 
-function apiFilterAccounts(row) {
+function apiFilterAccounts(row, token) {
   if (row.type == 'user') {
-    apiFilterSession(row, row.task);
+    apiFilterSession(row, row.task, token);
   } else if(row.type == 'task') {
-    apiFilterNoSession(row);
+    apiFilterNoSession(row, token);
   }
 }
 
-var apiFilterSession = function(user, task) {
+var apiFilterSession = function(user, task, token) {
   mkdirFolder(logsDir)
   .then(function() {
 
@@ -217,6 +217,7 @@ var apiFilterSession = function(user, task) {
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
+    Client.Request.setToken(token)
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy));
 
     var iterator = 1;
@@ -225,7 +226,7 @@ var apiFilterSession = function(user, task) {
       return new Promise(function(resolve, reject) {
         var func = function(iterator) {
           if (iterator) {
-            filterSessionUser(user._id, ses, task, task.input_array[iterator], function(success) {
+            filterSessionUser(user._id, ses, task, task.input_array[iterator], returnProxyFunc(user.proxy), function(success) {
               if(success) {
                 filterSuccess += 1;
               }

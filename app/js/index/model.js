@@ -100,9 +100,17 @@ function runTasksDb(rows) {
         tokens.set(row._id, token)
         apiParseAccounts(row, row.task, token);
       } else if (row.task && row.task.name == 'filtration') {
-        apiFilterAccounts(row);
+        var token = {
+          row: row._id
+        }
+        tokens.set(row._id, token)
+        apiFilterAccounts(row, token);
       } else if (row.name && row.name == 'filtration') {
-        apiFilterAccounts(row);
+        var token = {
+          row: row._id
+        }
+        tokens.set(row._id, token)
+        apiFilterAccounts(row, token);
       }
     }).catch(function (err) {
       console.log(err);
