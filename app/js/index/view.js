@@ -14,7 +14,20 @@ $(document).ready(function () {
   $('#memberLicense').html(`<small>Спасибо за использование ${softname}</small>`)
   checkSecurityController(setModalStatus);
 });
- 
+
+function proxyView(proxyString) {
+  if (proxyString.split(":").length == 2) {
+    return proxyString
+  } else if(proxyString.split(":").length == 4) {
+    let proxy_ip = proxyString.split(":")[2];
+    let proxy_port = proxyString.split(":")[3];
+    return `${proxy_ip}:${proxy_port}`
+  } else if (proxyString == '') {
+    return `-`
+  }
+}
+
+
 function setModalStatus(result) {
   if(result == 'ok') {
     $('#memberModal').modal('hide');
@@ -136,16 +149,13 @@ function deleteRowsView(rows) {
 
 function userRowRenderView(user_id) {
   db.get(user_id).then(function(user) {  
-    setUsernameView(user._id, user.username);
-    if (user.proxy != '') {
-      setProxyView(user._id, user.proxy);
-    } else {
-      setProxyView(user._id, "-");
-    }
-    setStatusView(user._id, user.status);    
+    setUsernameView(user._id, user.username)
+    var proxy_s = proxyView(user.proxy)
+    setProxyView(user._id, proxy_s)
+    setStatusView(user._id, user.status)   
   }).catch(function (err) {
-    console.log(err);
-  });
+    console.log(err)
+  })
 }
 
 function renderNewTaskCompletedView(user_id) {
@@ -193,9 +203,10 @@ function initTaskRowRenderView(tasks) {
 function renderUserRowView(users) {
   var usersHtml = "";
   users.forEach(function(user) {
+    var proxy_s = proxyView(user.proxy)
     var oneUserHtml = `<tr data-id="${user.username}" state="stopped" class="table-sm">
       <td>${user.username}</td>
-      <td>${ user.proxy != '' ? user.proxy : '-'}</td>
+      <td>${proxy_s}</td>
       <td>-</td>
       <td>Остановлен</td>
       <td>-</td>
@@ -209,9 +220,10 @@ function initUserRowRenderView(users) {
   var usersHtml = "";
   users.forEach(function(user) {
     var taskName = taskRenderNames(user.doc.task.name);
+    var proxy_s = proxyView(user.doc.proxy) 
     var oneUserHtml = `<tr data-id="${user.doc._id}" state="stopped" class="table-sm">
       <td>${user.doc.username}</td>
-      <td>${ user.doc.proxy != '' ? user.doc.proxy : "-" }</td>
+      <td>${proxy_s}</td>
       <td>${taskName}</td>
       <td>Остановлен</td>
       <td>-</td>
