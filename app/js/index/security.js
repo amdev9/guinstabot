@@ -17,13 +17,13 @@ function checkLicense(cb) {
       .then(function(res) {
         console.log(res)
         bios(function(obj) {
-          console.log(obj);
+
           var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
           "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
           var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
 
           console.log(sendData, serialKey);
-          // makePost(sendData, serialKey, cb);
+          makePost(sendData, serialKey, cb);
 
         });
       })
