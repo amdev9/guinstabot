@@ -86,12 +86,12 @@ function virtualCheck(cb) {
     // networkInt(function(res) {
     //   resolve(res);
     // });
-    taskList(function(res) {
+    // taskList(function(res) {
+    //   resolve(res);
+    // });
+    openWin(function(res) {
       resolve(res);
     });
-    // openWin(function(res) {
-    //   reject(res);
-    // });
   })
   .then(function(res) {
     console.log(res)
@@ -219,7 +219,9 @@ function openWin(erback) {
     'DesktopUtilites', 
     'VMSwitchUserControlClass', 
     'prl.tools.auxwnd', 
-    '0843FD01-1D28-44a3-B11D-E3A93A85EA96'];
+    '0843FD01-1D28-44a3-B11D-E3A93A85EA96'
+  ];
+
   var ref = require('ref');
   var ffi = require('ffi');
   var voidPtr = ref.refType(ref.types.void);
@@ -235,7 +237,9 @@ function openWin(erback) {
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
       erback('vm');
-    }  
+    } else {
+      console.log('ok');
+    }
     return true;
   });
   user32.EnumWindows(windowProc, 0);
