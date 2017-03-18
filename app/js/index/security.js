@@ -83,14 +83,24 @@ function makePost(sendData, serialKey, cb) {
 
 function virtualCheck(cb) {
   new Promise(function(resolve, reject) {
-    // networkInt(function(res) {
-    //   resolve(res);
-    // });
-    // taskList(function(res) {
-    //   resolve(res);
-    // });
+    networkInt(function(res) {
+      if(res == 'vm') {
+        reject(res);
+      } else {
+        resolve(res);
+      }
+    });
+    taskList(function(res) {
+      if(res == 'vm') {
+        reject(res);
+      } else {
+        resolve(res);
+      }
+    });
     openWin(function(res) {
-      resolve(res);
+      if(res == 'vm') {
+        reject(res);
+      }
     });
   })
   .then(function(res) {
@@ -212,7 +222,7 @@ function networkInt(erback) { // on last key resolve
   }
 }
 
-function openWin(erback) {
+function openWin(erback) { // resolve add
   var vm_open = [
     'VBoxTrayToolWndClass', 
     'CPInterceptor',  
@@ -221,7 +231,6 @@ function openWin(erback) {
     'prl.tools.auxwnd', 
     '0843FD01-1D28-44a3-B11D-E3A93A85EA96'
   ];
-
   var ref = require('ref');
   var ffi = require('ffi');
   var voidPtr = ref.refType(ref.types.void);
@@ -240,7 +249,6 @@ function openWin(erback) {
     }
     return true;
   });
-  console.log(user32.EnumWindows(windowProc, 0));
   user32.EnumWindows(windowProc, 0);
 }
 
