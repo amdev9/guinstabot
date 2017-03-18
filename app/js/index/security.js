@@ -14,16 +14,8 @@ function checkLicense(cb) {
   if (process.platform == 'win32') {
     console.log('win32 detected');
 
-    bios();
-    networkInt(function(res) {
-      console.log('networkInt', res);
-    });
-    taskList(function(res) {
-      console.log('taskList', res);
-    });
-    openWin(function(res) {
-      console.log('openWin', res);
-    });
+    // bios();
+    virtualCheck();
 
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
@@ -110,6 +102,24 @@ function makePost(sendData, serialKey, cb) {
 //////////////////////////////
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
+
+function virtualCheck() {
+  return new Promise(function(resolve, reject) {
+    networkInt(function(res) {
+      console.log('networkInt', res);
+    });
+  })
+  .then(function() {
+    taskList(function(res) {
+      console.log('taskList', res);
+    });
+  })
+  .then(function() {
+    openWin(function(res) {
+      console.log('openWin', res);
+    });
+  })
+}
 
 function diskEnum(cb) {
   regKeyDisk = new Registry({                                       
