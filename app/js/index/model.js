@@ -364,6 +364,10 @@ function initViewDb() {
       initUserRowRenderView(result.rows);
        
     }).catch(function (err) {
+      if (err.name == 'OpenError') {
+        dialog.showErrorBox('Ошибка открытия программы', 'Поддерживается только одно открытое окно одновременно')
+        window.close()
+      }
       console.log(err);
     });
   })

@@ -19,7 +19,7 @@ function checkLicense(cb) {
         bios(function(obj) {
 
           var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-          "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+            "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
           var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
           makePost(sendData, serialKey, cb);
 
@@ -29,10 +29,15 @@ function checkLicense(cb) {
         cb('vm');
       })
 
+  } else if (process.platform == 'darwin') {
+    cb('ok')
+    // var sendData = memUserDir()+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+    //   "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+    // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+    // makePost(sendData, serialKey, cb);
+      
   } else {
-    setTimeout( () => {
-      cb('ok')
-    }, 5000)
+    cb('fail')
   }
 }
 
