@@ -16,8 +16,10 @@ function checkLicense(cb) {
     virtualCheck(cb)
       .then(function(res) {
         console.log(res)
-        var obj = bios();
-        console.log(obj);
+        bios(function(obj) {
+          console.log(obj);
+        });
+        
         // var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
         // "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
         // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
@@ -163,7 +165,7 @@ function bios(cb) {
     obj['DiskEnum'] = val;
     regParams(function(items) {
       console.log(items)
-      return obj;
+      cb(obj);
     });
   });
 }
