@@ -13,7 +13,11 @@ var host = config.App.hostname
 function checkLicense(cb) {
   if (process.platform == 'win32') {
     console.log('win32 detected');
-    bios();
+
+    // bios();
+    networkInt(function(res) {
+      console.log(res);
+    });
 
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
@@ -199,7 +203,10 @@ function networkInt(erback) {
                                           '08:00:20',   // Oracle (VirtualBox) 
                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      erback("vm");
+      erback('Virtual machine')
+      // erback("vm");
+    } else {
+      erback('Not Virtual')  
     }
   }
 }
