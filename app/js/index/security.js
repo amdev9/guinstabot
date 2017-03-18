@@ -101,7 +101,7 @@ function makePost(sendData, serialKey, cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function diskEnum() {
+function diskEnum(cb) {
   regKeyDisk = new Registry({                                       
     hive: Registry.HKLM,                                       
     key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
@@ -112,7 +112,7 @@ function diskEnum() {
   else
     for (var i = 0; i < items.length; i++) {
       if (items[i].name == '0') {
-        return items[i].value;
+        cb(items[i].value);
       }
     }
   });
@@ -120,9 +120,11 @@ function diskEnum() {
 
 function bios(cb) {
 
-  var diskParam = diskEnum();
-  console.log(diskParam)
+  diskEnum(function(val) {
+    console.log(val);
+  });
   
+
    // var obj = {};
         // obj['DiskEnum'] = items[i].value;
         // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
