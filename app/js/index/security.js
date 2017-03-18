@@ -112,31 +112,33 @@ function bios(cb) {
     console.log('ERROR: ' + err);
   else
     for (var i = 0; i < items.length; i++) {
-      if (items[i].name == '0') {
-        var obj = {};
-        obj['DiskEnum'] = items[i].value;
-        obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+      console.log(items[i])
+      // if (items[i].name == '0') {
+      //   var obj = {};
+      //   obj['DiskEnum'] = items[i].value;
+      //   obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
 
-        regKeyBIOS = new Registry({                                       
-          hive: Registry.HKLM,                                       
-          key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-        })
-        regKeyBIOS.values(function (err, items ) {
-        if (err)
-          console.log('ERROR: ' + err);
-        else
-          for (var i = 0; i < items.length; i++) {
-            if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-              obj[items[i].name] = items[i].value;
-            }
-            if (i == (items.length-1)) {
-              console.log(obj)
-              cb(obj);
-            }
-          }
-        }); 
+      //   regKeyBIOS = new Registry({                                       
+      //     hive: Registry.HKLM,                                       
+      //     key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+      //   })
+      //   regKeyBIOS.values(function (err, items ) {
+      //   if (err)
+      //     console.log('ERROR: ' + err);
+      //   else
+      //     for (var i = 0; i < items.length; i++) {
+      //       if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+      //         obj[items[i].name] = items[i].value;
+      //       }
+      //       if (i == (items.length-1)) {
+      //         console.log(obj)
+      //         cb(obj);
+      //       }
+      //     }
+      //   }); 
 
-      }
+      // }
+
     }
   });
 }
