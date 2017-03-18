@@ -23,28 +23,6 @@ function checkLicense(cb) {
     //   var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
     //   makePost(sendData, serialKey, cb);
     // }
-
-    // networkInt((res) => {
-    //   if(res == "vm") {
-    //     cb('vm');
-    //   }
-    // })
-    // })
-    // .then(function() {
-    //   taskList((res) => {
-    //     if(res == "vm") {
-    //       cb('vm');
-    //     } 
-    //   })
-    // })
-    // .then(function() {
-    //   openWin((res) => {
-    //     if(res == "vm") {
-    //       cb('vm');
-    //     }
-    //   })
-    // })
-    // .then(function() {
      
     // })
   } else {
@@ -105,12 +83,12 @@ function makePost(sendData, serialKey, cb) {
 
 function virtualCheck(cb) {
   new Promise(function(resolve, reject) {
-    networkInt(function(res) {
+    // networkInt(function(res) {
+    //   resolve(res);
+    // });
+    taskList(function(res) {
       resolve(res);
     });
-    // taskList(function(res) {
-    //   reject(res);
-    // });
     // openWin(function(res) {
     //   reject(res);
     // });
@@ -202,10 +180,13 @@ function taskList(erback) {
     'Workstation',
     'vmtoolsd.exe' ];
   exec('tasklist', function(err, stdout, stderr) {
-    vm_task_arr.forEach( function (item) {
+    vm_task_arr.forEach( function (item, i, arr) {
       if (stdout.indexOf(item) > 0) {
         erback('vm')
       }  
+      if (i == arr.length - 1 ) {
+        erback('ok')
+      }
     });
   });
 }
