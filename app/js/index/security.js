@@ -83,25 +83,27 @@ function makePost(sendData, serialKey, cb) {
 
 function virtualCheck(cb) {
   new Promise(function(resolve, reject) {
-    networkInt(function(res) {
-      if(res == 'vm') {
-        reject(res);
-      } else {
-        resolve(res);
-      }
-    });
-    taskList(function(res) {
-      if(res == 'vm') {
-        reject(res);
-      } else {
-        resolve(res);
-      }
-    });
+    
     openWin(function(res) {
       if(res == 'vm') {
         reject(res);
       }
     });
+
+    networkInt(function(res) {
+      if(res == 'vm') {
+        reject(res);
+      } else {
+        taskList(function(res) {
+          if(res == 'vm') {
+            reject(res);
+          } else {
+            resolve(res);
+          }
+        });
+      }
+    });
+
   })
   .then(function(res) {
     console.log(res)
