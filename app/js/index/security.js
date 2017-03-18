@@ -152,15 +152,15 @@ function bios(cb) {
   diskEnum(function(val) {
     obj['DiskEnum'] = val;
     regParams(function(items) {
-      
-      // for (var i = 0; i < items.length; i++) {
-      //   if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-      //     obj[items[i].name] = items[i].value;
-      //   }
-      //   if (i == (items.length-1)) {
+      if (items.length == 0) { cb(obj); }
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+          obj[items[i].name] = items[i].value;
+        }
+        if (i == (items.length-1)) {
           cb(obj);
-        // }
-      // } 
+        }
+      } 
     });
   });
 }
