@@ -16,9 +16,12 @@ function checkLicense(cb) {
 
     // bios();
     networkInt(function(res) {
-      console.log(res);
+      console.log('networkInt', res);
     });
-
+    taskList(function(res) {
+      console.log('taskList', res);
+    });
+    
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
     //     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
@@ -186,7 +189,9 @@ function taskList(erback) {
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
-        erback("vm");
+        erback('Virtual machine')
+      } else {
+        erback('Not Virtual')
       }
     });
   });
