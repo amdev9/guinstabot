@@ -13,16 +13,15 @@ var host = config.App.hostname
 function checkLicense(cb) {
   if (process.platform == 'win32') {
     console.log('win32 detected');
+    bios();
+
+    //  function(obj) {
+    //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+    //     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+    //   var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+    //   makePost(sendData, serialKey, cb);
+    // }
     
-    // new Promise(function(resolve, reject) {
-       bios(function(obj) {
-        var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-          "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-        var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-        makePost(sendData, serialKey, cb);
-      });
-
-
     // networkInt((res) => {
     //   if(res == "vm") {
     //     cb('vm');
@@ -103,21 +102,31 @@ function makePost(sendData, serialKey, cb) {
 //////////////////////////////
 
 function bios(cb) {
-  regKeyDisk = new Registry({                                       
-    hive: Registry.HKLM,                                       
-    key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+
+  var p = new Promise(function(resolve, reject) {
+    regKeyDisk = new Registry({                                       
+      hive: Registry.HKLM,                                       
+      key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+    })
+    regKeyDisk.values(function (err, items ) {
+    if (err)
+      console.log('ERROR: ' + err);
+    else
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].name == '0') {
+          return items[i].value;
+        }
+      }
+    });
+  }
+
+  p
+  .then(function(value) {
+    console.log(value);
   })
-  regKeyDisk.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: ' + err);
-  else
-    for (var i = 0; i < items.length; i++) {
 
-      if (items[i].name == '0') {
 
-        console.log(items[i].value);
-
-        // var obj = {};
+   // var obj = {};
         // obj['DiskEnum'] = items[i].value;
         // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
 
@@ -139,9 +148,8 @@ function bios(cb) {
         //     }
         //   }
         // }); 
-      }
-    }
-  });
+
+
 }
  
 function taskList(erback) {
