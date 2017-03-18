@@ -124,27 +124,29 @@ function regParams(cb) {
     key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
   })
   regKeyBIOS.values(function (err, items ) {
-  if (err)
-    console.log('ERROR: ' + err);
-  else {
-    cb(items)
-  }
-    // for (var i = 0; i < items.length; i++) {
+    if (err) {
+      console.log('ERROR: ' + err);
+    } else {
+      cb(items)
+    }
+  });
+  // for (var i = 0; i < items.length; i++) {
       // if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
       //   obj[items[i].name] = items[i].value;
       // }
       // if (i == (items.length-1)) {
       //   cb(obj);
       // }
-    // }
-  }); 
+    // } 
 }
 
 function bios(cb) {
-  diskEnum(function(val) {
-    console.log(val);
+  // diskEnum(function(val) {
+  //   console.log(val);
+  // });
+  regParams(function(items) {
+    console.log(items)
   });
-  regParams();
 
   // var obj = {};
   // obj['DiskEnum'] = items[i].value;
