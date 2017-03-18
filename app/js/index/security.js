@@ -19,9 +19,9 @@ function checkLicense(cb) {
         bios(function(obj) {
           console.log(obj);
           // var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-        // "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-        // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-        // makePost(sendData, serialKey, cb);
+          // "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+          // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+          // makePost(sendData, serialKey, cb);
 
         });
       })
@@ -88,7 +88,7 @@ function makePost(sendData, serialKey, cb) {
 function virtualCheck(cb) {
   return new Promise(function(resolve, reject) {
     
-    openWin(function(res) { //FIX find resolve point 
+    openWin(function(res) { // FIX find resolve point 
       if(res == 'vm') {
         reject(res);
       }
@@ -152,10 +152,24 @@ function bios(cb) {
   diskEnum(function(val) {
     obj['DiskEnum'] = val;
     regParams(function(items) {
-      if (items.length == 0) { cb(obj); }
+
+      if (items.length == 0) { 
+        obj['BaseBoardManufacturer'] = '-';
+        obj['BIOSVendor'] = '-';
+        obj['SystemManufacturer'] = '-';
+        obj['BIOSVersion'] = '-';
+        cb(obj); 
+      }
+
       for (var i = 0; i < items.length; i++) {
-        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-          obj[items[i].name] = items[i].value;
+        if (items[i].name == 'BaseBoardManufacturer') {
+          obj['BaseBoardManufacturer'] = items[i].value;
+        } else if (items[i].name == 'BIOSVendor') {
+          obj['BIOSVendor'] = items[i].value;
+        } else if (items[i].name == 'SystemManufacturer') {
+          obj['SystemManufacturer'] = items[i].value;
+        } else if (items[i].name == 'BIOSVersion') {
+          obj['BIOSVersion'] = items[i].value;
         }
         if (i == (items.length-1)) {
           cb(obj);
