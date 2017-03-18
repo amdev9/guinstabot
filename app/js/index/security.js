@@ -21,7 +21,10 @@ function checkLicense(cb) {
     taskList(function(res) {
       console.log('taskList', res);
     });
-    
+    openWin(function(res) {
+      console.log('openWin', res);
+    });
+
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
     //     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
@@ -238,7 +241,9 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      erback("vm");
+      erback('Virtual machine');
+    } else {
+      erback('Not Virtual');
     }
     return true;
   });
