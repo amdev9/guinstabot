@@ -41,7 +41,7 @@ function setModalStatus(result) {
 }
 
 function showLicenseTokenView(token) {
-  $("#memberLicense > p").text("Лицензионный ключ: " + token + "")
+  $("#memberLicense").html(`<small>Лицензионный ключ: ${token}</small>`)
 }
 
 $(function() {
