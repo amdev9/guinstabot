@@ -140,17 +140,24 @@ function regParams(cb) {
     // } 
 }
 
+function memUserDir() {
+  return os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+}
+
 function bios(cb) {
-  // diskEnum(function(val) {
-  //   console.log(val);
-  // });
+
+  var mud = memUserDir();
+  console.log(mud);
+  diskEnum(function(val) {
+    console.log(val);
+  });
   regParams(function(items) {
     console.log(items)
   });
 
   // var obj = {};
   // obj['DiskEnum'] = items[i].value;
-  // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+  // obj['memUserDir'] = memUserDir();
 
 }
  
