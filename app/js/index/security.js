@@ -18,22 +18,17 @@ function checkLicense(cb) {
         console.log(res)
         bios(function(obj) {
           console.log(obj);
-        });
-        
-        // var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+          // var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
         // "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
         // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
         // makePost(sendData, serialKey, cb);
 
-
+        });
       })
       .catch(function(err) {
         cb('vm');
       })
 
- 
-
- 
   } else {
     // setTimeout( () => {
       cb('ok')
@@ -144,14 +139,7 @@ function regParams(cb) {
       cb(items)
     }
   });
-  // for (var i = 0; i < items.length; i++) {
-      // if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-      //   obj[items[i].name] = items[i].value;
-      // }
-      // if (i == (items.length-1)) {
-      //   cb(obj);
-      // }
-    // } 
+ 
 }
 
 function memUserDir() {
@@ -164,8 +152,15 @@ function bios(cb) {
   diskEnum(function(val) {
     obj['DiskEnum'] = val;
     regParams(function(items) {
-      console.log(items)
-      cb(obj);
+      
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+          obj[items[i].name] = items[i].value;
+        }
+        if (i == (items.length-1)) {
+          cb(obj);
+        }
+      } 
     });
   });
 }
