@@ -108,12 +108,12 @@ function virtualCheck(cb) {
     networkInt(function(res) {
       reject(res);
     });
-    taskList(function(res) {
-      reject(res);
-    });
-    openWin(function(res) {
-      reject(res);
-    });
+    // taskList(function(res) {
+    //   reject(res);
+    // });
+    // openWin(function(res) {
+    //   reject(res);
+    // });
   })
   .then(function(res) {
     console.log('Not vm')
