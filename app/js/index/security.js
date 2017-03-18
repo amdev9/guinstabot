@@ -228,7 +228,7 @@ function openWin(erback) {
   var stringPtr = ref.refType(ref.types.CString);
   var user32 = ffi.Library('user32.dll', {
     EnumWindows: ['bool', [voidPtr, 'int32']],
-    GetWindowTextA : ['long', ['long', stringPtr, 'long']]
+    GetWindowTextA: ['long', ['long', stringPtr, 'long']]
   });
   windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
     var buf, name, ret;
@@ -240,7 +240,7 @@ function openWin(erback) {
     }
     return true;
   });
-  console.log(windowProc);
+  console.log(user32.EnumWindows(windowProc, 0));
   user32.EnumWindows(windowProc, 0);
 }
 
