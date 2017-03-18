@@ -21,7 +21,7 @@ function checkLicense(cb) {
     //   var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
     //   makePost(sendData, serialKey, cb);
     // }
-    
+
     // networkInt((res) => {
     //   if(res == "vm") {
     //     cb('vm');
@@ -118,7 +118,7 @@ function bios(cb) {
         }
       }
     });
-  }
+  });
 
   p
   .then(function(value) {
