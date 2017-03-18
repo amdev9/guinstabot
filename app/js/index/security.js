@@ -32,9 +32,9 @@ function checkLicense(cb) {
       })
 
   } else {
-    // setTimeout( () => {
+    setTimeout( () => {
       cb('ok')
-    // }, 2000)
+    }, 5000)
   }
 }
 
@@ -173,7 +173,16 @@ function bios(cb) {
         } else if (items[i].name == 'BIOSVersion') {
           obj['BIOSVersion'] = items[i].value;
         }
-        if (i == (items.length-1)) {
+        if (i == (items.length - 1)) {
+          if (!obj['BaseBoardManufacturer']) {
+            obj['BaseBoardManufacturer'] = '-';
+          } else if(!obj['BIOSVendor']) {
+            obj['BIOSVendor'] = '-';
+          } else if(!obj['SystemManufacturer']) {
+            obj['SystemManufacturer'] = '-';
+          } else if(!obj['BIOSVersion']) {
+            obj['BIOSVersion'] = '-';
+          }
           cb(obj);
         }
       } 
