@@ -16,20 +16,22 @@ function checkLicense(cb) {
     virtualCheck(cb)
       .then(function(res) {
         console.log(res)
-        bios();
+        var obj = bios();
+        console.log(obj);
+        // var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+        // "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+        // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+        // makePost(sendData, serialKey, cb);
+
+
       })
       .catch(function(err) {
         cb('vm');
       })
 
-    //  function(obj) {
-    //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-    //     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-    //   var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-    //   makePost(sendData, serialKey, cb);
-    // }
-     
-    // })
+ 
+
+ 
   } else {
     // setTimeout( () => {
       cb('ok')
@@ -88,13 +90,12 @@ function makePost(sendData, serialKey, cb) {
 
 function virtualCheck(cb) {
   return new Promise(function(resolve, reject) {
-
-    openWin(function(res) {
+    
+    openWin(function(res) { //FIX find resolve point 
       if(res == 'vm') {
         reject(res);
       }
     });
-    
     networkInt(function(res) {
       // if(res == 'vm') {
       //   reject(res);
@@ -156,20 +157,15 @@ function memUserDir() {
 }
 
 function bios(cb) {
-
-  var mud = memUserDir();
-  console.log(mud);
+  var obj = {};
+  obj['memUserDir'] = memUserDir();
   diskEnum(function(val) {
-    console.log(val);
+    obj['DiskEnum'] = val;
+    regParams(function(items) {
+      console.log(items)
+      return obj;
+    });
   });
-  regParams(function(items) {
-    console.log(items)
-  });
-
-  // var obj = {};
-  // obj['DiskEnum'] = items[i].value;
-  // obj['memUserDir'] = memUserDir();
-
 }
  
 function taskList(erback) {
@@ -214,7 +210,6 @@ function networkInt(erback) { // on last key resolve
                                           '08:00:20',   // Oracle (VirtualBox) 
                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      // erback('Virtual machine')
       erback("vm");
     }  
   }
