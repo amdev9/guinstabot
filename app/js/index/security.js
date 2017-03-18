@@ -21,7 +21,7 @@ function checkLicense(cb) {
       .catch(function(err) {
         cb('vm');
       })
-          
+
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
     //     "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
@@ -94,19 +94,19 @@ function virtualCheck(cb) {
         reject(res);
       }
     });
-
+    
     networkInt(function(res) {
-      if(res == 'vm') {
-        reject(res);
-      } else {
-        taskList(function(res) {
-          if(res == 'vm') {
-            reject(res);
-          } else {
+      // if(res == 'vm') {
+      //   reject(res);
+      // } else {
+      //   taskList(function(res) {
+      //     if(res == 'vm') {
+      //       reject(res);
+      //     } else {
             resolve(res);
-          }
-        });
-      }
+      //     }
+      //   });
+      // }
     });
 
   })
