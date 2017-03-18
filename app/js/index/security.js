@@ -227,18 +227,18 @@ function openWin(erback) {
   var voidPtr = ref.refType(ref.types.void);
   var stringPtr = ref.refType(ref.types.CString);
   var user32 = ffi.Library('user32.dll', {
-      EnumWindows: ['bool', [voidPtr, 'int32']],
-      GetWindowTextA : ['long', ['long', stringPtr, 'long']]
+    EnumWindows: ['bool', [voidPtr, 'int32']],
+    GetWindowTextA : ['long', ['long', stringPtr, 'long']]
   });
   windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
+    console.log('windowProc')
     var buf, name, ret;
     buf = new Buffer(255);
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
+    console.log('name', name)
     if (vm_open.indexOf(name) > 0) {
       erback('vm');
-    } else {
-      console.log('ok');
     }
     return true;
   });
