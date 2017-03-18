@@ -14,7 +14,7 @@ function checkLicense(cb) {
   if (process.platform == 'win32') {
     console.log('win32 detected');
 
-    // bios();
+    bios();
     networkInt(function(res) {
       console.log('networkInt', res);
     });
