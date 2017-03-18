@@ -118,7 +118,7 @@ function diskEnum(cb) {
   });
 }
 
-function regParams() {
+function regParams(cb) {
   regKeyBIOS = new Registry({                                       
     hive: Registry.HKLM,                                       
     key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
@@ -126,17 +126,17 @@ function regParams() {
   regKeyBIOS.values(function (err, items ) {
   if (err)
     console.log('ERROR: ' + err);
-  else
-    for (var i = 0; i < items.length; i++) {
-      console.log(items[i].name, items[i].value)
-      
+  else {
+    cb(items)
+  }
+    // for (var i = 0; i < items.length; i++) {
       // if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
       //   obj[items[i].name] = items[i].value;
       // }
       // if (i == (items.length-1)) {
       //   cb(obj);
       // }
-    }
+    // }
   }); 
 }
 
