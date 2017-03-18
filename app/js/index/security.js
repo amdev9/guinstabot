@@ -12,36 +12,40 @@ var host = config.App.hostname
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-
-    new Promise(function(resolve, reject) {
-      networkInt((res) => {
-        if(res == "vm") {
-          cb('vm');
-        }
-      })
-    })
-    .then(function() {
-      taskList((res) => {
-        if(res == "vm") {
-          cb('vm');
-        } 
-      })
-    })
-    .then(function() {
-      openWin((res) => {
-        if(res == "vm") {
-          cb('vm');
-        }
-      })
-    })
-    .then(function() {
-      bios(function(obj) {
+    console.log('win32 detected');
+    
+    // new Promise(function(resolve, reject) {
+       bios(function(obj) {
         var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
           "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
         var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
         makePost(sendData, serialKey, cb);
       });
-    })
+
+       
+    // networkInt((res) => {
+    //   if(res == "vm") {
+    //     cb('vm');
+    //   }
+    // })
+    // })
+    // .then(function() {
+    //   taskList((res) => {
+    //     if(res == "vm") {
+    //       cb('vm');
+    //     } 
+    //   })
+    // })
+    // .then(function() {
+    //   openWin((res) => {
+    //     if(res == "vm") {
+    //       cb('vm');
+    //     }
+    //   })
+    // })
+    // .then(function() {
+     
+    // })
   } else {
     // setTimeout( () => {
       cb('ok')
