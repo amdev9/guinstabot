@@ -12,10 +12,12 @@ var host = config.App.hostname
 
 function checkLicense(cb) {
   if (process.platform == 'win32') {
-    console.log('win32 detected');
 
-    // bios();
-    virtualCheck(cb);
+    virtualCheck(cb)
+      .then(function(res) {
+        console.log(res)
+        bios();
+      })
 
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
@@ -82,8 +84,8 @@ function makePost(sendData, serialKey, cb) {
 //////////////////////////////
 
 function virtualCheck(cb) {
-  new Promise(function(resolve, reject) {
-    
+  return new Promise(function(resolve, reject) {
+
     openWin(function(res) {
       if(res == 'vm') {
         reject(res);
@@ -104,9 +106,6 @@ function virtualCheck(cb) {
       }
     });
 
-  })
-  .then(function(res) {
-    console.log(res)
   })
   .catch(function(err) {
     cb('vm');
