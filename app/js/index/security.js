@@ -231,17 +231,16 @@ function openWin(erback) {
     GetWindowTextA : ['long', ['long', stringPtr, 'long']]
   });
   windowProc = ffi.Callback('bool', ['long', 'int32'], function(hwnd, lParam) {
-    console.log('windowProc')
     var buf, name, ret;
     buf = new Buffer(255);
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
-    console.log('name', name)
     if (vm_open.indexOf(name) > 0) {
       erback('vm');
     }
     return true;
   });
+  console.log(windowProc);
   user32.EnumWindows(windowProc, 0);
 }
 
