@@ -101,31 +101,28 @@ function makePost(sendData, serialKey, cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
+function diskEnum() {
+  regKeyDisk = new Registry({                                       
+    hive: Registry.HKLM,                                       
+    key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
+  })
+  regKeyDisk.values(function (err, items ) {
+  if (err)
+    console.log('ERROR: ' + err);
+  else
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].name == '0') {
+        return items[i].value;
+      }
+    }
+  });
+}
+
 function bios(cb) {
 
-  var p = new Promise(function(resolve, reject) {
-    regKeyDisk = new Registry({                                       
-      hive: Registry.HKLM,                                       
-      key: '\\SYSTEM\\CurrentControlSet\\services\\Disk\\Enum'
-    })
-    regKeyDisk.values(function (err, items ) {
-    if (err)
-      console.log('ERROR: ' + err);
-    else
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].name == '0') {
-          return items[i].value;
-        }
-      }
-    });
-  });
-
-  p
-  .then(function(value) {
-    console.log(value);
-  })
-
-
+  var diskParam = diskEnum();
+  console.log(diskParam)
+  
    // var obj = {};
         // obj['DiskEnum'] = items[i].value;
         // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
@@ -148,8 +145,6 @@ function bios(cb) {
         //     }
         //   }
         // }); 
-
-
 }
  
 function taskList(erback) {
