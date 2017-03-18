@@ -22,7 +22,7 @@ function checkLicense(cb) {
         makePost(sendData, serialKey, cb);
       });
 
-       
+
     // networkInt((res) => {
     //   if(res == "vm") {
     //     cb('vm');
@@ -130,6 +130,7 @@ function bios(cb) {
               obj[items[i].name] = items[i].value;
             }
             if (i == (items.length-1)) {
+              console.log(obj)
               cb(obj);
             }
           }
