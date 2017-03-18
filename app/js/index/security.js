@@ -52,7 +52,7 @@ function checkLicense(cb) {
 function makePost(sendData, serialKey, cb) {
   var options = {
     hostname: host,
-    port: 5014,
+    port: 80,
     path: '/api/uploader',
     method: 'POST',
     headers: {
