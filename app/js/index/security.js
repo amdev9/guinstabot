@@ -118,35 +118,38 @@ function diskEnum(cb) {
   });
 }
 
-function bios(cb) {
+function regParams() {
+  regKeyBIOS = new Registry({                                       
+    hive: Registry.HKLM,                                       
+    key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
+  })
+  regKeyBIOS.values(function (err, items ) {
+  if (err)
+    console.log('ERROR: ' + err);
+  else
+    for (var i = 0; i < items.length; i++) {
+      console.log(items[i].name, items[i].value)
+      
+      // if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
+      //   obj[items[i].name] = items[i].value;
+      // }
+      // if (i == (items.length-1)) {
+      //   cb(obj);
+      // }
+    }
+  }); 
+}
 
+function bios(cb) {
   diskEnum(function(val) {
     console.log(val);
   });
-  
+  regParams();
 
-   // var obj = {};
-        // obj['DiskEnum'] = items[i].value;
-        // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+  // var obj = {};
+  // obj['DiskEnum'] = items[i].value;
+  // obj['memUserDir'] = os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
 
-        // regKeyBIOS = new Registry({                                       
-        //   hive: Registry.HKLM,                                       
-        //   key: '\\HARDWARE\\DESCRIPTION\\System\\BIOS'
-        // })
-        // regKeyBIOS.values(function (err, items ) {
-        // if (err)
-        //   console.log('ERROR: ' + err);
-        // else
-        //   for (var i = 0; i < items.length; i++) {
-        //     if (items[i].name == 'BaseBoardManufacturer' || items[i].name == 'BIOSVendor' || items[i].name == 'SystemManufacturer' || items[i].name == 'BIOSVersion') {
-        //       obj[items[i].name] = items[i].value;
-        //     }
-        //     if (i == (items.length-1)) {
-        //       console.log(obj)
-        //       cb(obj);
-        //     }
-        //   }
-        // }); 
 }
  
 function taskList(erback) {
