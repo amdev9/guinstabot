@@ -106,7 +106,7 @@ function makePost(sendData, serialKey, cb) {
 function virtualCheck(cb) {
   new Promise(function(resolve, reject) {
     networkInt(function(res) {
-      reject(res);
+      resolve(res);
     });
     // taskList(function(res) {
     //   reject(res);
@@ -116,7 +116,7 @@ function virtualCheck(cb) {
     // });
   })
   .then(function(res) {
-    console.log('Not vm')
+    console.log(res)
   })
   .catch(function(err) {
     cb('vm');
@@ -210,8 +210,9 @@ function taskList(erback) {
   });
 }
 
-function networkInt(erback) {
-  for(var key in os.networkInterfaces()) {
+function networkInt(erback) { // on last key resolve
+  var key;
+  for(key in os.networkInterfaces()) {
     var vm_mac_arr = [
       '00:05:69', '00:0c:29', '00:1c:14', '00:50:56',   // VMware (VMware Workstation)
       '00:03:ff', '00:0d:3a', '00:50:f2', '7c:1e:52', 
@@ -224,6 +225,9 @@ function networkInt(erback) {
       // erback('Virtual machine')
       erback("vm");
     }  
+  }
+  if (key !== undefined) { // There was at least one element
+    erback("ok"); 
   }
 }
 
