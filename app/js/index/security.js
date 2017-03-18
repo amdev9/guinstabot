@@ -15,7 +15,7 @@ function checkLicense(cb) {
     console.log('win32 detected');
 
     // bios();
-    virtualCheck();
+    virtualCheck(cb);
 
     //  function(obj) {
     //   var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
@@ -103,21 +103,23 @@ function makePost(sendData, serialKey, cb) {
 //// WINDOWS APP SECURITY ////
 //////////////////////////////
 
-function virtualCheck() {
-  return new Promise(function(resolve, reject) {
+function virtualCheck(cb) {
+  new Promise(function(resolve, reject) {
     networkInt(function(res) {
-      console.log('networkInt', res);
+      reject(res);
     });
-  })
-  .then(function() {
     taskList(function(res) {
-      console.log('taskList', res);
+      reject(res);
+    });
+    openWin(function(res) {
+      reject(res);
     });
   })
-  .then(function() {
-    openWin(function(res) {
-      console.log('openWin', res);
-    });
+  .then(function(res) {
+    console.log('Not vm')
+  })
+  .catch(function(err) {
+    cb('vm');
   })
 }
 
@@ -202,10 +204,8 @@ function taskList(erback) {
   exec('tasklist', function(err, stdout, stderr) {
     vm_task_arr.forEach( function (item) {
       if (stdout.indexOf(item) > 0) {
-        erback('Virtual machine')
-      } else {
-        erback('Not Virtual')
-      }
+        erback('vm')
+      }  
     });
   });
 }
@@ -221,11 +221,9 @@ function networkInt(erback) {
                                           '08:00:20',   // Oracle (VirtualBox) 
                                           '00:1c:42'];  // Parallels (Parallels Workstation)
     if(vm_mac_arr.indexOf(os.networkInterfaces()[key][0].mac.substring(0,8) ) > 0 ) {
-      erback('Virtual machine')
-      // erback("vm");
-    } else {
-      erback('Not Virtual')  
-    }
+      // erback('Virtual machine')
+      erback("vm");
+    }  
   }
 }
 
@@ -251,10 +249,8 @@ function openWin(erback) {
     ret = user32.GetWindowTextA(hwnd, buf, 255);
     name = ref.readCString(buf, 0);
     if (vm_open.indexOf(name) > 0) {
-      erback('Virtual machine');
-    } else {
-      erback('Not Virtual');
-    }
+      erback('vm');
+    }  
     return true;
   });
   user32.EnumWindows(windowProc, 0);
