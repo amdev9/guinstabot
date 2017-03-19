@@ -365,8 +365,8 @@ function initViewDb() {
        
     }).catch(function (err) {
       if (err.name == 'OpenError') {
-        dialog.showErrorBox('Ошибка открытия программы', 'Поддерживается только одно открытое окно одновременно')
-        window.close()
+        dialog.showErrorBox('Ошибка открытия программы', err)
+        // window.close()
       }
       console.log(err);
     });
