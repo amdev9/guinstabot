@@ -88,7 +88,7 @@ app.on('ready', function() {
   if (process.platform === 'darwin') {
     platform = 'osx'
   }
-  let url = `http://${host}:5014/update/${platform}_${os.arch()}/${app.getVersion()}`
+  let url = `http://${host}/update/${platform}_${os.arch()}/${app.getVersion()}`
   console.log(url)
   
   if (platform == 'osx') {
