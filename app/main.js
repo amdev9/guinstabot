@@ -121,7 +121,7 @@ autoUpdater.on('update-not-available', (ev, info) => {})
 autoUpdater.on('error', (ev, err) => {
   console.log(err)
   // if(!devIsOpen)
-  dialog.showErrorBox('Ошибка обновления', err)//'Произошла ошибка при обновлении программы')
+  dialog.showErrorBox('Ошибка обновления', 'Произошла ошибка при обновлении программы')
 })
 autoUpdater.on('download-progress', (ev, progressObj) => {})
 
