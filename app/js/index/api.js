@@ -387,7 +387,7 @@ function apiParseAccounts(user, task, token) {
 }
 
 function fastCreateAccount(email, username, password, proxy, cb) {
-
+  
   var storage = path.join(cookieDir, email + '.json')
   var device = new Client.Device(email);
   var session = new Client.Session(device, storage, proxy);
@@ -462,7 +462,7 @@ function apiCreateAccounts(task) {
    
 
             fastCreateAccount(email, name, password, proxy, function(session) {
-              appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password);
+              appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password + "|" + proxy); // add proxy
               renderTaskCompletedView(task._id);
               callback();
                

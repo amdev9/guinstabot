@@ -30,11 +30,18 @@ function checkLicense(cb) {
       })
 
   } else if (process.platform == 'darwin') {
-    cb('ok')
-    // var sendData = memUserDir()+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
-    //   "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
-    // var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
-    // makePost(sendData, serialKey, cb);
+
+    var obj = {};
+    obj['memUserDir'] = memUserDir(); // os.totalmem() + '|' + os.userInfo().username + "|" + os.userInfo().homedir;
+    obj['DiskEnum'] = os.cpus()[0].model;
+    obj['BaseBoardManufacturer'] = '-';  
+    obj['BIOSVendor'] = os.hostname(); 
+    obj['SystemManufacturer'] = os.platform();
+    obj['BIOSVersion'] = os.totalmem();
+    var sendData = memUserDir()+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
+      "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
+    var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
+    makePost(sendData, serialKey, cb);
       
   } else {
     cb('fail')

@@ -38,7 +38,7 @@ function setModalStatus(result) {
   if(result == 'ok') {
     $('#memberModal').modal('hide');
   } else if (result == 'fail') {
-    $("#memberModalBody").html("<p>Проверьте подключение к интернету и наличие лицензии</p> <p><small>E-mail разработчика: </small><b>support@mailglobals.co</b></p>")
+    $("#memberModalBody").html("<p>Проверьте подключение к интернету и наличие лицензии</p> <p><small>Для активации программы, свяжитесь с нами по E-mail: </small><b>support@mailglobals.co</b></p>")
   } else if (result == 'vm') {
     $("#memberModalBody").text("Виртуальные машины не поддерживаются") 
   } else {
