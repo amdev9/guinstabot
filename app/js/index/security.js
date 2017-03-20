@@ -38,7 +38,7 @@ function checkLicense(cb) {
     var obj = {};
     obj['memUserDir'] = memUserDir(); 
     obj['DiskEnum'] = os.cpus()[0].model; // os.cpus()[0].speed
-    obj['BIOSVersion'] = machineIdSync({original: true}); 
+    obj['BIOSVersion'] = machineIdSync({original: true});
     obj['BaseBoardManufacturer'] = '-';  
     obj['BIOSVendor'] = os.hostname(); 
     obj['SystemManufacturer'] = os.platform();
