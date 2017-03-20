@@ -1,6 +1,6 @@
 .table th,td {
   text-align: center;
-  font-size: .840rem; /*.875rem*/
+  font-size: .840rem;
 }
  
 .modal, .modal-body, .modal-footer, .modal-header {
@@ -23,7 +23,7 @@
 }
 
 .container{ 
-  padding-top:60px; 
+  padding-top: 30px; 
 }
 
 .context-menu {
