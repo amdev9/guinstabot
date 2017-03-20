@@ -7,13 +7,12 @@
 window.$ = window.jQuery = require('jquery');
 var config = require('./config/default');
 var softname = config.App.softname;
-
 const shell = require('electron').shell;
+
 $('.open-in-browser').click((event) => {
   event.preventDefault();
   shell.openExternal(event.target.href);
 });
-
 
 $(document).ready(function () {
   $('#navbarBrand').text(softname)

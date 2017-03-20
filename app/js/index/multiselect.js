@@ -12,7 +12,7 @@
             statics: ['.static'],  
             callback: false 
         },
-        first: null,  
+        first: null,
         last: null,  
         init: function (scope, options) {
             this.scope = scope;
