@@ -8,6 +8,13 @@ window.$ = window.jQuery = require('jquery');
 var config = require('./config/default');
 var softname = config.App.softname;
 
+const shell = require('electron').shell;
+$('.open-in-browser').click((event) => {
+  event.preventDefault();
+  shell.openExternal(event.target.href);
+});
+
+
 $(document).ready(function () {
   $('#navbarBrand').text(softname)
   $('#memberModal').modal({backdrop: 'static', keyboard: false});
@@ -32,7 +39,7 @@ function setModalStatus(result) {
   if(result == 'ok') {
     $('#memberModal').modal('hide');
   } else if (result == 'fail') {
-    $("#memberModalBody").text("Проверьте подключение к интернету и наличие лицензии")
+    $("#memberModalBody").html("<p>Проверьте подключение к интернету и наличие лицензии</p> <p><small>E-mail разработчика: </small><b>support@mailglobals.co</b></p>")
   } else if (result == 'vm') {
     $("#memberModalBody").text("Виртуальные машины не поддерживаются") 
   } else {
