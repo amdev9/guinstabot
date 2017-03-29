@@ -12,7 +12,7 @@ var async = require('async');
 var config = require('./config/default');
 var softname = config.App.softname;
 
-var cookieDir = path.join(os.tmpdir(), softname, 'cookie');
+var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
 
 function mediaFilter(json, task, proxy, cb) {
   if (json.isBusiness) {
