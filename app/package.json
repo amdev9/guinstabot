@@ -3,8 +3,8 @@
   "private": true,
   "productName": "InstaFilterPRO",
   "version": "0.0.1",
-  "description": "GUI instagram activities application",
-  "author": "AlexSoft <alexpro@mail.gnu>",
+  "description": "InstaFilterPRO - продвижение в Instagram",
+  "author": "SocialDev <support@mailglobals.co>",
   "main": "main.js",
   "scripts": {
     "postinstall": "electron-rebuild -p",
