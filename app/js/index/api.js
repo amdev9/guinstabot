@@ -102,7 +102,7 @@ var apiFilterNoSession = function(task, token) {
     async.forEach(task.partitions, function (taskpart, callback) {
   
       console.log(taskpart.proxy_parc);
-     
+      
       var filterRequest = new Client.Web.FilterRequest();   
       var iterator = taskpart.start;
       var promiseWhile = function( action) {
@@ -130,7 +130,7 @@ var apiFilterNoSession = function(task, token) {
       promiseWhile(function() {
         return new Promise(function(resolve, reject) {
           setTimeout(function() {
-            resolve(filterRequest.getUser(task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); // FIX pass param 
+            resolve(filterRequest.getUser( task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); // FIX pass param 
             iterator++;
           }, 20);
         });
