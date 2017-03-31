@@ -1,4 +1,5 @@
 .table th,td {
+  cursor: default;
   text-align: center;
   font-size: .840rem;
   -webkit-user-select: none;
