@@ -386,9 +386,10 @@ function apiParseAccounts(user, task, token) {
   })
 }
 
-function fastCreateAccount(email, username, password, proxy, cb) {
-  
-  var storage = path.join(cookieDir, email + '.json')
+function fastCreateAccount(task, email, username, password, proxy, cb) {
+
+  var cookiePath = path.join(cookieDir, email + '.json')
+  const storage = new Client.CookieFileStorage(cookiePath);
   var device = new Client.Device(email);
   var session = new Client.Session(device, storage, proxy);
   new Client.AccountEmailCreator(session)
@@ -398,29 +399,37 @@ function fastCreateAccount(email, username, password, proxy, cb) {
     .setName('')
     .register()
     .spread(function(account, discover) {
-      console.log("Created Account", account)
-      console.log("Discovery Feed", discover);
+      cb(account)
+      // console.log("Discovery Feed", discover);
+    })
+    .catch(function(err) {
+      if (err instanceof Client.Exceptions.APIError) {
+        loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+      } else {
+        loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+      }     
     })
 }
 
-function apiCreateAccounts(task) {
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function apiCreateAccounts(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
-    
     setStateView(task._id, 'run');
     loggerDb(task._id, 'Регистрация аккаунтов');
     setCompleteView(task._id, 0);
+    Client.Request.setToken(token)
     const NAMES = require('./config/names').names;
     const SURNAMES = require('./config/names').surnames;
-   
     var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
-
     var email_array = [];
-
     if (!task.own_emails) {
       for(var i = 0; i < task.emails_cnt; i++) {
         var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-        email_array.push(name + 'llman@gmail.com');
+        email_array.push(name + getRandomInt(1000, 99999) + '@gmail.com');
       }
     } else {
       email_array = task.email_parsed;
@@ -446,44 +455,31 @@ function apiCreateAccounts(task) {
     };
     
     var promiseWhile = function( action, email_tuple) {
-       
-      return new Promise(function(resolve, reject) {
-        var indicator = 0;
-        var i = 0;
-        var func = function(results) {
-          
-          async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
-           
-            var storage = path.join(cookieDir, email + '.json')
-            fs.closeSync(fs.openSync(storage, 'w') );
-            
-            var password = generatePassword(); 
-            var name = email.split("@")[0];
-   
-
-            fastCreateAccount(email, name, password, proxy, function(session) {
-              appendStringFile(task.output_file, session.email + "|" + session.name + "|" + session.password + "|" + proxy); // add proxy
-              renderTaskCompletedView(task._id);
-              callback();
-               
-            });
-          }, function(err, result) {
-            console.log("DONE!");
+      var resolver = Promise.defer();
+      var indicator = 0;
+      var i = 0;
+      var func = function(results) {
+        async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
+          var password = generatePassword(); 
+          var name = email.split("@")[0];
+          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), function(session) {
+            appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
+            renderTaskCompletedView(task._id);
+            callback();
           });
-
-          i++;
-          if(getStateView(task._id) == 'stop' || i > email_tuple.length -1) {
-            resolve(); 
-          }
-          return Promise.resolve(action(email_tuple))
-            .then(func)
-            .catch(function() {
-              reject(); 
-            });
-        };
-        process.nextTick(func);
-      
-      })
+        }, function(err, result) {
+          console.log("DONE!");
+        });
+        i++;
+        if(getStateView(task._id) == 'stop' || i > email_tuple.length - 1) {
+          return resolver.resolve(); 
+        }
+        return Promise.cast(action(email_tuple))
+          .then(func)
+          .catch(resolver.reject);
+      };
+      process.nextTick(func);
+      return resolver.promise;
 
     };
 

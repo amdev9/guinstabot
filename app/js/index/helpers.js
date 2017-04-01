@@ -137,3 +137,9 @@ function convertTime(UNIX_timestamp) {
   var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
   return time;
 }
+
+///////
+
+function generatePassword() {
+  return Math.random().toString(36).slice(-8).toUpperCase();
+}
