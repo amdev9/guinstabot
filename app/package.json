@@ -62,7 +62,8 @@
       ]
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "C:/Users/alex/home/guinstabot/build/icon.ico"
     }
   }
 }
