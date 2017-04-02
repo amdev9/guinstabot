@@ -55,7 +55,7 @@
     "appId": "com.github.ratm92.electronupdaterexample",
     "mac": {
       "category": "your.app.category.type",
-      "icon": "/Users/alex/dev/nodejs/guinstabot/build/icon.icns",
+      "icon": "/Users/alex/dev/nodejs/guinstabot/app/build/icon.icns",
       "target": [
         "zip",
         "dmg"
@@ -63,7 +63,7 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "C:/Users/alex/home/guinstabot/build/icon.ico"
+      "icon": "C:/Users/alex/home/guinstabot/app/build/icon.ico"
     }
   }
 }
