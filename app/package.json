@@ -3,7 +3,7 @@
   "private": true,
   "productName": "InstaFilterPRO",
   "version": "0.0.1",
-  "description": "InstaFilterPRO - продвижение в Instagram",
+  "description": "Программа для продвижения в Instagram",
   "author": "SocialDev <socialdevteam@yandex.ru>",
   "main": "main.js",
   "scripts": {
@@ -55,7 +55,7 @@
     "appId": "com.github.ratm92.electronupdaterexample",
     "mac": {
       "category": "your.app.category.type",
-      "icon": "/Users/alex/dev/nodejs/guinstabot/build/marvel-app.icns",
+      "icon": "/Users/alex/dev/nodejs/guinstabot/build/InstaFilter.icns",
       "target": [
         "zip",
         "dmg"
