@@ -62,7 +62,8 @@
       ]
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "iconUrl": "http://192.168.1.33:5014/WinI.ico"
     }
   }
 }
