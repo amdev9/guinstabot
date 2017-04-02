@@ -55,15 +55,14 @@
     "appId": "com.github.ratm92.electronupdaterexample",
     "mac": {
       "category": "your.app.category.type",
-      "icon": "/Users/alex/dev/nodejs/guinstabot/build/InstaFilter.icns",
+      "icon": "/Users/alex/dev/nodejs/guinstabot/build/icon.icns",
       "target": [
         "zip",
         "dmg"
       ]
     },
     "win": {
-      "target": "nsis",
-      "iconUrl": "http://192.168.1.33:5014/WinI.ico"
+      "target": "nsis"
     }
   }
 }
