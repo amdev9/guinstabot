@@ -4,7 +4,7 @@
   "productName": "InstaFilterPRO",
   "version": "0.0.1",
   "description": "InstaFilterPRO - продвижение в Instagram",
-  "author": "SocialDev <support@mailglobals.co>",
+  "author": "SocialDev <socialdevteam@yandex.ru>",
   "main": "main.js",
   "scripts": {
     "postinstall": "electron-rebuild -p",
