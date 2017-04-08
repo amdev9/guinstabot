@@ -7,21 +7,72 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="../vendor/css/bootstrap.min.css">
 
+  <!-- map -->
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
+  <!--  -->
+
+  <!-- Select2 -->
+  <script type="text/javascript"> 
+    window.$ = window.jQuery = require('jquery');
+  </script>
+  <link data-require="select2@*" data-semver="3.5.1" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.2/select2.css" />
+  <script data-require="select2@*" data-semver="3.5.1" src="https://cdnjs.cloudflare.com/ajax/libs/select2/3.5.2/select2.js"></script>
+  <!--  -->
+
+  <!-- <link rel="stylesheet" href="../vendor/select2-4.0.3/dist/css/select2.css" /> -->
+  <!-- <script src="../vendor/select2-4.0.3/dist/js/select2.full.js"></script> -->
+
 <style type="text/css">
+
+  .select2-container { 
+    display: block !important;
+  }
+
   body {
     padding-top: 40px;
   }
+
+  .mapcol {
+    height: 20em;
+    margin-left: 0% !important;
+  }
+
+  #map { position:absolute; top:0; bottom:0; width:100%; }
+
+    .calculation-box {
+      height: 140px;
+      width: 150px;
+      position: absolute;
+      top: 210px;
+      left: 10px;
+      background-color: rgba(255, 255, 255, .9);
+      padding: 15px;
+      text-align: center;
+  }
+  #calculate {
+    min-height: 20px;
+    background-color: #3887be;
+    color: #fff;
+    font-family: 'Open Sans';
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    margin: 10px 0;
+  }
+
 </style>
 
 </head>
 <body>
- 
+  
   <div class="container">
   <h5>Задачи</h5>
   <div class="row">
     <div class="col-md-3">
       <nav class="nav flex-column nav-pills">
         <a class="nav-link" id="parse_concurrents_tab" data-toggle="tab" href="#parse_concurrents">Парсинг по конкурентам</a>
+        <a class="nav-link" id="parse_geo_tab" data-toggle="tab" href="#parse_geo">Парсинг по гео</a>
         <a class="nav-link" id="filtration_tab" data-toggle="tab" href="#filtration">Фильтрация аудитории</a>
         <a class="nav-link" id="create_accounts_tab" data-toggle="tab" href="#create_accounts">Регистрация аккаунтов</a>
       </nav>
@@ -81,6 +132,79 @@
           </form>
         </div>
         
+        <!-- parse_geo -->
+        <div class="tab-pane" id="parse_geo" role="tabpanel">
+
+
+          <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js'></script>
+          <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.17.0/mapbox-gl-draw.js'></script>
+          <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.17.0/mapbox-gl-draw.css' type='text/css'/>
+
+
+
+
+          <form id="parse_geo_form" class="offset-1 col-10" >
+
+ 
+            <div class="form-group row align-items-center" >
+             <!-- <div id="selector" class="col-md-6"> -->
+
+              <label for="area" class="col-form-label form-control-sm offset-1">Местоположение</label>
+              <div class="col-8">
+                 <input class="js-data-example-ajax" name="area" id="area">
+                 
+                 <!-- <input class="form-control form-control-sm" name="area" id="area">   -->
+              </div>
+              <!-- </div> -->
+            </div>
+
+            <div class="form-group row align-items-center">
+              <div class="mapcol offset-1 col-10">
+                <div id='map'>
+                </div>
+              </div>
+
+                <span class="input-group-btn">
+                  <button id="calc" class="btn btn-secondary btn-sm" type="button">Рассч</button>
+                </span>
+
+
+            </div>
+
+             
+            <div class="form-group row align-items-center">
+              <label for="max_limit" class="col-form-label form-control-sm offset-1">Кол-во собранных с 1 локации</label>
+              <div class="col-3">
+                <input class="form-control form-control-sm" type="number" value="1" min="1" name="from_one" id="max_limit">
+              </div>
+            </div>
+
+            <div class="form-group row align-items-center">
+              <div class="form-check" id="div_avatar">
+                <label class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="avatar">
+                  <span class="custom-control-indicator form-control-sm"></span>
+                  <span name="avatar" class="custom-control-description form-control-sm"> У пользователя должен быть установлен аватар</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group row align-items-center">
+              <div class="input-group">
+                <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" name="parsed_accounts" id="parsed_accounts">
+                <span class="input-group-btn">
+                  <button onclick="saveFile('parsed_accounts')" class="btn btn-secondary btn-sm" type="button">Выбрать</button>
+                </span>
+              </div>
+            </div>
+            <div class="form-group row align-items-center">
+              <div class="offset-3 col-9">
+                <button name="parse_concurrents" type="submit" class="btn btn-outline-primary btn-lg">Сохранить задачу</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
         <!-- filtration -->
         <div class="tab-pane" id="filtration" role="tabpanel">
           <form id="filtration_form">

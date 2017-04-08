@@ -166,7 +166,7 @@ function filterSessionUser(user_id, ses, task, userFilter, proxy, cb) {
     });
   }).all()
   .then(function([session, account]) {
-     Client.Account.getById(session, account.id)
+    Client.Account.getById(session, account.id)
       .then(function(account) {
         filterFunction(account.params, task, proxy, cb);
         // if (task.anonym_profile == true) {

@@ -1,17 +1,115 @@
 ipc = require('electron').ipcRenderer;
+var _ = require('lodash')
+const mapboxgl = require('mapbox-gl');
 var fs = require("fs");
 var Promise = require('bluebird');
 var readFilePromise = Promise.promisify(require("fs").readFile);
-window.$ = window.jQuery = require('jquery');
 const {dialog} = require('electron').remote
 var config = require('../config/default');
 var softname = config.App.softname;
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xaXhzaXlta3EifQ.LS_wz5TRUumqdIKkBjAhLg'; //
+ 
+$(".js-data-example-ajax").select2({
+  ajax: {
+    url: function(query) {
+      return "https://api.mapbox.com/geocoding/v5/mapbox.places/" + query + ".json"
+    },
+    dataType: 'json',
+    delay: 250,
+    data: function (query) {
+      console.log(query);
+      if (!query) query = 'Москва';
+      return {
+        access_token: mapboxgl.accessToken
+      };
+    },
+    results: function (data) {
+      console.log(data);
+      var parsed = [];
+      try {
+        parsed = _.chain(data.features)
+          .map(function (item, index) {
+            return {
+              id: index,
+              text: item.text,
+              center: item.center
+            };
+          })
+          .value();
+        console.log(parsed);
+      } catch (e) {}
+      return {
+        results: parsed
+      };
+    },
+    cache: true
+  },
+  minimumInputLength: 1
+});
+
+
+$('.js-data-example-ajax').on('select2-selecting', function (evt) {
+  // Do something
+  console.log(evt)
+  console.log(evt.choice.center)
+  map.setCenter(evt.choice.center); // on click
+});
 
 document.title = "Добавление задания | " + softname
 document.getElementById("own_emails").addEventListener("click",function(){
   checkDisabler();
 }, false)
 checkDisabler();
+
+/* eslint-disable */
+var map = new mapboxgl.Map({
+  container: 'map', // container id
+  style: 'mapbox://styles/mapbox/basic-v9', //hosted style id
+  center: [-91.874, 42.760], // starting position
+  zoom: 7 // starting zoom
+});
+
+
+
+// map.addControl(new MapboxGeocoder({
+//   accessToken: mapboxgl.accessToken
+// }));
+
+// map.setLayoutProperty('country-label-lg', 'text-field', '{name_ru}');
+
+var draw = new MapboxDraw({
+  displayControlsDefault: false,
+  controls: {
+    polygon: true,
+    trash: true
+  }
+});
+
+var nav = new mapboxgl.NavigationControl();
+
+map.addControl(nav, 'top-left');
+map.addControl(draw, 'top-left');
+
+
+var calcButton = document.getElementById('calc');
+calcButton.onclick = function() {
+    var data = draw.getAll();
+    console.log(data.features); // [0].geometry.coordinates[0] -> array
+
+    if (data.features.length > 0) {
+        var area = turf.area(data);
+        // restrict to area to 2 decimal points
+        var rounded_area = Math.round(area*100)/100;
+         
+        console.log(rounded_area);
+    } else {
+        console.log("Use the draw tools to draw a polygon!");
+    }
+};
+
+
+
 
 ipc.on('closing', () => {});
 
@@ -53,7 +151,7 @@ ipc.on('edit', (event, item) => {
 
 function updateElementsAccessibility(type) {
   if (type == 'user') {
-    updateElemView(['parse_concurrents', 'filtration']);
+    updateElemView(['parse_concurrents', 'filtration', 'parse_geo']);
   } else {
     updateElemView(['filtration', 'create_accounts']);
     disableCustomElem();
