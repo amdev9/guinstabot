@@ -13,13 +13,14 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xa
 $(".js-data-example-ajax").select2({
   ajax: {
     url: function(query) {
+      // console.log(query.term);
       return "https://api.mapbox.com/geocoding/v5/mapbox.places/" + query + ".json"
     },
     dataType: 'json',
     delay: 250,
     data: function (query) {
       console.log(query);
-      if (!query) query = 'Москва';
+      // if (!query.term) query.term = 'Москва';
       return {
         access_token: mapboxgl.accessToken
       };
