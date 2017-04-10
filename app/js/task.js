@@ -388,6 +388,7 @@ function editParseGeo(task) {
   $("div.container").data('task', { _id: task._id, _rev: task._rev });
   updateElemView(['parse_geo']);
 
+  document.getElementById("proxy_geo").value = task.proxy_file;
   document.getElementById("geo_max_limit").value = task.max_limit;
   document.getElementById("geo_avatar").checked = task.anonym_profile; 
   document.getElementById("geo_accounts").value = task.output_file;
@@ -407,7 +408,7 @@ function parseGeo(taskName) {
   task.status = '-';
   task.name = taskName;
   task.type = 'task';
- 
+  
 
   var data = draw.getAll()
   if (data.features.length > 0) {
@@ -415,6 +416,7 @@ function parseGeo(taskName) {
     task.centroid = getCentroid2(coordinates)
     task.distance = calcDistance(task.centroid, coordinates)
 
+    task.proxy_file = document.getElementById("proxy_geo").value;
     task.max_limit = document.getElementById("geo_max_limit").value;
     task.anonym_profile = document.getElementById("geo_avatar").checked;
     task.output_file = document.getElementById("geo_accounts").value;
