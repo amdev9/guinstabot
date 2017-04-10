@@ -135,6 +135,17 @@
         <!-- parse_geo -->
         <div class="tab-pane" id="parse_geo" role="tabpanel">
           <form id="parse_geo_form" class="offset-1 col-10" >
+
+            <div class="form-group row align-items-center">
+              <div class="input-group">
+                <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" name="proxy_geo" id="proxy_geo">
+                <span class="input-group-btn">
+                  <button onclick="openFile('proxy_geo')" class="btn btn-secondary btn-sm" type="button">Выбрать файл с прокси</button>
+                </span>
+              </div>
+            </div>
+
+
             <div class="form-group row align-items-center" >
               <label for="area" class="col-form-label form-control-sm offset-1">Местоположение</label>
               <div class="col-8">
