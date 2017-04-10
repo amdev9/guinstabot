@@ -57,6 +57,12 @@ InstagramV1.Web.EmailVerificationChallenge = challenge.EmailVerificationChalleng
 InstagramV1.Web.PhoneVerificationChallenge = challenge.PhoneVerificationChallenge;
 
 var filter = require('./v1/web/filter');
-InstagramV1.Web.FilterRequest = filter.FilterRequest;
+InstagramV1.Web.Filter = filter.Filter;
+
+var geolocation = require('./v1/web/geolocation');
+InstagramV1.Web.Geolocation = geolocation.Geolocation;
+
+var fbsearch = require('./v1/web/fbsearch');
+InstagramV1.Web.fbSearchPlace = fbsearch.fbSearchPlace;
 
 module.exports = InstagramV1;

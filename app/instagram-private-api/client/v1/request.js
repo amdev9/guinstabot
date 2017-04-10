@@ -198,6 +198,13 @@ Request.prototype.setUrl = function(url) {
     return this;
 };
 
+Request.prototype.setUrlFb = function(url) {
+    console.log(url)
+    // if(!_.isString(url) || !Helpers.isValidUrl(url))
+        // throw new Error("The `url` parametr must be valid url string");
+    this._url = url;    
+    return this;
+};
 
 Request.prototype.setResource = function(resource, data) {
     this._resource = resource;

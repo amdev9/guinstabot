@@ -84,6 +84,29 @@ $(function() {
   });
 
 
+  $("#parse_geo_form").validate({
+    rules: {
+      geo_accounts: "required"
+    },
+    messages: {
+      geo_accounts: "Выберите файл"
+    },
+    highlight: function(element) {
+      $(element).closest('.form-group').addClass('has-danger');
+    },
+    unhighlight: function(element) {
+      $(element).closest('.form-group').removeClass('has-danger');
+    },
+    errorElement: 'span',
+    errorClass: 'form-control-feedback form-control-sm',  // 'help-block',
+
+    submitHandler: function(form) {
+      completeTask('parse_geo');
+    }
+  });
+
+
+
   $("#filtration_form").validate({
     rules: {
       proxy_file: "required",

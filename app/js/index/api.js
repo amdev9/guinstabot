@@ -23,7 +23,7 @@ function mediaFilter(json, task, proxy, cb) {
 }
 
 function mediaNoSessionFilter(json, task, proxy, cb) {
-  var filterRequest = new Client.Web.FilterRequest();
+  var filterRequest = new Client.Web.Filter();
   filterRequest.media(json.username, proxy).then(function(response) {
     appendStringFile(task.outputfile, json.username);
     cb();
@@ -103,7 +103,7 @@ var apiFilterNoSession = function(task, token) {
   
       console.log(taskpart.proxy_parc);
       
-      var filterRequest = new Client.Web.FilterRequest();   
+      var filterRequest = new Client.Web.Filter();   
       var iterator = taskpart.start;
       var promiseWhile = function( action) {
         return new Promise(function(resolve, reject) {
@@ -498,6 +498,46 @@ function apiCreateAccounts(task, token) {
         console.log(err);
       });
   })
+}
+
+function apiParseGeoAccounts(task, token) {
+  mkdirFolder(logsDir)
+    .then(function() {
+      setStateView(task._id, 'run');
+      loggerDb(task._id, 'Парсинг по гео');
+
+      var proxy = 'http://blackking:Name0123Space@45.76.34.156:30002'
+      console.log( task.centroid)
+      console.log(  task.distance  )
+      console.log(  task.max_limit  )
+      // task.anonym_profile 
+      // task.output_file
+      var lng = task.centroid[0]
+      var lat = task.centroid[1]
+      var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
+      var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + '50000' + '&limit=100&access_token=' + tok 
+
+      var fb = new Client.Web.fbSearchPlace();   
+      fb.get(proxy, locations)
+        .then(function(res) {
+          var jsonRes = JSON.parse(res.body)
+          jsonRes.data.forEach(function(item) {
+            console.log(item.id)
+          })
+          console.log(jsonRes.paging.next)
+        })
+      
+      var locationReq = new Client.Web.Geolocation();   
+      locationReq.get(proxy, 460583587476014)
+      .then(function(res) {
+        var maxId = res.location.media.page_info.end_cursor
+        locationReq.get(proxy,460583587476014 , maxId)
+          .then(function(res) {
+            console.log(res.location.media.nodes) // [].owner.id
+            console.log(res.location.media.page_info.end_cursor) 
+          })
+      })
+    })
 }
 
 function apiSessionCheck(user_id, username, password, proxy, token) {

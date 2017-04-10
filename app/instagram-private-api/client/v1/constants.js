@@ -39,6 +39,7 @@ const ROUTES = {
     accountsSearch: 'users/search/?is_typehead=true&q=<%= encodeURIComponent(query) %>&rank_token=<%= rankToken %>',
     hashtagsSearch: 'tags/search/?count=50&q=<%= encodeURIComponent(query) %>&rank_token=<%= rankToken %>',
     locationsSearch: 'fbsearch/places/?count=50&query=<%= encodeURIComponent(query) %>&rank_token=<%= rankToken %>',
+    locationsSearchGeo: 'fbsearch/places/?lat=<%= lat %>&lng=<%= lng %>&rank_token=<%= rankToken %>', // &timezone_offset=10800
     changeProfilePicture: 'accounts/change_profile_picture/',
     mediaConfigure: 'media/configure/',
     videoConfigure: 'media/configure/?video=1',
@@ -77,7 +78,8 @@ const WEB_ROUTES = {
     challenge: 'challenge/',
     userInfo: '<%= id %>/',
     userInfoAnonym: '<%= username %>',
-    mediaInfoAnonym: '<%= username %>/media?max_id=<%= maxId %>'
+    mediaInfoAnonym: '<%= username %>/media/<%= maxId ? ("?max_id=" + maxId) : "" %>',
+    geoLocationAnonym: 'explore/locations/<%= locationId %>/<%= maxId ? ("?max_id=" + maxId) : "" %>' // 
 }
 
 const PRIVATE_KEY = {

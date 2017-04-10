@@ -3,8 +3,8 @@ var errors = require('request-promise/errors');
 var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-var FilterRequest = function() {}
-exports.FilterRequest = FilterRequest;
+var Filter = function() {}
+exports.Filter = Filter;
 
 var Exceptions = require('../exceptions');
 var Session = require('../session');
@@ -16,7 +16,7 @@ var Exceptions = require("../exceptions");
 var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
  
 
-FilterRequest.prototype.media = function (_username, _proxy) {
+Filter.prototype.media = function (_username, _proxy) {
     return new WebRequest( )
         .setMethod('GET')
         .setResource('mediaInfoAnonym', {username: _username, maxId: ''}) //   userInfoAnonym
@@ -43,7 +43,7 @@ FilterRequest.prototype.media = function (_username, _proxy) {
         });
 }
 
-FilterRequest.prototype.getUser = function (_username, _proxy) {
+Filter.prototype.getUser = function (_username, _proxy) {
     return new WebRequest( )
         .setMethod('GET')
         .setResource('userInfoAnonym', {username: _username}) //   userInfoAnonym

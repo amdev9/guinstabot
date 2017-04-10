@@ -50,6 +50,26 @@ Location.prototype.parseParams = function (json) {
     return hash;
 };
 
+Location.searchGeo = function (session, lat, lng) {
+    var that = this;
+    return session.getAccountId()
+        .then(function(id) {
+            var rankToken = Helpers.buildRankToken(id);
+            return new Request(session)
+                .setMethod('GET')
+                .setResource('locationsSearchGeo', {
+                    rankToken: rankToken,
+                    lat: lat,
+                    lng: lng
+                })
+                .send();
+        })
+        .then(function(data) {
+            return _.map(data.items, function (location) {
+                return new Location(session, location);
+            });
+        });
+};
 
 Location.search = function (session, query) {
     var that = this;

@@ -93,29 +93,25 @@ function runTasksDb(rows) {
   rows.forEach(function (row_id) {
     db.get(row_id).then(function(row) {
       if (row.type == 'user' && row.task.name == 'parse_concurrents') {
-        var token = {
-          row: row._id
-        }
+        var token = { row: row._id }
         tokens.set(row._id, token)
         apiParseAccounts(row, row.task, token);
       } else if (row.task && row.task.name == 'filtration') {
-        var token = {
-          row: row._id
-        }
+        var token = { row: row._id }
         tokens.set(row._id, token)
         apiFilterAccounts(row, token);
       } else if (row.name && row.name == 'filtration') {
-        var token = {
-          row: row._id
-        }
+        var token = { row: row._id }
         tokens.set(row._id, token)
         apiFilterAccounts(row, token);
       } else if (row.name && row.name == 'create_accounts') {
-        var token = {
-          row: row._id
-        }
+        var token = { row: row._id }
         tokens.set(row._id, token)
         apiCreateAccounts(row, token);
+      } else if (row.name && row.name == 'parse_geo') {
+        var token = { row: row._id }
+        tokens.set(row._id, token)
+        apiParseGeoAccounts(row, token);
       }
 
     }).catch(function (err) {

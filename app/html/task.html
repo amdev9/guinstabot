@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="../vendor/css/bootstrap.min.css">
 
   <!-- map -->
-  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
-  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
+  <link rel='stylesheet' href='../vendor/css/mapbox-gl.css' />
+  <link rel='stylesheet' href='../vendor/css/mapbox-gl-draw.css' type='text/css'/>
   <!--  -->
 
   <!-- Select2 -->
@@ -134,75 +134,48 @@
         
         <!-- parse_geo -->
         <div class="tab-pane" id="parse_geo" role="tabpanel">
-
-
-          <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/turf/v3.0.11/turf.min.js'></script>
-          <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.17.0/mapbox-gl-draw.js'></script>
-          <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v0.17.0/mapbox-gl-draw.css' type='text/css'/>
-
-
-
-
           <form id="parse_geo_form" class="offset-1 col-10" >
-
- 
             <div class="form-group row align-items-center" >
-             <!-- <div id="selector" class="col-md-6"> -->
-
               <label for="area" class="col-form-label form-control-sm offset-1">Местоположение</label>
               <div class="col-8">
-                <!-- <select class="js-data-example-ajax">
-                  <option value="3620194" selected="selected">select2/select2</option>
-                </select> -->
+               <!-- <select class="js-data-example-ajax"><option value="3620194" selected="selected">select2/select2</option></select>  -->
                  <input class="js-data-example-ajax" name="area" id="area">
-                 
-                 
               </div>
-              <!-- </div> -->
+              
             </div>
-
             <div class="form-group row align-items-center">
               <div class="mapcol offset-1 col-10">
                 <div id='map'>
                 </div>
               </div>
 
-                <span class="input-group-btn">
-                  <button id="calc" class="btn btn-secondary btn-sm" type="button">Рассч</button>
-                </span>
-
-
             </div>
-
-             
             <div class="form-group row align-items-center">
-              <label for="max_limit" class="col-form-label form-control-sm offset-1">Кол-во собранных с 1 локации</label>
+              <label for="geo_max_limit" class="col-form-label form-control-sm offset-1">Кол-во собранных с 1 локации</label>
               <div class="col-3">
-                <input class="form-control form-control-sm" type="number" value="1" min="1" name="from_one" id="max_limit">
+                <input class="form-control form-control-sm" type="number" value="1" min="1" name="from_one" id="geo_max_limit">
               </div>
             </div>
-
             <div class="form-group row align-items-center">
-              <div class="form-check" id="div_avatar">
+              <div class="form-check" id="div_geo_avatar">
                 <label class="custom-control custom-checkbox">
-                  <input type="checkbox" class="custom-control-input" id="avatar">
+                  <input type="checkbox" class="custom-control-input" id="geo_avatar">
                   <span class="custom-control-indicator form-control-sm"></span>
-                  <span name="avatar" class="custom-control-description form-control-sm"> У пользователя должен быть установлен аватар</span>
+                  <span name="geo_avatar" class="custom-control-description form-control-sm"> У пользователя должен быть установлен аватар</span>
                 </label>
               </div>
             </div>
-
             <div class="form-group row align-items-center">
               <div class="input-group">
-                <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" name="parsed_accounts" id="parsed_accounts">
+                <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" name="geo_accounts" id="geo_accounts">
                 <span class="input-group-btn">
-                  <button onclick="saveFile('parsed_accounts')" class="btn btn-secondary btn-sm" type="button">Выбрать</button>
+                  <button onclick="saveFile('geo_accounts')" class="btn btn-secondary btn-sm" type="button">Выбрать</button>
                 </span>
               </div>
             </div>
             <div class="form-group row align-items-center">
               <div class="offset-3 col-9">
-                <button name="parse_concurrents" type="submit" class="btn btn-outline-primary btn-lg">Сохранить задачу</button>
+                <button name="parse_geo" type="submit" class="btn btn-outline-primary btn-lg">Сохранить задачу</button>
               </div>
             </div>
           </form>

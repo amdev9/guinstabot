@@ -3,19 +3,59 @@ const Client = require('../client/v1');
 // amahuisoardsvil933 pasaqwrds123
 
 // Create empty session
-
+var _ = require('lodash')
 var username = 'ratm9111';
 var password = 'qwe123qwe';
 var device = new Client.Device(username);
 var storage = new Client.CookieFileStorage(__dirname + '/cookies/'+ username +'.json');
-var session = new Client.Session(device, storage);
 var proxy = 'http://blackking:Name0123Space@45.76.34.156:30002'
-session.proxyUrl = proxy;
+var session = new Client.Session(device, storage, proxy);
 
-new Client.Session.login(session, username, password)
-.then(function(session) {
-  console.log(session)
+
+
+var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&access_token=208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ' // &after=MjQZD
+
+
+
+var locationReq = new Client.Web.Geolocation();   
+
+locationReq.get(proxy, 256622341134762)
+.then(function(res) {
+  var maxId = res.location.media.page_info.end_cursor
+  locationReq.get(proxy, 256622341134762, maxId)
+    .then(function(res) {
+      console.log(res)
+    })
+
+  // console.log(res.location.media.nodes)
 })
+
+// new Client.Session.login(session, username, password)
+// .then(function(session) {
+//   // console.log(session)
+//   Client.Location.searchGeo(session, 55.852750, 37.415950) // search
+//     .then(function(locations) {
+//       // console.log(locations.length)
+//       // locations.forEach(function(loc, i) {
+//       //   if (i == 80) {
+//       //     console.log(loc)
+//       //   }
+//       //   console.log(loc._params.id)
+//       // })
+//         var locationFeed = new Client.Feed.LocationMedia(session, 107248442645764); //_.first(locations).id);
+//         return locationFeed.get();
+//     })
+//     .then(function(media) {
+//         var first = media[0];
+//         console.log(media)
+//     })
+
+
+// })
+ 
+
+
+
 
 
 // var device, storage, user, password;
