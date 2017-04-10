@@ -8,6 +8,16 @@ var fbSearchPlace = function() {
     this.moreAvailable = null;
     this.iteration = 0;
 }
+
+fbSearchPlace.prototype.setCursor = function (cursor) {
+    this.cursor = cursor;
+};
+
+fbSearchPlace.prototype.getCursor = function () {
+    return this.cursor;
+};
+
+
 exports.fbSearchPlace = fbSearchPlace;
 
 var Exceptions = require('../exceptions');
@@ -21,8 +31,10 @@ var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
 
 
 fbSearchPlace.prototype.get = function (_proxy, url) { // ,
-
-
+    var that = this;
+    if (that.getCursor()) {
+        url = that.getCursor()
+    }
     return new WebRequest( )
         .setMethod('GET')
         .setUrlFb(url) 
@@ -42,6 +54,10 @@ fbSearchPlace.prototype.get = function (_proxy, url) { // ,
         }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
+                var jsonRes = JSON.parse(response.body)
+                if (jsonRes.paging.next) {
+                    that.setCursor(jsonRes.paging.next)
+                }
                 resolve(response);
             });
         }).catch(function(err) {

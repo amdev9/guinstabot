@@ -8,6 +8,16 @@ var Geolocation = function() {
     this.moreAvailable = null;
     this.iteration = 0;
 }
+
+Geolocation.prototype.setCursor = function (cursor) {
+    this.cursor = cursor;
+};
+
+Geolocation.prototype.getCursor = function () {
+    return this.cursor;
+};
+
+
 exports.Geolocation = Geolocation;
 
 var Exceptions = require('../exceptions');
@@ -20,10 +30,12 @@ var Exceptions = require("../exceptions");
 var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
 
 
-Geolocation.prototype.get = function (_proxy, locationId, maxId) {
+Geolocation.prototype.get = function (_proxy, locationId) {
+    var that = this;
+
     return new WebRequest( )
         .setMethod('GET')
-        .setResource('geoLocationAnonym', {locationId: locationId, maxId: ''}) //   userInfoAnonym
+        .setResource('geoLocationAnonym', {locationId: locationId, maxId: that.getCursor() }) //   userInfoAnonym
         .setJSONEndpoint()
         .setHeaders({
             'Host': CONSTANTS.HOSTNAME,
@@ -41,6 +53,9 @@ Geolocation.prototype.get = function (_proxy, locationId, maxId) {
         }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
+                if (response.location.media.page_info.end_cursor) {
+                    that.setCursor(response.location.media.page_info.end_cursor)
+                }
                 resolve(response);
             });
         }).catch(function(err) {

@@ -521,17 +521,24 @@ function apiParseGeoAccounts(task, token) {
       fb.get(proxy, locations)
         .then(function(res) {
           var jsonRes = JSON.parse(res.body)
-          jsonRes.data.forEach(function(item) {
-            console.log(item.id)
-          })
+          // jsonRes.data.forEach(function(item) {
+            // console.log(item.id)
+          // })
           console.log(jsonRes.paging.next)
+
+          fb.get(proxy, locations)
+           .then(function(res) {
+             var jsonRes = JSON.parse(res.body)
+             console.log(jsonRes.paging.next)
+           })
         })
       
       var locationReq = new Client.Web.Geolocation();   
       locationReq.get(proxy, 460583587476014)
       .then(function(res) {
         var maxId = res.location.media.page_info.end_cursor
-        locationReq.get(proxy,460583587476014 , maxId)
+        console.log(maxId)
+        locationReq.get(proxy, 460583587476014)
           .then(function(res) {
             console.log(res.location.media.nodes) // [].owner.id
             console.log(res.location.media.page_info.end_cursor) 
