@@ -86,9 +86,11 @@ $(function() {
 
   $("#parse_geo_form").validate({
     rules: {
+      proxy_geo: "required",
       geo_accounts: "required"
     },
     messages: {
+      proxy_geo: "Выберите файл",
       geo_accounts: "Выберите файл"
     },
     highlight: function(element) {
