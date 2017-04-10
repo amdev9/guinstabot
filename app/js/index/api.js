@@ -500,51 +500,139 @@ function apiCreateAccounts(task, token) {
   })
 }
 
+
+function locFb(proxy, centroid, cb) {
+
+  var lng = centroid[0]
+  var lat = centroid[1]
+  var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
+  var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + '50000' + '&limit=100&access_token=' + tok 
+
+  var fb;
+  var locations_array = [];
+  var fb = new Client.Web.fbSearchPlace(proxy, locations);
+  var promiseWhile = function(action) {
+    return new Promise(function(resolve, reject) { 
+      var indicator = 0;
+      var func = function(res) { 
+
+        if (res) {
+          var jsonRes = JSON.parse(res.body)
+          jsonRes.data.forEach(function(item) {
+            locations_array.push(item.id)
+          })
+          if (!jsonRes.paging) { // getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||
+            return reject(new Error("stop"));  
+          }
+          console.log(jsonRes.paging.next)
+        }
+        return Promise.resolve(action())
+          .then(func)
+          .catch(function(err) {
+            reject(err)
+          }) 
+      }
+      process.nextTick(func)
+    }) 
+  }
+
+  promiseWhile(function() {
+    return new Promise(function(resolve, reject) {
+      resolve(fb.get());
+    });
+  })
+  .catch(function (err) {
+    console.log(err);
+    cb(locations_array);
+  });
+
+}
+
+
 function apiParseGeoAccounts(task, token) {
   mkdirFolder(logsDir)
     .then(function() {
       setStateView(task._id, 'run');
       loggerDb(task._id, 'Парсинг по гео');
 
+      var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+
       var proxy = 'http://blackking:Name0123Space@45.76.34.156:30002'
-      console.log( task.centroid)
-      console.log(  task.distance  )
-      console.log(  task.max_limit  )
+ 
+      // console.log(  task.distance  )
+      // console.log(  task.max_limit  )
       // task.anonym_profile 
       // task.output_file
-      var lng = task.centroid[0]
-      var lat = task.centroid[1]
-      var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
-      var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + '50000' + '&limit=100&access_token=' + tok 
-
-      var fb = new Client.Web.fbSearchPlace();   
-      fb.get(proxy, locations)
-        .then(function(res) {
-          var jsonRes = JSON.parse(res.body)
-          // jsonRes.data.forEach(function(item) {
-            // console.log(item.id)
-          // })
-          console.log(jsonRes.paging.next)
-
-          fb.get(proxy, locations)
-           .then(function(res) {
-             var jsonRes = JSON.parse(res.body)
-             console.log(jsonRes.paging.next)
-           })
-        })
       
-      var locationReq = new Client.Web.Geolocation();   
-      locationReq.get(proxy, 460583587476014)
-      .then(function(res) {
-        var maxId = res.location.media.page_info.end_cursor
-        console.log(maxId)
-        locationReq.get(proxy, 460583587476014)
-          .then(function(res) {
-            console.log(res.location.media.nodes) // [].owner.id
-            console.log(res.location.media.page_info.end_cursor) 
-          })
-      })
-    })
+      locFb(proxy, task.centroid, function(locations_array) {
+        var chunked = _.chunk(locations_array, proxy_array.length);
+        _.object = function(list, values) {
+          if (list == null) return {};
+          var result = {};
+          for (var i = 0, l = list.length; i < l; i++) {
+            if (values) {
+              result[list[i]] = values[i];
+            } else {
+              result[list[i][0]] = list[i][1];
+            }
+          }
+          return result;
+        };
+        console.log(chunked)
+        console.log(proxy_array)
+
+        /// start finding media
+        var promiseWhile = function( action, location_tuple) {
+          var resolver = Promise.defer();
+          var indicator = 0;
+          var i = 0;
+          var func = function(results) {
+            async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
+              console.log(proxy, location)
+
+              locationParse(callback);
+              // callback();
+              // var locationReq = new Client.Web.Geolocation();   
+              // locationReq.get(returnProxyFunc(proxy), location)
+              // .then(function(res) {
+              //   console.log(res.location.media.nodes) // [].owner.id
+              //   console.log(res.location.media.page_info.end_cursor) 
+              //   callback();
+              // })
+            }, function(err, result) {
+              console.log("DONE!");
+            });
+            i++;
+            if(getStateView(task._id) == 'stop' || i > location_tuple.length - 1) {
+              return resolver.resolve(); 
+            }
+            return Promise.cast(action(location_tuple))
+              .then(func)
+              .catch(resolver.reject);
+          };
+          process.nextTick(func);
+          return resolver.promise;
+        };
+
+        var actionFunc = function() {
+          return new Promise(function(resolve, reject) {
+            // setTimeout(function() {
+              resolve(chunked);
+            // }, task.reg_timeout * 1000);
+          });
+        };
+
+        promiseWhile(actionFunc, chunked)
+          .then(function() {
+            setStateView(task._id, 'stopped');
+            loggerDb(task._id, 'Парсинг по гео остановлен');  
+          }).catch(function (err) {
+            console.log(err);
+          });
+        })
+      }) 
+      
+    
 }
 
 function apiSessionCheck(user_id, username, password, proxy, token) {

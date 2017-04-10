@@ -3,7 +3,9 @@ var errors = require('request-promise/errors');
 var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-var fbSearchPlace = function() {
+var fbSearchPlace = function(proxy, url) {
+    this.proxy = proxy;
+    this.url = url;
     this.cursor = null;
     this.moreAvailable = null;
     this.iteration = 0;
@@ -30,14 +32,14 @@ var Exceptions = require("../exceptions");
 var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
 
 
-fbSearchPlace.prototype.get = function (_proxy, url) { // ,
+fbSearchPlace.prototype.get = function () { // ,
     var that = this;
     if (that.getCursor()) {
-        url = that.getCursor()
+        that.url = that.getCursor()
     }
     return new WebRequest( )
         .setMethod('GET')
-        .setUrlFb(url) 
+        .setUrlFb(that.url) 
         .setHeaders({
             'Host': 'graph.facebook.com',
             // 'Referer': CONSTANTS.WEBHOST,
@@ -50,12 +52,12 @@ fbSearchPlace.prototype.get = function (_proxy, url) { // ,
         })
         .send({
             followRedirect: true,
-            proxy: _proxy
+            proxy: that.proxy
         }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
                 var jsonRes = JSON.parse(response.body)
-                if (jsonRes.paging.next) {
+                if (jsonRes.paging && jsonRes.paging.next) {
                     that.setCursor(jsonRes.paging.next)
                 }
                 resolve(response);
