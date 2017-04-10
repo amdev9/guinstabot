@@ -548,6 +548,17 @@ function locFb(proxy, centroid, cb) {
 
 }
 
+function locMedia(proxy, location, callback) {
+  
+     
+  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location);   
+  locationReq.get()
+    .then(function(res) {
+      console.log(res.location.media.nodes) // [].owner.id
+      console.log(res.location.media.page_info.end_cursor) 
+      callback();
+    })
+}
 
 function apiParseGeoAccounts(task, token) {
   mkdirFolder(logsDir)
@@ -557,10 +568,10 @@ function apiParseGeoAccounts(task, token) {
 
       var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
 
-      var proxy = 'http://blackking:Name0123Space@45.76.34.156:30002'
+      var proxy = 'http://blackking:Name0123Space@45.76.34.156:30500'
  
-      // console.log(  task.distance  )
-      // console.log(  task.max_limit  )
+      // console.log(task.distance)
+      // console.log(task.max_limit)
       // task.anonym_profile 
       // task.output_file
       
@@ -581,24 +592,14 @@ function apiParseGeoAccounts(task, token) {
         console.log(chunked)
         console.log(proxy_array)
 
-        /// start finding media
-        var promiseWhile = function( action, location_tuple) {
+        // start finding media
+        var promiseWhile = function(action, location_tuple) {
           var resolver = Promise.defer();
           var indicator = 0;
           var i = 0;
           var func = function(results) {
             async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
-              console.log(proxy, location)
-
-              locationParse(callback);
-              // callback();
-              // var locationReq = new Client.Web.Geolocation();   
-              // locationReq.get(returnProxyFunc(proxy), location)
-              // .then(function(res) {
-              //   console.log(res.location.media.nodes) // [].owner.id
-              //   console.log(res.location.media.page_info.end_cursor) 
-              //   callback();
-              // })
+              locMedia(proxy, location, callback);
             }, function(err, result) {
               console.log("DONE!");
             });
@@ -631,7 +632,7 @@ function apiParseGeoAccounts(task, token) {
           });
         })
       }) 
-      
+    // })
     
 }
 

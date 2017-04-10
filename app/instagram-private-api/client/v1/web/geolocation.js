@@ -3,7 +3,10 @@ var errors = require('request-promise/errors');
 var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-var Geolocation = function() {
+
+var Geolocation = function(proxy, location) {
+    this.proxy = proxy
+    this.locationId = location
     this.cursor = null;
     this.moreAvailable = null;
     this.iteration = 0;
@@ -30,12 +33,13 @@ var Exceptions = require("../exceptions");
 var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
 
 
-Geolocation.prototype.get = function (_proxy, locationId) {
-    var that = this;
+Geolocation.prototype.get = function () {
 
+    console.log('Geolocation req')
+    var that = this;
     return new WebRequest( )
         .setMethod('GET')
-        .setResource('geoLocationAnonym', {locationId: locationId, maxId: that.getCursor() }) //   userInfoAnonym
+        .setResource('geoLocationAnonym', {locationId: that.locationId, maxId: that.getCursor() }) //   userInfoAnonym
         .setJSONEndpoint()
         .setHeaders({
             'Host': CONSTANTS.HOSTNAME,
@@ -49,7 +53,7 @@ Geolocation.prototype.get = function (_proxy, locationId) {
         })
         .send({
             followRedirect: true,
-            proxy: _proxy
+            proxy: that.proxy
         }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
