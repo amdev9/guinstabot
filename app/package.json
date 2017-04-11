@@ -2,7 +2,7 @@
   "name": "guinstabot",
   "private": true,
   "productName": "InstaFilterPRO",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Программа для продвижения в Instagram",
   "author": "SocialDev <socialdevteam@yandex.ru>",
   "main": "main.js",
