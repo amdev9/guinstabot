@@ -4,12 +4,14 @@ var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
 
-var Geolocation = function(proxy, location) {
+var Geolocation = function(proxy, location, max_limit) {
+    this.max_limit = max_limit  // add check if
     this.proxy = proxy
     this.locationId = location
     this.cursor = null;
     this.moreAvailable = null;
     this.iteration = 0;
+    this.fetched = 0;
 }
 
 Geolocation.prototype.setCursor = function (cursor) {
@@ -19,7 +21,6 @@ Geolocation.prototype.setCursor = function (cursor) {
 Geolocation.prototype.getCursor = function () {
     return this.cursor;
 };
-
 
 exports.Geolocation = Geolocation;
 
@@ -57,6 +58,11 @@ Geolocation.prototype.get = function () {
         }) // false
         .then(function(response) {
             return new Promise((resolve, reject) => {
+                that.fetched = that.fetched + response.location.media.nodes.length
+                console.log(that.fetched, that.max_limit)  
+                if (that.fetched >= that.max_limit) {
+                    response.location.media.page_info.end_cursor = null;
+                }
                 if (response.location.media.page_info.end_cursor) {
                     that.setCursor(response.location.media.page_info.end_cursor)
                 }

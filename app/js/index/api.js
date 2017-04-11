@@ -550,22 +550,22 @@ function locFb(proxy, task, cb) {
 }
 
 function locMedia(task, proxy, location, callback) {
-  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location);   
+  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);   
   var promiseWhile = function(action) {
     return new Promise(function(resolve, reject) { 
       var indicator = 0;
       var func = function(res) { 
         if (res) {
-          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {            
+          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {  // or res max limit flag       
             callback();
           }
           var unique = res.location.media.nodes.filter(function(elem, index, self) {
             return index == self.indexOf(elem);
           })
-          unique.forEach(function(node) {
+          // unique.forEach(function(node) {
             // appendStringFile(task.output_file, node.owner.id);
-            console.log(node.owner.id)
-          })
+            // console.log(node.owner.id) // show on menu
+          // })
           // console.log(proxy, location, res.location.media.page_info.end_cursor, res.location.media.nodes.length) 
           appendStringFile(task.output_file, proxy + ' ' + location + ' ' + res.location.media.page_info.end_cursor + ' ' + res.location.media.nodes.length);
         }
@@ -602,6 +602,8 @@ function apiParseGeoAccounts(task, token) {
 
       locFb(proxy, task, function(locations_array) {
         if(!locations_array) {
+          setStateView(task._id, 'stopped');
+          loggerDb(task._id, 'Парсинг по гео остановлен');  
           return;
         }
 
@@ -626,7 +628,10 @@ function apiParseGeoAccounts(task, token) {
             async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
               locMedia(task, proxy, location, callback);
             }, function(err, result) {
-              setStateView(task._id, 'stopped');
+
+
+              // setStateView(task._id, 'stopped');
+
               console.log("DONE!");
             });
             i++;
@@ -651,8 +656,8 @@ function apiParseGeoAccounts(task, token) {
 
         promiseWhile(actionFunc, chunked)
           .then(function() {
-            // setStateView(task._id, 'stopped'); ///// ??
             loggerDb(task._id, 'Парсинг по гео остановлен');  
+            // setStateView(task._id, 'stopped'); ///// ??
           }).catch(function (err) {
             console.log(err);
           });
