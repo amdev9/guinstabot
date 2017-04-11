@@ -554,7 +554,7 @@ function locFb(proxy, task, cb) {
 }
 
 function locMedia(task, proxy, location, callback) {
-  
+
   renderNewTaskCompletedView(task._id)
   var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);   
   var promiseWhile = function(action) {
@@ -638,10 +638,7 @@ function apiParseGeoAccounts(task, token) {
             async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
               locMedia(task, proxy, location, callback);
             }, function(err, result) {
-
-
               // setStateView(task._id, 'stopped');
-
               console.log("DONE!");
             });
             i++;
@@ -663,7 +660,6 @@ function apiParseGeoAccounts(task, token) {
             // }, task.reg_timeout * 1000);
           });
         };
-
         promiseWhile(actionFunc, chunked)
           .then(function() {
             loggerDb(task._id, 'Парсинг по гео остановлен');  
@@ -672,10 +668,8 @@ function apiParseGeoAccounts(task, token) {
             console.log(err);
           });
         })
-      
       }) 
-
-    
+   
 }
 
 function apiSessionCheck(user_id, username, password, proxy, token) {
