@@ -353,7 +353,6 @@ function editCreateAccounts(task) {
   checkDisabler();
 }
  
-
 function createAccounts(taskName) {
   var task = {};
   var domContainer = $("div.container").data('task');
@@ -376,7 +375,6 @@ function createAccounts(taskName) {
   task.reg_timeout = document.getElementById("reg_timeout").value;
   task.proxy_file = document.getElementById("proxy_create").value;
   task.output_file = document.getElementById("output_file").value;
-
   ipc.send('add_task_event', task);
   window.close();
 }
@@ -420,7 +418,7 @@ function parseGeo(taskName) {
     ipc.send('add_task_event', task);
     window.close();
   } else {
-    console.log('nooooooo')
+    $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга</div>'); 
   }
 }
 
@@ -466,7 +464,7 @@ $(".js-data-example-ajax").select2({
             };
           })
           .value();
-        console.log(parsed);
+        // console.log(parsed);
       } catch (e) {}
       return {
         results: parsed
@@ -499,7 +497,6 @@ var map = new mapboxgl.Map({
 // map.addControl(new MapboxGeocoder({
 //   accessToken: mapboxgl.accessToken
 // }));
-
 // map.setLayoutProperty('country-label-lg', 'text-field', '{name_ru}');
 
 var draw = new MapboxDraw({
