@@ -418,7 +418,7 @@ function parseGeo(taskName) {
     ipc.send('add_task_event', task);
     window.close();
   } else {
-    $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга</div>'); 
+    $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга на карте</div>'); 
   }
 }
 
