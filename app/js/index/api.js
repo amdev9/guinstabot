@@ -501,13 +501,13 @@ function apiCreateAccounts(task, token) {
 }
 
 
-function locFb(proxy, centroid, cb) {
-
-  var lng = centroid[0]
-  var lat = centroid[1]
+function locFb(proxy, task, cb) {
+  var lng = task.centroid[0]
+  var lat = task.centroid[1]
+  var distance = Math.floor(task.distance * 1000)
   var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
-  var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + '50000' + '&limit=100&access_token=' + tok 
-
+  ////// 50000
+  var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
   var fb;
   var locations_array = [];
   var fb = new Client.Web.fbSearchPlace(proxy, locations);
@@ -515,13 +515,12 @@ function locFb(proxy, centroid, cb) {
     return new Promise(function(resolve, reject) { 
       var indicator = 0;
       var func = function(res) { 
-
         if (res) {
           var jsonRes = JSON.parse(res.body)
           jsonRes.data.forEach(function(item) {
             locations_array.push(item.id)
           })
-          if (!jsonRes.paging) { // getStateView(user._id) == 'stop' || getStateView(user._id) == 'stopped'  ||
+          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !jsonRes.paging) { 
             return reject(new Error("stop"));  
           }
           console.log(jsonRes.paging.next)
@@ -535,7 +534,6 @@ function locFb(proxy, centroid, cb) {
       process.nextTick(func)
     }) 
   }
-
   promiseWhile(function() {
     return new Promise(function(resolve, reject) {
       resolve(fb.get());
@@ -543,21 +541,51 @@ function locFb(proxy, centroid, cb) {
   })
   .catch(function (err) {
     console.log(err);
-    cb(locations_array);
+    if (getStateView(task._id) != 'stop' && getStateView(task._id) != 'stopped') {
+      cb(locations_array);
+    } else {
+      cb();
+    }
   });
-
 }
 
-function locMedia(proxy, location, callback) {
-  
-     
+function locMedia(task, proxy, location, callback) {
   var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location);   
-  locationReq.get()
-    .then(function(res) {
-      console.log(res.location.media.nodes) // [].owner.id
-      console.log(res.location.media.page_info.end_cursor) 
-      callback();
-    })
+  var promiseWhile = function(action) {
+    return new Promise(function(resolve, reject) { 
+      var indicator = 0;
+      var func = function(res) { 
+        if (res) {
+          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {            
+            callback();
+          }
+          var unique = res.location.media.nodes.filter(function(elem, index, self) {
+            return index == self.indexOf(elem);
+          })
+          unique.forEach(function(node) {
+            // appendStringFile(task.output_file, node.owner.id);
+            console.log(node.owner.id)
+          })
+          // console.log(proxy, location, res.location.media.page_info.end_cursor, res.location.media.nodes.length) 
+          appendStringFile(task.output_file, proxy + ' ' + location + ' ' + res.location.media.page_info.end_cursor + ' ' + res.location.media.nodes.length);
+        }
+        return Promise.resolve(action())
+          .then(func)
+          .catch(function(err) {
+            reject(err)
+          }) 
+      }
+      process.nextTick(func)
+    }) 
+  }
+  promiseWhile(function() {
+    return new Promise(function(resolve, reject) {
+      resolve(locationReq.get());
+    });
+  })
+  .catch(function (err) {
+    console.log(err);
+  });
 }
 
 function apiParseGeoAccounts(task, token) {
@@ -567,15 +595,16 @@ function apiParseGeoAccounts(task, token) {
       loggerDb(task._id, 'Парсинг по гео');
 
       var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+      var proxy = returnProxyFunc(proxy_array[0]);
 
-      var proxy = 'http://blackking:Name0123Space@45.76.34.156:30500'
- 
-      // console.log(task.distance)
-      // console.log(task.max_limit)
+      // task.max_limit
       // task.anonym_profile 
-      // task.output_file
-      
-      locFb(proxy, task.centroid, function(locations_array) {
+
+      locFb(proxy, task, function(locations_array) {
+        if(!locations_array) {
+          return;
+        }
+
         var chunked = _.chunk(locations_array, proxy_array.length);
         _.object = function(list, values) {
           if (list == null) return {};
@@ -589,18 +618,15 @@ function apiParseGeoAccounts(task, token) {
           }
           return result;
         };
-        console.log(chunked)
-        console.log(proxy_array)
-
-        // start finding media
         var promiseWhile = function(action, location_tuple) {
           var resolver = Promise.defer();
           var indicator = 0;
           var i = 0;
           var func = function(results) {
             async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
-              locMedia(proxy, location, callback);
+              locMedia(task, proxy, location, callback);
             }, function(err, result) {
+              setStateView(task._id, 'stopped');
               console.log("DONE!");
             });
             i++;
@@ -618,21 +644,22 @@ function apiParseGeoAccounts(task, token) {
         var actionFunc = function() {
           return new Promise(function(resolve, reject) {
             // setTimeout(function() {
-              resolve(chunked);
+            resolve(chunked);
             // }, task.reg_timeout * 1000);
           });
         };
 
         promiseWhile(actionFunc, chunked)
           .then(function() {
-            setStateView(task._id, 'stopped');
+            // setStateView(task._id, 'stopped'); ///// ??
             loggerDb(task._id, 'Парсинг по гео остановлен');  
           }).catch(function (err) {
             console.log(err);
           });
         })
+      
       }) 
-    // })
+
     
 }
 

@@ -35,7 +35,7 @@ var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
 
 Geolocation.prototype.get = function () {
 
-    console.log('Geolocation req')
+    // console.log('Geolocation req')
     var that = this;
     return new WebRequest( )
         .setMethod('GET')
