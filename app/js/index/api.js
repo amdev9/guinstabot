@@ -573,7 +573,7 @@ function locMedia(task, proxy, location, callback) {
           .then(func)
           .catch(function(err) {
             reject(err)
-          }) 
+          })
       }
       process.nextTick(func)
     }) 

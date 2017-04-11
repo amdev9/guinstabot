@@ -12,7 +12,6 @@ const {dialog} = require('electron').remote
 var config = require('../config/default');
 var softname = config.App.softname;
 
-
 ipc.on('closing', () => {});
 
 ipc.on('type', (event, type, rows) => { 
@@ -356,7 +355,6 @@ function editCreateAccounts(task) {
  
 
 function createAccounts(taskName) {
-
   var task = {};
   var domContainer = $("div.container").data('task');
   if (domContainer) {
@@ -365,7 +363,6 @@ function createAccounts(taskName) {
   } else {
     task._id = new Date().toISOString();
   }
-  
   task.status = '-';
   task.name = taskName;
   task.type = 'task';
@@ -385,16 +382,18 @@ function createAccounts(taskName) {
 }
 
 function editParseGeo(task) {
+  map.on('load', function() {
+    draw.add(task.draw_data);
+    map.setCenter(task.centroid);
+  });
   $("div.container").data('task', { _id: task._id, _rev: task._rev });
   updateElemView(['parse_geo']);
-
   document.getElementById("proxy_geo").value = task.proxy_file;
   document.getElementById("geo_max_limit").value = task.max_limit;
   document.getElementById("geo_avatar").checked = task.anonym_profile; 
   document.getElementById("geo_accounts").value = task.output_file;
-  checkDisabler();
+  checkDisabler(); 
 }
-
 
 function parseGeo(taskName) {
   var task = {};
@@ -408,27 +407,22 @@ function parseGeo(taskName) {
   task.status = '-';
   task.name = taskName;
   task.type = 'task';
-  
-
   var data = draw.getAll()
   if (data.features.length > 0) {
+    task.draw_data = data;
     var coordinates = data.features[0].geometry.coordinates[0]
     task.centroid = getCentroid2(coordinates)
     task.distance = calcDistance(task.centroid, coordinates)
-
     task.proxy_file = document.getElementById("proxy_geo").value;
     task.max_limit = document.getElementById("geo_max_limit").value;
     task.anonym_profile = document.getElementById("geo_avatar").checked;
     task.output_file = document.getElementById("geo_accounts").value;
-
-  
     ipc.send('add_task_event', task);
     window.close();
   } else {
     console.log('nooooooo')
   }
 }
-
 
 function completeTask(taskName) {
   if (taskName == 'parse_concurrents') {
@@ -441,9 +435,6 @@ function completeTask(taskName) {
     parseGeo(taskName);
   }
 }
-
-
-
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xaXhzaXlta3EifQ.LS_wz5TRUumqdIKkBjAhLg'; //
  
@@ -488,10 +479,7 @@ $(".js-data-example-ajax").select2({
 
 
 $('.js-data-example-ajax').on('select2-selecting', function (evt) {
-  // Do something
-  // console.log(evt)
-  // console.log(evt.choice.center)
-  map.setCenter(evt.choice.center); // on click
+  map.setCenter(evt.choice.center); 
 });
 
 document.title = "Добавление задания | " + softname
@@ -508,8 +496,6 @@ var map = new mapboxgl.Map({
   zoom: 7 // starting zoom
 });
 
-
-
 // map.addControl(new MapboxGeocoder({
 //   accessToken: mapboxgl.accessToken
 // }));
@@ -520,7 +506,6 @@ var draw = new MapboxDraw({
   displayControlsDefault: false,
   controls: {
     polygon: true,
-
     trash: true
   }
 });
@@ -553,7 +538,6 @@ function getCentroid2 (arr) {
 function calcDistance(centroid, coordinates) {
   var maxDist = 0;
   var maxIndex = 0;
-
   var length = coordinates.length
   var x = function (i) { return coordinates[i % length][0] };
   var y = function (i) { return coordinates[i % length][1] };
@@ -568,7 +552,6 @@ function calcDistance(centroid, coordinates) {
       maxIndex = i;
     }
   }
-
   var linestring = {
     "type": "Feature",
     "geometry": {
@@ -579,24 +562,10 @@ function calcDistance(centroid, coordinates) {
       ]
     }
   };
-
   return turf.lineDistance(linestring) // kilometers
 }
 
-// var calcButton = document.getElementById('calc');
-// calcButton.onclick = function() {
-  // map.setCenter(centroid);
 
-  // if (data.features.length > 0) {
-  //     var area = turf.area(data);
-  //     // restrict to area to 2 decimal points
-  //     var rounded_area = Math.round(area*100)/100;
-       
-  //     console.log(rounded_area);
-  // } else {
-  //     console.log("Use the draw tools to draw a polygon!");
-  // }
-// };
 
 
 
