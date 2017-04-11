@@ -502,6 +502,10 @@ function apiCreateAccounts(task, token) {
 
 
 function locFb(proxy, task, cb) {
+
+  // Выполнено: Собираем локации
+  renderCustomCompletedView(task._id, 'Собираем локации')
+
   var lng = task.centroid[0]
   var lat = task.centroid[1]
   var distance = Math.floor(task.distance * 1000)
@@ -550,6 +554,8 @@ function locFb(proxy, task, cb) {
 }
 
 function locMedia(task, proxy, location, callback) {
+  
+  renderNewTaskCompletedView(task._id)
   var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);   
   var promiseWhile = function(action) {
     return new Promise(function(resolve, reject) { 
@@ -562,12 +568,16 @@ function locMedia(task, proxy, location, callback) {
           var unique = res.location.media.nodes.filter(function(elem, index, self) {
             return index == self.indexOf(elem);
           })
-          // unique.forEach(function(node) {
-            // appendStringFile(task.output_file, node.owner.id);
+
+          // Выполнено: current_value + unique.length
+          unique.forEach(function(node) {
+            appendStringFile(task.output_file, node.owner.id);
             // console.log(node.owner.id) // show on menu
-          // })
+          })
+          renderTaskValueCompletedView(task._id, unique.length);
+
           // console.log(proxy, location, res.location.media.page_info.end_cursor, res.location.media.nodes.length) 
-          appendStringFile(task.output_file, proxy + ' ' + location + ' ' + res.location.media.page_info.end_cursor + ' ' + res.location.media.nodes.length);
+          // appendStringFile(task.output_file, proxy + ' ' + location + ' ' + res.location.media.page_info.end_cursor + ' ' + res.location.media.nodes.length);
         }
         return Promise.resolve(action())
           .then(func)

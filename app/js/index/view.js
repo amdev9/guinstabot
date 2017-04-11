@@ -165,14 +165,24 @@ function userRowRenderView(user_id) {
   })
 }
 
-function renderNewTaskCompletedView(user_id) {
-  $('#table1 tr[data-id="' + user_id + '"]').find("td").eq(4).html(0);
+function renderNewTaskCompletedView(id) {
+  $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(0);
 }
 
-function renderTaskCompletedView(user_id) {
-  var currentValue = +getCompleteView(user_id);
+function renderCustomCompletedView(id, value) {
+  $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(value);
+}
+
+function renderTaskCompletedView(id) {
+  var currentValue = +getCompleteView(id);
   currentValue++;
-  setCompleteView(user_id, currentValue);
+  setCompleteView(id, currentValue);
+}
+
+function renderTaskValueCompletedView(id, value) {
+  var currentValue = +getCompleteView(id);
+  currentValue += value;
+  setCompleteView(id, currentValue);
 }
 
 function renderUserCompletedView(user_id, limit, indicator, filterSuccess) {

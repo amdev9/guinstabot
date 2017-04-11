@@ -68,8 +68,10 @@ Geolocation.prototype.get = function () {
                 }
                 resolve(response);
             });
-        }).catch(function(err) {
-            console.log(err);
-        });
+        })
+        // .catch(function(err) {
+        //     console.log(that.proxy)
+        //     console.log(err);
+        // });
 }
 
