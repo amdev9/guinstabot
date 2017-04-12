@@ -225,7 +225,7 @@ function filtrationTask(taskName) {
     task._id = domContainer._id;
     task._rev = domContainer._rev;
   } else {
-    task._id = new Date().toISOString();
+    task._id = new Date().toISOString().replace(".", "").replace(":", "");
   }
 
   readFilePromise(task.inputfile, 'utf8').then(function(data) {
@@ -360,7 +360,7 @@ function createAccounts(taskName) {
     task._id = domContainer._id;
     task._rev = domContainer._rev;
   } else {
-    task._id = new Date().toISOString();
+    task._id = new Date().toISOString().replace(".", "").replace(":", "");
   }
   task.status = '-';
   task.name = taskName;
@@ -408,7 +408,7 @@ function parseGeo(taskName) {
     task._id = domContainer._id;
     task._rev = domContainer._rev;
   } else {
-    task._id = new Date().toISOString();
+    task._id = new Date().toISOString().replace(".", "").replace(":", "");
   }
   task.status = '-';
   task.name = taskName;
