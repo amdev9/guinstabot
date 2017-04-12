@@ -428,37 +428,40 @@ function parseGeo(taskName) {
     var firstPoint = left_top_point.replace(/ /g, "").split(',');
     var secondPoint = right_bottom_point.replace(/ /g, "").split(',');
 
-    var linestring = {
-      "type": "Feature",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          firstPoint,
-          secondPoint
-        ]
-      }
-    };
-    task.distance = turf.lineDistance(linestring) / 2
-    task.draw_data = [firstPoint, secondPoint]; // data;
+    console.log(firstPoint)
+    console.log(secondPoint)
+    
+    // var linestring = {
+    //   "type": "Feature",
+    //   "geometry": {
+    //     "type": "LineString",
+    //     "coordinates": [
+    //       firstPoint,
+    //       secondPoint
+    //     ]
+    //   }
+    // };
+    // task.distance = turf.lineDistance(linestring) / 2
+    // task.draw_data = [firstPoint, secondPoint]; // data;
 
-    var pt1 = {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "type": "Point",
-        "coordinates": firstPoint
-      }
-    };
-    var pt2 = {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "type": "Point",
-        "coordinates": secondPoint
-      }
-    };
-    task.centroid = turf.midpoint(pt1, pt2);
-    ipc.send('add_task_event', task);
+    // var pt1 = {
+    //   "type": "Feature",
+    //   "properties": {},
+    //   "geometry": {
+    //     "type": "Point",
+    //     "coordinates": firstPoint
+    //   }
+    // };
+    // var pt2 = {
+    //   "type": "Feature",
+    //   "properties": {},
+    //   "geometry": {
+    //     "type": "Point",
+    //     "coordinates": secondPoint
+    //   }
+    // };
+    // task.centroid = turf.midpoint(pt1, pt2);
+    // ipc.send('add_task_event', task);
     // window.close();
 
   } else {
