@@ -454,6 +454,7 @@ function parseGeo(taskName) {
         "coordinates": firstPoint
       }
     };
+    
     var pt2 = {
       "type": "Feature",
       "properties": {},
