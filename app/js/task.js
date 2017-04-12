@@ -490,8 +490,8 @@ checkDisabler();
 var map = new mapboxgl.Map({
   container: 'map', // container id
   style: 'mapbox://styles/mapbox/basic-v9', //hosted style id
-  center: [-91.874, 42.760], // starting position
-  zoom: 7 // starting zoom
+  center: [37.615, 55.752], // starting position
+  zoom: 9 // starting zoom
 });
 
 // map.addControl(new MapboxGeocoder({

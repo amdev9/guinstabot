@@ -424,7 +424,11 @@ function apiCreateAccounts(task, token) {
     Client.Request.setToken(token)
     const NAMES = require('./config/names').names;
     const SURNAMES = require('./config/names').surnames;
-    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+
+    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
+    proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+    // var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+
     var email_array = [];
     if (!task.own_emails) {
       for(var i = 0; i < task.emails_cnt; i++) {
@@ -527,7 +531,7 @@ function locFb(proxy, task, cb) {
           if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !jsonRes.paging) { 
             return reject(new Error("stop"));  
           }
-          console.log(jsonRes.paging.next)
+          // console.log(jsonRes.paging.next)
         }
         return Promise.resolve(action())
           .then(func)
@@ -562,13 +566,12 @@ function locMedia(task, proxy, location, callback) {
       var indicator = 0;
       var func = function(res) { 
         if (res) {
-          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {  // or res max limit flag       
-            callback();
+          if ( getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {
+            return callback();
           }
           var unique = res.location.media.nodes.filter(function(elem, index, self) {
             return index == self.indexOf(elem);
           })
-
           // Выполнено: current_value + unique.length
           unique.forEach(function(node) {
             appendStringFile(task.output_file, node.owner.id);
@@ -598,21 +601,43 @@ function locMedia(task, proxy, location, callback) {
   });
 }
 
+
+function removeDup(task, filepath) {
+  renderCustomCompletedView(task._id, 'Удаляем дубликаты')
+  fs.readFile(filepath, 'utf8', (err, data) => {
+    if (err) throw err;
+    var unique = data.replace(/ /g, "").split(/\r\n|\r|\n/).filter(function(elem, index, self) {
+      return index == self.indexOf(elem);
+    })
+    fs.truncate(filepath, 0, () => {
+      unique.forEach(function(str, i) {
+        appendStringFile(filepath, str);
+        if (i == unique.length - 1 ) {
+          renderCustomCompletedView(task._id, unique.length)
+          console.log('REMOVED duplicates')
+        }
+      })
+    })
+  });
+}
+
+
 function apiParseGeoAccounts(task, token) {
   mkdirFolder(logsDir)
     .then(function() {
       setStateView(task._id, 'run');
       loggerDb(task._id, 'Парсинг по гео');
-
-      var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+      
+      var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
       var proxy = returnProxyFunc(proxy_array[0]);
 
-      // task.max_limit
       // task.anonym_profile 
 
       locFb(proxy, task, function(locations_array) {
         if(!locations_array) {
           setStateView(task._id, 'stopped');
+          renderCustomCompletedView(task._id, '-')
           loggerDb(task._id, 'Парсинг по гео остановлен');  
           return;
         }
@@ -638,8 +663,12 @@ function apiParseGeoAccounts(task, token) {
             async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
               locMedia(task, proxy, location, callback);
             }, function(err, result) {
-              // setStateView(task._id, 'stopped');
-              console.log("DONE!");
+              console.log("DONE! stopped");
+              setStateView(task._id, 'stopped');
+              loggerDb(task._id, 'Парсинг по гео остановлен'); 
+
+              // removeDup(task, task.output_file)  // make it on streams
+
             });
             i++;
             if(getStateView(task._id) == 'stop' || i > location_tuple.length - 1) {
@@ -662,7 +691,8 @@ function apiParseGeoAccounts(task, token) {
         };
         promiseWhile(actionFunc, chunked)
           .then(function() {
-            loggerDb(task._id, 'Парсинг по гео остановлен');  
+            console.log("DONE! logger");
+            
             // setStateView(task._id, 'stopped'); ///// ??
           }).catch(function (err) {
             console.log(err);

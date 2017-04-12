@@ -59,7 +59,7 @@ Geolocation.prototype.get = function () {
         .then(function(response) {
             return new Promise((resolve, reject) => {
                 that.fetched = that.fetched + response.location.media.nodes.length
-                console.log(that.fetched, that.max_limit)  
+                // console.log(that.fetched, that.max_limit)  
                 if (that.fetched >= that.max_limit) {
                     response.location.media.page_info.end_cursor = null;
                 }

@@ -71,7 +71,9 @@ function makePost(sendData, serialKey, cb) {
     });
     response.on('end', function () {  
       var resp = JSON.parse(str);
-      console.log(resp);
+      /// basic
+      // console.log(resp);
+      ///
       if (resp.status == 'ok') {
         var hash = sha256(sendData, secretSerial);
         if (resp.message == hash) {

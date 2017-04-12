@@ -199,7 +199,8 @@ Request.prototype.setUrl = function(url) {
 };
 
 Request.prototype.setUrlFb = function(url) {
-    console.log(url)
+    // console.log(url)
+    
     // if(!_.isString(url) || !Helpers.isValidUrl(url))
         // throw new Error("The `url` parametr must be valid url string");
     this._url = url;    

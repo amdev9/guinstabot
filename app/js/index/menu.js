@@ -133,7 +133,7 @@ function depends() {
 
 function multipleMenuOn(taskItems) {
   // console.log("multipleMenuOn");
-  var toHideItems = ['tasks_start', 'edit_account', 'edit_tasks'];   // 'tasks_stop' 
+  var toHideItems = ['tasks_start', 'edit_account', 'edit_tasks', 'show_logs'];   // 'tasks_stop' 
   var filled = true;
   $(".table-info").each(function (i, val) {
     if ( $(this).find("td").eq(2).html() == '-') {

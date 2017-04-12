@@ -30,7 +30,7 @@ var Device = require('../device');
 
 WebRequest.prototype.setResource = function(resource, data) {
     this._resource = resource;
-    console.log(routes.getWebUrl(resource, data)); ///////////// url debug
+    // console.log(routes.getWebUrl(resource, data)); ///////////// url debug
     this.setUrl(routes.getWebUrl(resource, data));
     return this;
 };
