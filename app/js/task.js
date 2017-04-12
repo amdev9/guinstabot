@@ -429,8 +429,8 @@ function parseGeo(taskName) {
     var firstPoint = [ +firstPointString[0], +firstPointString[1] ];
     var secondPoint = [ +secondPointString[0], +secondPointString[1] ];
 
-    console.log(firstPoint)
-    console.log(secondPoint)
+    // console.log(firstPoint)
+    // console.log(secondPoint)
 
     var linestring = {
       "type": "Feature",
@@ -442,29 +442,29 @@ function parseGeo(taskName) {
         ]
       }
     };
-    console.log(turf.lineDistance(linestring) )
-    // task.distance = turf.lineDistance(linestring) / 2
-    // task.draw_data = [firstPoint, secondPoint]; // data;
 
-    // var pt1 = {
-    //   "type": "Feature",
-    //   "properties": {},
-    //   "geometry": {
-    //     "type": "Point",
-    //     "coordinates": firstPoint
-    //   }
-    // };
-    // var pt2 = {
-    //   "type": "Feature",
-    //   "properties": {},
-    //   "geometry": {
-    //     "type": "Point",
-    //     "coordinates": secondPoint
-    //   }
-    // };
-    // task.centroid = turf.midpoint(pt1, pt2);
-    // ipc.send('add_task_event', task);
-    // window.close();
+    task.distance = turf.lineDistance(linestring) / 2
+    task.draw_data = [firstPoint, secondPoint]; // data;
+
+    var pt1 = {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": firstPoint
+      }
+    };
+    var pt2 = {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": secondPoint
+      }
+    };
+    task.centroid = turf.midpoint(pt1, pt2);
+    ipc.send('add_task_event', task);
+    window.close();
 
   } else {
 
