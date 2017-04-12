@@ -102,7 +102,7 @@ function editUserController(user) {
 }
 
 function tasksController(action, rows) {
-  let taskView = new BrowserWindow({width: 1000, height: 800, frame: true});
+  let taskView = new BrowserWindow({width: 1000, height: 800, frame: true, webgl: true});
   taskView.setMenu(null)
   taskView.loadURL(url.format({
     pathname: path.join(__dirname, 'html', 'task.html'),

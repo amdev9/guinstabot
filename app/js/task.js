@@ -405,21 +405,35 @@ function parseGeo(taskName) {
   task.status = '-';
   task.name = taskName;
   task.type = 'task';
-  var data = draw.getAll()
-  if (data.features.length > 0) {
-    task.draw_data = data;
-    var coordinates = data.features[0].geometry.coordinates[0]
-    task.centroid = getCentroid2(coordinates)
-    task.distance = calcDistance(task.centroid, coordinates)
-    task.proxy_file = document.getElementById("proxy_geo").value;
-    task.max_limit = document.getElementById("geo_max_limit").value;
-    task.anonym_profile = document.getElementById("geo_avatar").checked;
-    task.output_file = document.getElementById("geo_accounts").value;
+
+  task.proxy_file = document.getElementById("proxy_geo").value;
+  task.max_limit = document.getElementById("geo_max_limit").value;
+  task.anonym_profile = document.getElementById("geo_avatar").checked;
+  task.output_file = document.getElementById("geo_accounts").value;
+
+  if(!mapboxgl.supported()) {
+    console.log('Task -- Your browser does not support Mapbox GL');
+    task.draw_data = 0; // data;
+    task.centroid = 0; // calculate centroid for rectangle
+    task.distance = 0; // calculate distance for rectangle
+   
     ipc.send('add_task_event', task);
     window.close();
+
   } else {
-    $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга на карте</div>'); 
+    var data = draw.getAll()
+    if (data.features.length > 0) {
+      task.draw_data = data;
+      var coordinates = data.features[0].geometry.coordinates[0]
+      task.centroid = getCentroid2(coordinates)
+      task.distance = calcDistance(task.centroid, coordinates)
+      ipc.send('add_task_event', task);
+      window.close();
+    } else {
+      $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга на карте</div>'); 
+    }
   }
+
 }
 
 function completeTask(taskName) {
@@ -434,51 +448,6 @@ function completeTask(taskName) {
   }
 }
 
-mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xaXhzaXlta3EifQ.LS_wz5TRUumqdIKkBjAhLg'; //
- 
-$(".js-data-example-ajax").select2({
-  ajax: {
-    url: function(query) {
-      // console.log(query.term);
-      return "https://api.mapbox.com/geocoding/v5/mapbox.places/" + query + ".json"
-    },
-    dataType: 'json',
-    delay: 250,
-    data: function (query) {
-      console.log(query);
-      // if (!query.term) query.term = 'Москва';
-      return {
-        access_token: mapboxgl.accessToken
-      };
-    },
-    results: function (data) {
-      console.log(data);
-      var parsed = [];
-      try {
-        parsed = _.chain(data.features)
-          .map(function (item, index) {
-            return {
-              id: index,
-              text: item.text,
-              center: item.center
-            };
-          })
-          .value();
-        // console.log(parsed);
-      } catch (e) {}
-      return {
-        results: parsed
-      };
-    },
-    cache: true
-  },
-  minimumInputLength: 1
-});
-
-
-$('.js-data-example-ajax').on('select2-selecting', function (evt) {
-  map.setCenter(evt.choice.center); 
-});
 
 document.title = "Добавление задания | " + softname
 document.getElementById("own_emails").addEventListener("click",function(){
@@ -487,80 +456,132 @@ document.getElementById("own_emails").addEventListener("click",function(){
 checkDisabler();
 
 /* eslint-disable */
-var map = new mapboxgl.Map({
-  container: 'map', // container id
-  style: 'mapbox://styles/mapbox/basic-v9', //hosted style id
-  center: [37.615, 55.752], // starting position
-  zoom: 9 // starting zoom
-});
 
-// map.addControl(new MapboxGeocoder({
-//   accessToken: mapboxgl.accessToken
-// }));
-// map.setLayoutProperty('country-label-lg', 'text-field', '{name_ru}');
+if (!mapboxgl.supported()) {
+  console.log('Your browser does not support Mapbox GL');
+} else {
 
-var draw = new MapboxDraw({
-  displayControlsDefault: false,
-  controls: {
-    polygon: true,
-    trash: true
+  mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xaXhzaXlta3EifQ.LS_wz5TRUumqdIKkBjAhLg'; //
+   
+  $(".js-data-example-ajax").select2({
+    ajax: {
+      url: function(query) {
+        // console.log(query.term);
+        return "https://api.mapbox.com/geocoding/v5/mapbox.places/" + query + ".json"
+      },
+      dataType: 'json',
+      delay: 250,
+      data: function (query) {
+        console.log(query);
+        // if (!query.term) query.term = 'Москва';
+        return {
+          access_token: mapboxgl.accessToken
+        };
+      },
+      results: function (data) {
+        console.log(data);
+        var parsed = [];
+        try {
+          parsed = _.chain(data.features)
+            .map(function (item, index) {
+              return {
+                id: index,
+                text: item.text,
+                center: item.center
+              };
+            })
+            .value();
+          // console.log(parsed);
+        } catch (e) {}
+        return {
+          results: parsed
+        };
+      },
+      cache: true
+    },
+    minimumInputLength: 1
+  });
+
+
+  $('.js-data-example-ajax').on('select2-selecting', function (evt) {
+    map.setCenter(evt.choice.center); 
+  });
+
+    
+  var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/basic-v9', //hosted style id
+    center: [37.615, 55.752], // starting position
+    zoom: 9 // starting zoom
+  });
+
+
+  var draw = new MapboxDraw({
+    displayControlsDefault: false,
+    controls: {
+      polygon: true,
+      trash: true
+    }
+  });
+
+
+  var nav = new mapboxgl.NavigationControl();
+
+  map.addControl(nav, 'top-left');
+  map.addControl(draw, 'top-left');
+
+  function getCentroid2 (arr) {
+    var twoTimesSignedArea = 0;
+    var cxTimes6SignedArea = 0;
+    var cyTimes6SignedArea = 0;
+
+    var length = arr.length
+
+    var x = function (i) { return arr[i % length][0] };
+    var y = function (i) { return arr[i % length][1] };
+
+    for (var i = 0; i < arr.length; i++) {
+      var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
+      twoTimesSignedArea += twoSA;
+      cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
+      cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+    }
+    var sixSignedArea = 3 * twoTimesSignedArea;
+    return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
   }
-});
 
-var nav = new mapboxgl.NavigationControl();
+  function calcDistance(centroid, coordinates) {
+    var maxDist = 0;
+    var maxIndex = 0;
+    var length = coordinates.length
+    var x = function (i) { return coordinates[i % length][0] };
+    var y = function (i) { return coordinates[i % length][1] };
 
-map.addControl(nav, 'top-left');
-map.addControl(draw, 'top-left');
+    var pointOne = new Point(centroid[0], centroid[1]);
+    for (var i = 0; i < coordinates.length; i++) {
+      var pointTwo = new Point(x(i), y(i));
+      var dist = pointOne.dist(pointTwo);
 
-function getCentroid2 (arr) {
-  var twoTimesSignedArea = 0;
-  var cxTimes6SignedArea = 0;
-  var cyTimes6SignedArea = 0;
-
-  var length = arr.length
-
-  var x = function (i) { return arr[i % length][0] };
-  var y = function (i) { return arr[i % length][1] };
-
-  for (var i = 0; i < arr.length; i++) {
-    var twoSA = x(i)*y(i+1) - x(i+1)*y(i);
-    twoTimesSignedArea += twoSA;
-    cxTimes6SignedArea += (x(i) + x(i+1)) * twoSA;
-    cyTimes6SignedArea += (y(i) + y(i+1)) * twoSA;
+      if (dist > maxDist) {
+        maxDist = dist;
+        maxIndex = i;
+      }
+    }
+    var linestring = {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          centroid,
+          coordinates[maxIndex]
+        ]
+      }
+    };
+    return turf.lineDistance(linestring) // kilometers
   }
-  var sixSignedArea = 3 * twoTimesSignedArea;
-  return [ cxTimes6SignedArea / sixSignedArea, cyTimes6SignedArea / sixSignedArea];        
+
 }
 
-function calcDistance(centroid, coordinates) {
-  var maxDist = 0;
-  var maxIndex = 0;
-  var length = coordinates.length
-  var x = function (i) { return coordinates[i % length][0] };
-  var y = function (i) { return coordinates[i % length][1] };
-
-  var pointOne = new Point(centroid[0], centroid[1]);
-  for (var i = 0; i < coordinates.length; i++) {
-    var pointTwo = new Point(x(i), y(i));
-    var dist = pointOne.dist(pointTwo);
-
-    if (dist > maxDist) {
-      maxDist = dist;
-      maxIndex = i;
-    }
-  }
-  var linestring = {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [
-        centroid,
-        coordinates[maxIndex]
-      ]
-    }
-  };
-  return turf.lineDistance(linestring) // kilometers
-}
 
 
 
