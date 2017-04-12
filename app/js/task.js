@@ -426,10 +426,8 @@ function parseGeo(taskName) {
     var right_bottom_point = document.getElementById("right_bottom_point").value;
     var firstPointString = left_top_point.replace(/ /g, "").split(',');
     var secondPointString = right_bottom_point.replace(/ /g, "").split(',');
-    var firstPoint[0] = +firstPointString[0];
-    var firstPoint[1] = +firstPointString[1];
-    var secondPoint[0] = +secondPointString[0];
-    var secondPoint[1] = +secondPointString[1];
+    var firstPoint = [ +firstPointString[0], +firstPointString[1] ];
+    var secondPoint = [ +secondPointString[0], +secondPointString[1] ];
 
     console.log(firstPoint)
     console.log(secondPoint)
