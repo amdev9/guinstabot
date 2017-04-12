@@ -520,45 +520,45 @@ function locFb(proxy, task, cb) {
   
   console.log(locations)
   
-  // var fb;
-  // var locations_array = [];
-  // var fb = new Client.Web.fbSearchPlace(proxy, locations);
-  // var promiseWhile = function(action) {
-  //   return new Promise(function(resolve, reject) { 
-  //     var indicator = 0;
-  //     var func = function(res) { 
-  //       if (res) {
-  //         var jsonRes = JSON.parse(res.body)
-  //         jsonRes.data.forEach(function(item) {
-  //           locations_array.push(item.id)
-  //         })
-  //         if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !jsonRes.paging) { 
-  //           return reject(new Error("stop"));  
-  //         }
-  //         // console.log(jsonRes.paging.next)
-  //       }
-  //       return Promise.resolve(action())
-  //         .then(func)
-  //         .catch(function(err) {
-  //           reject(err)
-  //         }) 
-  //     }
-  //     process.nextTick(func)
-  //   }) 
-  // }
-  // promiseWhile(function() {
-  //   return new Promise(function(resolve, reject) {
-  //     resolve(fb.get());
-  //   });
-  // })
-  // .catch(function (err) {
-  //   console.log(err);
-  //   if (getStateView(task._id) != 'stop' && getStateView(task._id) != 'stopped') {
-  //     cb(locations_array);
-  //   } else {
-  //     cb();
-  //   }
-  // });
+  var fb;
+  var locations_array = [];
+  var fb = new Client.Web.fbSearchPlace(proxy, locations);
+  var promiseWhile = function(action) {
+    return new Promise(function(resolve, reject) { 
+      var indicator = 0;
+      var func = function(res) { 
+        if (res) {
+          var jsonRes = JSON.parse(res.body)
+          jsonRes.data.forEach(function(item) {
+            locations_array.push(item.id)
+          })
+          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !jsonRes.paging) { 
+            return reject(new Error("stop"));  
+          }
+          // console.log(jsonRes.paging.next)
+        }
+        return Promise.resolve(action())
+          .then(func)
+          .catch(function(err) {
+            reject(err)
+          }) 
+      }
+      process.nextTick(func)
+    }) 
+  }
+  promiseWhile(function() {
+    return new Promise(function(resolve, reject) {
+      resolve(fb.get());
+    });
+  })
+  .catch(function (err) {
+    console.log(err);
+    if (getStateView(task._id) != 'stop' && getStateView(task._id) != 'stopped') {
+      cb(locations_array);
+    } else {
+      cb();
+    }
+  });
 }
 
 function locMedia(task, proxy, location, callback) {
@@ -639,68 +639,68 @@ function apiParseGeoAccounts(task, token) {
       // task.anonym_profile 
 
       locFb(proxy, task, function(locations_array) {
-        // if(!locations_array) {
-        //   setStateView(task._id, 'stopped');
-        //   renderCustomCompletedView(task._id, '-')
-        //   loggerDb(task._id, 'Парсинг по гео остановлен');  
-        //   return;
-        // }
+        if(!locations_array) {
+          setStateView(task._id, 'stopped');
+          renderCustomCompletedView(task._id, '-')
+          loggerDb(task._id, 'Парсинг по гео остановлен');  
+          return;
+        }
 
-        // var chunked = _.chunk(locations_array, proxy_array.length);
-        // _.object = function(list, values) {
-        //   if (list == null) return {};
-        //   var result = {};
-        //   for (var i = 0, l = list.length; i < l; i++) {
-        //     if (values) {
-        //       result[list[i]] = values[i];
-        //     } else {
-        //       result[list[i][0]] = list[i][1];
-        //     }
-        //   }
-        //   return result;
-        // };
-        // var promiseWhile = function(action, location_tuple) {
-        //   var resolver = Promise.defer();
-        //   var indicator = 0;
-        //   var i = 0;
-        //   var func = function(results) {
-        //     async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
-        //       locMedia(task, proxy, location, callback);
-        //     }, function(err, result) {
-        //       console.log("DONE! stopped");
-        //       setStateView(task._id, 'stopped');
-        //       loggerDb(task._id, 'Парсинг по гео остановлен'); 
+        var chunked = _.chunk(locations_array, proxy_array.length);
+        _.object = function(list, values) {
+          if (list == null) return {};
+          var result = {};
+          for (var i = 0, l = list.length; i < l; i++) {
+            if (values) {
+              result[list[i]] = values[i];
+            } else {
+              result[list[i][0]] = list[i][1];
+            }
+          }
+          return result;
+        };
+        var promiseWhile = function(action, location_tuple) {
+          var resolver = Promise.defer();
+          var indicator = 0;
+          var i = 0;
+          var func = function(results) {
+            async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
+              locMedia(task, proxy, location, callback);
+            }, function(err, result) {
+              console.log("DONE! stopped");
+              setStateView(task._id, 'stopped');
+              loggerDb(task._id, 'Парсинг по гео остановлен'); 
 
-        //       // removeDup(task, task.output_file)  // make it on streams
+              // removeDup(task, task.output_file)  // make it on streams
 
-        //     });
-        //     i++;
-        //     if(getStateView(task._id) == 'stop' || i > location_tuple.length - 1) {
-        //       return resolver.resolve(); 
-        //     }
-        //     return Promise.cast(action(location_tuple))
-        //       .then(func)
-        //       .catch(resolver.reject);
-        //   };
-        //   process.nextTick(func);
-        //   return resolver.promise;
-        // };
+            });
+            i++;
+            if(getStateView(task._id) == 'stop' || i > location_tuple.length - 1) {
+              return resolver.resolve(); 
+            }
+            return Promise.cast(action(location_tuple))
+              .then(func)
+              .catch(resolver.reject);
+          };
+          process.nextTick(func);
+          return resolver.promise;
+        };
 
-        // var actionFunc = function() {
-        //   return new Promise(function(resolve, reject) {
-        //     // setTimeout(function() {
-        //     resolve(chunked);
-        //     // }, task.reg_timeout * 1000);
-        //   });
-        // };
-        // promiseWhile(actionFunc, chunked)
-        //   .then(function() {
-        //     console.log("DONE! logger");
+        var actionFunc = function() {
+          return new Promise(function(resolve, reject) {
+            // setTimeout(function() {
+            resolve(chunked);
+            // }, task.reg_timeout * 1000);
+          });
+        };
+        promiseWhile(actionFunc, chunked)
+          .then(function() {
+            console.log("DONE! logger");
             
-        //     // setStateView(task._id, 'stopped'); ///// ??
-        //   }).catch(function (err) {
-        //     console.log(err);
-        //   });
+            // setStateView(task._id, 'stopped'); ///// ??
+          }).catch(function (err) {
+            console.log(err);
+          });
         })
       }) 
    
