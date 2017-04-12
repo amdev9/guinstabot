@@ -518,7 +518,7 @@ function locFb(proxy, task, cb) {
 
   var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
   
-  console.log(locations)
+  // console.log(locations)
   
   var fb;
   var locations_array = [];
