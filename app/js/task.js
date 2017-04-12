@@ -422,11 +422,14 @@ function parseGeo(taskName) {
   if(!mapboxgl.supported()) {
     console.log('Task -- Your browser does not support Mapbox GL');
 
-    
     var left_top_point = document.getElementById("left_top_point").value;
     var right_bottom_point = document.getElementById("right_bottom_point").value;
-    var firstPoint = left_top_point.replace(/ /g, "").split(',');
-    var secondPoint = right_bottom_point.replace(/ /g, "").split(',');
+    var firstPointString = left_top_point.replace(/ /g, "").split(',');
+    var secondPointString = right_bottom_point.replace(/ /g, "").split(',');
+    var firstPoint[0] = +firstPointString[0];
+    var firstPoint[1] = +firstPointString[1];
+    var secondPoint[0] = +secondPointString[0];
+    var secondPoint[1] = +secondPointString[1];
 
     console.log(firstPoint)
     console.log(secondPoint)
