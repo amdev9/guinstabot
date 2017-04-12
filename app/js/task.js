@@ -380,10 +380,18 @@ function createAccounts(taskName) {
 }
 
 function editParseGeo(task) {
-  map.on('load', function() {
-    draw.add(task.draw_data);
-    map.setCenter(task.centroid);
-  });
+  if(!mapboxgl.supported()) {
+    console.log('On load -- Your browser does not support Mapbox GL');
+    document.getElementById("left_top_point").value = task.draw_data[0].join(',')
+    document.getElementById("right_bottom_point").value = task.draw_data[1].join(',')
+
+  } else {
+    map.on('load', function() {
+      draw.add(task.draw_data);
+      map.setCenter(task.centroid);
+    });
+  }
+
   $("div.container").data('task', { _id: task._id, _rev: task._rev });
   updateElemView(['parse_geo']);
   document.getElementById("proxy_geo").value = task.proxy_file;
@@ -413,14 +421,48 @@ function parseGeo(taskName) {
 
   if(!mapboxgl.supported()) {
     console.log('Task -- Your browser does not support Mapbox GL');
-    task.draw_data = 0; // data;
-    task.centroid = 0; // calculate centroid for rectangle
-    task.distance = 0; // calculate distance for rectangle
-   
+
+    
+    var left_top_point = document.getElementById("left_top_point").value;
+    var right_bottom_point = document.getElementById("right_bottom_point").value;
+    var firstPoint = left_top_point.replace(/ /g, "").split(',');
+    var secondPoint = right_bottom_point.replace(/ /g, "").split(',');
+
+    var linestring = {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          firstPoint,
+          secondPoint
+        ]
+      }
+    };
+    task.distance = turf.lineDistance(linestring) / 2
+    task.draw_data = [firstPoint, secondPoint]; // data;
+
+    var pt1 = {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": firstPoint
+      }
+    };
+    var pt2 = {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": secondPoint
+      }
+    };
+    task.centroid = turf.midpoint(pt1, pt2);
     ipc.send('add_task_event', task);
     window.close();
 
   } else {
+
     var data = draw.getAll()
     if (data.features.length > 0) {
       task.draw_data = data;
@@ -459,8 +501,12 @@ checkDisabler();
 
 if (!mapboxgl.supported()) {
   console.log('Your browser does not support Mapbox GL');
+
+  $('#map_container').append('<div class="form-group row align-items-center"><label class="col-form-label form-control-sm offset-1">Гео координаты для парсинга (широта и долгота)</label></div><div class="form-group row align-items-center"><label for="left_top_point" class="col-form-label form-control-sm offset-1">1 точка: </label><div class="col-5"><input type="text" class="form-control form-control-sm" placeholder="Верхняя левая" name="left_top_point" id="left_top_point"></div></div><div class="form-group row align-items-center"><label for="right_bottom_point" class="col-form-label form-control-sm offset-1">2 точка: </label><div class="col-5"><input type="text" class="form-control form-control-sm" placeholder="Нижняя правая" name="right_bottom_point" id="right_bottom_point"></div></div>')
+
 } else {
 
+  $('#map_container').append('<div class="form-group row align-items-center" ><label for="area" class="col-form-label form-control-sm offset-1">Местоположение</label><div class="col-8"><input class="js-data-example-ajax" name="area" id="area"></div></div><div class="form-group row align-items-center"><div class="mapcol offset-1 col-10"><div id="map"></div></div><div id="choose_error" class="offset-1 col-10 form-group has-danger"></div></div>')
   mapboxgl.accessToken = 'pk.eyJ1Ijoic29jaWFsZGV2IiwiYSI6ImNqMHp4cDJ5bDAwMnozM21xaXhzaXlta3EifQ.LS_wz5TRUumqdIKkBjAhLg'; //
    
   $(".js-data-example-ajax").select2({
