@@ -430,17 +430,18 @@ function parseGeo(taskName) {
 
     console.log(firstPoint)
     console.log(secondPoint)
-    
-    // var linestring = {
-    //   "type": "Feature",
-    //   "geometry": {
-    //     "type": "LineString",
-    //     "coordinates": [
-    //       firstPoint,
-    //       secondPoint
-    //     ]
-    //   }
-    // };
+
+    var linestring = {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          firstPoint,
+          secondPoint
+        ]
+      }
+    };
+    console.log(turf.lineDistance(linestring) )
     // task.distance = turf.lineDistance(linestring) / 2
     // task.draw_data = [firstPoint, secondPoint]; // data;
 
