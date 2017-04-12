@@ -464,17 +464,10 @@ function parseGeo(taskName) {
       }
     };
 
-    console.log('-+-')
-     console.log(turf.midpoint(pt1, pt2) );
-    console.log('---')
+    task.centroid = turf.midpoint(pt1, pt2).geometry.coordinates;
 
-
-
-    // task.centroid = turf.midpoint(pt1, pt2);
-
-
-    // ipc.send('add_task_event', task);
-    // window.close();
+    ipc.send('add_task_event', task);
+    window.close();
 
   } else {
 
