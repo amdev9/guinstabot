@@ -459,7 +459,7 @@ function parseGeo(taskName) {
     };
     task.centroid = turf.midpoint(pt1, pt2);
     ipc.send('add_task_event', task);
-    window.close();
+    // window.close();
 
   } else {
 
