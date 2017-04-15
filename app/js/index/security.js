@@ -19,19 +19,18 @@ function checkLicense(cb) {
 
     // virtualCheck(cb)
     //   .then(function(res) {
-    //     console.log(res)
-    //     bios(function(obj) {
 
+        bios(function(obj) {
           var sendData = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"]+
             "|"+obj["BIOSVendor"]+"|"+obj["SystemManufacturer"]+"|"+obj["BaseBoardManufacturer"];
           var serialKey = obj['memUserDir']+"|"+obj["BIOSVersion"]+"|"+obj["DiskEnum"];
           makePost(sendData, serialKey, cb);
-
-      //   });
-      // })
-      // .catch(function(err) {
-      //   cb('vm');
-      // })
+        });
+        
+    // })
+    // .catch(function(err) {
+    //   cb('vm');
+    // })
 
   } else if (process.platform == 'darwin') {
 
