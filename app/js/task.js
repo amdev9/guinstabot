@@ -42,7 +42,7 @@ ipc.on('edit', (event, item) => {
     if (task.name == 'parse_concurrents') {
       editParseConcurrents(task);
     } else if (task.name == 'filtration') {
-      updateElementsAccessibility('task');
+      // updateElementsAccessibility('task');
       editFiltration(task);
     } else if (task.name == 'create_accounts') {
       editCreateAccounts(task);
@@ -380,6 +380,9 @@ function createAccounts(taskName) {
 }
 
 function editParseGeo(task) {
+  $("div.container").data('task', { _id: task._id, _rev: task._rev });
+  updateElemView(['parse_geo']);
+  
   if(!mapboxgl.supported()) {
     console.log('On load -- Your browser does not support Mapbox GL');
     document.getElementById("left_top_point").value = task.draw_data[0].join(',')
@@ -392,8 +395,7 @@ function editParseGeo(task) {
     });
   }
 
-  $("div.container").data('task', { _id: task._id, _rev: task._rev });
-  updateElemView(['parse_geo']);
+  
   document.getElementById("proxy_geo").value = task.proxy_file;
   document.getElementById("geo_max_limit").value = task.max_limit;
   document.getElementById("geo_avatar").checked = task.anonym_profile; 

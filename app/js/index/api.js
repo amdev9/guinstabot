@@ -88,29 +88,43 @@ function filterFunction(json, task, proxy, cb) {
   }
 }
 
+
+
+
+
 var apiFilterNoSession = function(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
-  
-    setStateView(task._id, 'run');
-    renderNewTaskCompletedView(task._id);
+    setStateView(task._id, 'run');    
     loggerDb(task._id, 'Фильтрация аудитории');
+    // renderNewTaskCompletedView(task._id);
+    setCompleteView(task._id, '-');
+
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(task._id, 'Файл подготовлен');
     });
-     Client.Request.setToken(token)
+    Client.Request.setToken(token)
+    var indicator = 0;
+    var filterSuccess = 0;
     async.forEach(task.partitions, function (taskpart, callback) {
   
-      console.log(taskpart.proxy_parc);
+      // console.log(taskpart.proxy_parc);
       
       var filterRequest = new Client.Web.Filter();   
       var iterator = taskpart.start;
+
       var promiseWhile = function( action) {
         return new Promise(function(resolve, reject) {
           var func = function(json) {
             if (json) {
-              filterFunction(json, task, taskpart.proxy_parc, function() {
-                renderTaskCompletedView(task._id);
+              filterFunction(json, task, taskpart.proxy_parc, function(bool) {
+                // renderTaskCompletedView(task._id);
+                indicator++;
+                if (bool) {
+                  filterSuccess += 1;
+                }
+                
+                renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
               });
             }
 
@@ -138,16 +152,22 @@ var apiFilterNoSession = function(task, token) {
         callback();
       }).catch(function (err) {
         if (err.message == 'stop') {
-          loggerDb(task._id, 'Фильтрация остановлена');
-          setStateView(task._id, 'stopped');
+          
           callback();
         } else {
           console.log(err.message);
         }
       });
+
      }, function(err) {
-      console.log(err);
-        console.log('iterating done');
+        
+        if(err) {
+          console.log(err)
+        }
+        loggerDb(task._id, 'Фильтрация остановлена');
+        setStateView(task._id, 'stopped');
+
+         
     }); 
   })
   .catch(function(err) {
@@ -209,6 +229,8 @@ var apiFilterSession = function(user, task, token) {
 
     setStateView(user._id, 'run');
     loggerDb(user._id, 'Фильтрация аудитории');
+    setCompleteView(user._id, '-');
+
     ////////FIX
     fs.truncate(task.outputfile, 0, function(){ 
       loggerDb(user._id, 'Файл подготовлен'); 
@@ -403,11 +425,7 @@ function fastCreateAccount(task, email, username, password, proxy, cb) {
       // console.log("Discovery Feed", discover);
     })
     .catch(function(err) {
-      if (err instanceof Client.Exceptions.APIError) {
-        loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-      } else {
-        loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-      }     
+      cb(null, err)
     })
 }
 
@@ -420,7 +438,10 @@ function apiCreateAccounts(task, token) {
   .then(function() {
     setStateView(task._id, 'run');
     loggerDb(task._id, 'Регистрация аккаунтов');
-    setCompleteView(task._id, 0);
+    setCompleteView(task._id, '-');
+
+
+
     Client.Request.setToken(token)
     const NAMES = require('./config/names').names;
     const SURNAMES = require('./config/names').surnames;
@@ -433,7 +454,7 @@ function apiCreateAccounts(task, token) {
     if (!task.own_emails) {
       for(var i = 0; i < task.emails_cnt; i++) {
         var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-        email_array.push(name + getRandomInt(1000, 99999) + '@gmail.com');
+        email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
       }
     } else {
       email_array = task.email_parsed;
@@ -460,19 +481,46 @@ function apiCreateAccounts(task, token) {
     
     var promiseWhile = function( action, email_tuple) {
       var resolver = Promise.defer();
-      var indicator = 0;
+      var filterSuccess = 0;
       var i = 0;
+      var indicator = 0;
       var func = function(results) {
-        async.mapValues(_.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
+        async.mapValues( _.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
           var password = generatePassword(); 
           var name = email.split("@")[0];
-          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), function(session) {
-            appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
-            renderTaskCompletedView(task._id);
-            callback();
+
+          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), function(session, err) {
+            indicator++;
+            if (err) {
+              if (err instanceof Client.Exceptions.APIError) {
+                // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+              } else {
+                console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+              }     
+
+              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              callback();
+            }
+            
+            if (session) {
+              filterSuccess += 1;
+              console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
+              appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
+
+              // renderTaskCompletedView(task._id);
+              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              callback();
+            }
+
           });
+
+
         }, function(err, result) {
           console.log("DONE!");
+          setStateView(task._id, 'stopped');
+          loggerDb(task._id, 'Регистрация остановлена');  
         });
         i++;
         if(getStateView(task._id) == 'stop' || i > email_tuple.length - 1) {
@@ -494,11 +542,14 @@ function apiCreateAccounts(task, token) {
         }, task.reg_timeout * 1000);
       });
     };
+
     promiseWhile(actionFunc, chunked)
-      .then(function() {
-        setStateView(task._id, 'stopped');
-        loggerDb(task._id, 'Регистрация остановлена');  
-      }).catch(function (err) {
+    // .then(function() {
+    //     console.log('then')
+    //     // setStateView(task._id, 'stopped');
+    //     // loggerDb(task._id, 'Регистрация остановлена');  
+    //   })
+      .catch(function (err) {
         console.log(err);
       });
   })
