@@ -604,7 +604,14 @@ function locMedia(task, proxy, location, callback) {
     });
   })
   .catch(function (err) {
-    console.log(err);
+    if (err instanceof Client.Exceptions.APIError) {
+      if (!err instanceof  Client.Exceptions.NotFoundError) {
+        console.log(err);
+      }
+    } else {
+      console.log(err);
+    }
+   
   });
 }
 
