@@ -508,7 +508,7 @@ function apiCreateAccounts(task, token) {
 function locFb(proxy, task, cb) {
 
   // Выполнено: Собираем локации
-  renderCustomCompletedView(task._id, 'Собираем локации')
+  renderCustomCompletedView(task._id, 'Ищем локации')
 
   var lng = task.centroid[0]
   var lat = task.centroid[1]
@@ -529,6 +529,9 @@ function locFb(proxy, task, cb) {
       var func = function(res) { 
         if (res) {
           var jsonRes = JSON.parse(res.body)
+          indicator += jsonRes.data.length
+          // console.log(indicator)
+          renderCustomCompletedView(task._id, 'Найдено локаций: ' + indicator)
           jsonRes.data.forEach(function(item) {
             locations_array.push(item.id)
           })

@@ -442,10 +442,8 @@ function parseGeo(taskName) {
         ]
       }
     };
-
     task.distance = turf.lineDistance(linestring) / 2
     task.draw_data = [firstPoint, secondPoint]; // data;
-
     var pt1 = {
       "type": "Feature",
       "properties": {},
@@ -454,7 +452,6 @@ function parseGeo(taskName) {
         "coordinates": firstPoint
       }
     };
-
     var pt2 = {
       "type": "Feature",
       "properties": {},
@@ -463,7 +460,6 @@ function parseGeo(taskName) {
         "coordinates": secondPoint
       }
     };
-
     task.centroid = [ turf.midpoint(pt1, pt2).geometry.coordinates[1], turf.midpoint(pt1, pt2).geometry.coordinates[0] ];
 
     ipc.send('add_task_event', task);
@@ -471,19 +467,21 @@ function parseGeo(taskName) {
 
   } else {
 
-    var data = draw.getAll()
-    if (data.features.length > 0) {
+    var data = draw.getAll()  
+    // console.log(data)
+    if ( data.features.length == 1 ) {
       task.draw_data = data;
       var coordinates = data.features[0].geometry.coordinates[0]
-      task.centroid = getCentroid2(coordinates)
+      task.centroid = getCentroid2(coordinates) 
       task.distance = calcDistance(task.centroid, coordinates)
       ipc.send('add_task_event', task);
       window.close();
+    } else if( data.features.length > 1) {
+      $('#choose_error').empty().append('<div class="form-control-feedback">Указано более одной области</div>'); 
     } else {
       $('#choose_error').empty().append('<div class="form-control-feedback">Укажите область для парсинга на карте</div>'); 
-    }
+    } 
   }
-
 }
 
 function completeTask(taskName) {
@@ -498,7 +496,6 @@ function completeTask(taskName) {
   }
 }
 
-
 document.title = "Добавление задания | " + softname
 document.getElementById("own_emails").addEventListener("click",function(){
   checkDisabler();
@@ -509,7 +506,6 @@ checkDisabler();
 
 if (!mapboxgl.supported()) {
   console.log('Your browser does not support Mapbox GL');
-
   $('#map_container').append('<div class="form-group row align-items-center"><label class="col-form-label form-control-sm offset-1">Гео координаты для парсинга (широта и долгота)</label></div><div class="form-group row align-items-center"><label for="left_top_point" class="col-form-label form-control-sm offset-1">1 точка: </label><div class="col-5"><input type="text" class="form-control form-control-sm" placeholder="Верхняя левая" name="left_top_point" id="left_top_point"></div></div><div class="form-group row align-items-center"><label for="right_bottom_point" class="col-form-label form-control-sm offset-1">2 точка: </label><div class="col-5"><input type="text" class="form-control form-control-sm" placeholder="Нижняя правая" name="right_bottom_point" id="right_bottom_point"></div></div>')
 
 } else {
@@ -526,14 +522,14 @@ if (!mapboxgl.supported()) {
       dataType: 'json',
       delay: 250,
       data: function (query) {
-        console.log(query);
+        // console.log(query);
         // if (!query.term) query.term = 'Москва';
         return {
           access_token: mapboxgl.accessToken
         };
       },
       results: function (data) {
-        console.log(data);
+        // console.log(data);
         var parsed = [];
         try {
           parsed = _.chain(data.features)
@@ -556,19 +552,16 @@ if (!mapboxgl.supported()) {
     minimumInputLength: 1
   });
 
-
   $('.js-data-example-ajax').on('select2-selecting', function (evt) {
     map.setCenter(evt.choice.center); 
   });
 
-    
   var map = new mapboxgl.Map({
     container: 'map', // container id
     style: 'mapbox://styles/mapbox/basic-v9', //hosted style id
     center: [37.615, 55.752], // starting position
     zoom: 9 // starting zoom
   });
-
 
   var draw = new MapboxDraw({
     displayControlsDefault: false,
@@ -578,11 +571,20 @@ if (!mapboxgl.supported()) {
     }
   });
 
-
   var nav = new mapboxgl.NavigationControl();
 
   map.addControl(nav, 'top-left');
   map.addControl(draw, 'top-left');
+
+  map.on('draw.create', function(feature) {
+    if(draw.getAll().features.length > 1) {
+      $('#choose_error').empty().append('<div class="form-control-feedback">Нельзя указать более одной области</div>');
+      draw.trash() 
+      var firstCentroid = getCentroid2(draw.getAll().features[0].geometry.coordinates[0])
+      map.setCenter(firstCentroid)
+    }
+    
+  })
 
   function getCentroid2 (arr) {
     var twoTimesSignedArea = 0;
