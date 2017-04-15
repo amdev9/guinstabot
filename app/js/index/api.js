@@ -215,7 +215,7 @@ function filterSessionUser(user_id, ses, task, userFilter, proxy, cb) {
   });
 }
 
-function apiFilterAccounts(row, token) {
+function apiFilterAccounts(row, token) { 
   if (row.type == 'user') {
     apiFilterSession(row, row.task, token);
   } else if(row.type == 'task') {
@@ -223,7 +223,7 @@ function apiFilterAccounts(row, token) {
   }
 }
 
-var apiFilterSession = function(user, task, token) {
+var apiFilterSession = function(user, task, token) { //FIX
   mkdirFolder(logsDir)
   .then(function() {
 
