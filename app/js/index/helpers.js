@@ -4,6 +4,7 @@
 
 'use strict';
 
+var os = require('os'), EOL = os.EOL;
 var fs = require('fs');
 const mkdirp = require('mkdirp-promise');
 
@@ -96,7 +97,7 @@ function setProxyFunc(proxyString) {
 }
 
 function appendStringFile(filepath, string) {
-  fs.appendFile(filepath, string + '\n', (err) => {
+  fs.appendFile(filepath, string + EOL, (err) => {
     if (err) throw err;
   });
 }
