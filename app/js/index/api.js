@@ -6,6 +6,7 @@
 
 const Client = require('./instagram-private-api').V1; 
 var fs = require('fs');
+var os = require('os'), EOL = os.EOL;
 var path = require('path')
 var Promise = require('bluebird');
 var async = require('async');
@@ -64,7 +65,7 @@ function filterFunction(json, task, proxy, cb) {
   if (followersCond && subscribersCond && publicationsCond && privateCond ) {
     if (task.stop_words_file != "") {
       fs.readFile(task.stop_words_file, function(err, f) {
-      var words = f.toString().split('\n').filter(isEmpty);
+      var words = f.toString().split(EOL).filter(isEmpty);
       words.forEach(function (word) {
         word = word.toLowerCase();
         var fullName = json.fullName ? json.fullName.toLowerCase() : '';

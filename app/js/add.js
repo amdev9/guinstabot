@@ -1,5 +1,6 @@
 ipc = require('electron').ipcRenderer;
 var fs = require("fs");
+var os = require('os'), EOL = os.EOL;
 window.$ = window.jQuery = require('jquery');
 var config = require('../config/default');
 const {dialog} = require('electron').remote;
@@ -33,8 +34,9 @@ function parseDataFileToArray(selector) {
   if(fs.existsSync(filename)) {
     fs.readFile(filename, function(err, f) {
       if(err) throw err;
-      var array = f.toString().split('\n').filter(isEmpty);
+      var array = f.toString().split(EOL).filter(isEmpty);
       ipc.send('users_add', array);
+      // console.log(array)
       window.close(); 
     });
   } else {

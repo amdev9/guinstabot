@@ -16,12 +16,17 @@ function isIpBlock(number) {
   return number >= 0 && number < 256;
 }
 
+
 function strInt(s) {
+  s = s.replace(/\s+/g, '');
   var i = parseInt(s, 10);
+  // console.log(i, i.toString().length, s, s.length)
   if( i != NaN && i.toString().length == s.length) {
+    
     return i;
   }
 }
+
 
 function ipPortFunc(ip, port) {
   var ipArray = ip.split(".");
@@ -46,9 +51,12 @@ function validateProxyString(proxyString) {
   /*  proxy_ip:proxy_port */
   if(splited.length == 2) {
     good = ipPortFunc(splited[0], splited[1]);
+    
   /*  proxy_name:proxy_pass:proxy_ip:proxy_port */
   } else if(splited.length == 4) { 
+    // console.log(splited[2], splited[3])
     good = ipPortFunc(splited[2], splited[3]);
+
     var name = splited[0];
     if(name.length == 0) {
       good = false;
@@ -57,6 +65,7 @@ function validateProxyString(proxyString) {
   } else {
     good = false;
   }
+
   return good;
 } 
 

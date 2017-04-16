@@ -65,11 +65,15 @@ function addUsersDb(users) {
   var usersObjArr = [];
   var usersRender = [];
   users.forEach(function(userString, i, fullArr) {
-
+ 
     var userArr = userString.split('|');
     if (userArr.length == 3) {
+     
       var user = new userObj(userArr);
+
       if(validateProxyString(user.proxy)) {
+
+        // console.log(user)
         usersObjArr.push(user);
       }
     }
@@ -79,6 +83,7 @@ function addUsersDb(users) {
         .then(function (response) {
           response.forEach(function(item, i, arr) {
             if (item.ok) {
+              // console.log(usersObjArr[i])
               usersRender.push(usersObjArr[i]);
             }
             if (i == arr.length - 1) {

@@ -6,6 +6,7 @@ var MapboxDraw = require('@mapbox/mapbox-gl-draw');
 
 var Point = require('point-geometry')
 var fs = require("fs");
+var os = require('os'), EOL = os.EOL;
 var Promise = require('bluebird');
 var readFilePromise = Promise.promisify(require("fs").readFile);
 const {dialog} = require('electron').remote
@@ -150,7 +151,7 @@ function editFiltration(task) {
 function editParseConcurrents(task) {
 
   updateElemView(['parse_concurrents']);
-  document.getElementById("parsed_conc").value = task.parsed_conc.join('\n');
+  document.getElementById("parsed_conc").value = task.parsed_conc.join(EOL);
   document.getElementById("follow").checked = task.parse_type;
   document.getElementById("subscribe").checked = !task.parse_type;
   document.getElementById("max_limit").value = task.max_limit;
@@ -195,7 +196,7 @@ function filtrationUser(taskName) {
   var task0 = new filtrationUiData(taskName);
   var concurParsed = [];
   readFilePromise(task0.inputfile, 'utf8').then(function(data) {
-    concurParsed = data.split('\n');
+    concurParsed = data.split(EOL);
     concurParsed = concurParsed.filter(isEmpty);
     var to_parse_usernames = concurParsed.length;
     var div = Math.floor(to_parse_usernames / users.length);
@@ -230,13 +231,13 @@ function filtrationTask(taskName) {
 
   readFilePromise(task.inputfile, 'utf8').then(function(data) {
     var parsed_array = [];
-    parsed_array = data.split('\n');
+    parsed_array = data.split(EOL);
     parsed_array = parsed_array.filter(isEmpty);
 
     task.input_array = parsed_array;
     var proxyParsed = [];
     readFilePromise(task.proxy_file, 'utf8').then(function(data) {
-      proxyParsed = data.split('\n');
+      proxyParsed = data.split(EOL);
       proxyParsed = proxyParsed.filter(isEmpty);
 
        
@@ -304,7 +305,7 @@ function parseConcurrents(taskName) {
     }
     task.parse_type = followTrueSubscribeFalse;
 
-    var concurParsed = document.getElementById("parsed_conc").value.split('\n');
+    var concurParsed = document.getElementById("parsed_conc").value.split(EOL);
     concurParsed = concurParsed.filter(isEmpty);
     var to_parse_usernames = concurParsed.length;
     var div = Math.floor(to_parse_usernames / users.length);
@@ -346,7 +347,7 @@ function editCreateAccounts(task) {
   document.getElementById("proxy_create").value = task.proxy_file;
   document.getElementById("output_file").value = task.output_file;
   if (document.getElementById("own_emails").checked) {
-    document.getElementById("parsed_own_emails").value = task.email_parsed.join('\n');
+    document.getElementById("parsed_own_emails").value = task.email_parsed.join(EOL);
   } else {
     document.getElementById("reg_count").value = task.emails_cnt;
   }
@@ -368,7 +369,7 @@ function createAccounts(taskName) {
   task.email_parsed = '';
   task.own_emails = document.getElementById("own_emails").checked;
   if(document.getElementById("own_emails").checked == true) {
-    task.email_parsed = document.getElementById("parsed_own_emails").value.split('\n').filter(isEmpty);
+    task.email_parsed = document.getElementById("parsed_own_emails").value.split(EOL).filter(isEmpty);
   } else {
     task.emails_cnt = document.getElementById("reg_count").value;
   }
