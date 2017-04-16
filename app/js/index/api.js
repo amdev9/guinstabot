@@ -88,16 +88,12 @@ function filterFunction(json, task, proxy, cb) {
   }
 }
 
-
-
-
 var apiFilterNoSession = function(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
     setStateView(task._id, 'run');    
     loggerDb(task._id, 'Фильтрация аудитории');
     setCompleteView(task._id, '-');
-
     fs.truncate(task.outputfile, 0, function() { 
       loggerDb(task._id, 'Файл подготовлен');
     });
@@ -107,56 +103,48 @@ var apiFilterNoSession = function(task, token) {
 
     async.forEach(task.partitions, function (taskpart, callback) {
       var filterRequest = new Client.Web.Filter();   
-      var iterator = taskpart.start;
+      var count = taskpart.start;
+      var promiseFor = Promise.method(function(condition, action, value) {
+        if (condition(value))
+          return value;
+        return action(value)
+          .then(promiseFor.bind(null, condition, action));
+      });
 
-      var promiseWhile = function( action) {
-        return new Promise(function(resolve, reject) {
-          var func = function(json) {
-            
-            if (json) {
-              indicator++;
-            // console.log('---')
-              filterFunction(json, task, taskpart.proxy_parc, function(bool) {
-                // renderTaskCompletedView(task._id);
-                
-                if (bool) {
-                  filterSuccess += 1;
-                }
-                renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
-              });
-            }
-            if ( iterator >= taskpart.end ) {   // getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || 
-              return reject(new Error("stop"));
-            } 
-            return Promise.resolve(action())
-            .then(func)
-            .catch(function(err) {
-              reject(err)
-            });
-          }
-          process.nextTick(func);
-        });
+      var condFunc = function(count) {
+        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= taskpart.end;
       }
 
-      promiseWhile(function() {
-        return new Promise(function(resolve, reject) {
-          resolve(filterRequest.getUser( task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); 
-          iterator++;
-        });
-      }).then(function() {
-        callback();
-      }).catch(function (err) {
+      var actionFunc = function(count) {
+        return filterRequest.getUser(task.input_array[count], returnProxyFunc(taskpart.proxy_parc))
+        .then(function(res) { 
 
+          filterFunction(res, task, taskpart.proxy_parc, function(bool) {
+            indicator++;
+            if (bool) {
+              filterSuccess += 1;
+            }
+            renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
+          });
+
+          return ++count;
+        });
+      };
+
+      promiseFor(condFunc, actionFunc, count)
+        .then(function() {
+          // console.log('done!');
+          callback();
+        })
+        .catch(function (err) {
           if(err.message != 'stop') {
-            // console.log(err)
+            console.log(err)
             loggerDb(task._id, 'Ошибка при фильтрации ' + err._username + ': ' + err.message);
           } else {
             console.log(err)
           }
-        
           callback();
       })
-      
     }, function(err) {
       loggerDb(task._id, 'Фильтрация остановлена');
       setStateView(task._id, 'stopped');
@@ -239,6 +227,8 @@ var apiFilterSession = function(user, task, token) { //FIX
 
     console.log(task.input_array[0])
     console.log(task.input_array[1])
+
+
     var promiseWhile = function(action) {
       return new Promise(function(resolve, reject) {
         var func = function(iterator) {
@@ -280,6 +270,7 @@ var apiFilterSession = function(user, task, token) { //FIX
         console.log(err.message);
       }
     });
+
   })
   .catch(function(err) {
     setStateView(user_id, 'stopped');
@@ -616,7 +607,7 @@ function locFb(proxy, task, cb) {
 function locMedia(task, proxy, location, callback) {
 
   renderNewTaskCompletedView(task._id)
-  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);   
+  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);  
   var promiseWhile = function(action) {
     return new Promise(function(resolve, reject) { 
       var indicator = 0;
@@ -784,10 +775,6 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
         updateUserStatusDb(user_id, 'Активен');
         setStateView(user_id, 'stopped');
       })
-      // .catch(function(error) {
-      //   console.log(error)
-      // })
-
       .catch(function (err) {
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
