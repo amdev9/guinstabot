@@ -425,6 +425,7 @@ function getRandomInt(min, max) {
 
 function apiCreateAccounts(task, token) {
   mkdirFolder(logsDir)
+  mkdirFolder(cookieDir)
   .then(function() {
     setStateView(task._id, 'run');
     loggerDb(task._id, 'Регистрация аккаунтов');
