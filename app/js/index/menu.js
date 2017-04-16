@@ -149,9 +149,9 @@ function multipleMenuOn(taskItems) {
       }  
     }
     if (stopFlag == true) {
-      toHideItems = ['tasks_stop', 'edit_account', 'edit_tasks'];  
+      toHideItems = ['tasks_stop', 'edit_account', 'edit_tasks', 'show_logs'];  
     } else {
-      toHideItems = ['tasks_start', 'edit_account', 'edit_tasks']; 
+      toHideItems = ['tasks_start', 'edit_account', 'edit_tasks', 'show_logs']; 
     }
   }
   var checkFlag = true;
