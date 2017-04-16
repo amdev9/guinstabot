@@ -75,8 +75,16 @@ Filter.prototype.getUser = function (_username, _proxy) {
             return new Promise((resolve, reject) => {
                 resolve(json_obj);
             });
-        }).catch(function(err) {
-            console.log(err);
+        })
+
+        .catch(function(err) {
+            // console.log(err);
+            return new Promise((resolve, reject) => {
+                err._username = _username;
+                reject(err);
+            });
+            
+            
         });
 }
  

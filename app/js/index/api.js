@@ -91,13 +91,11 @@ function filterFunction(json, task, proxy, cb) {
 
 
 
-
 var apiFilterNoSession = function(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
     setStateView(task._id, 'run');    
     loggerDb(task._id, 'Фильтрация аудитории');
-    // renderNewTaskCompletedView(task._id);
     setCompleteView(task._id, '-');
 
     fs.truncate(task.outputfile, 0, function() { 
@@ -106,72 +104,66 @@ var apiFilterNoSession = function(task, token) {
     Client.Request.setToken(token)
     var indicator = 0;
     var filterSuccess = 0;
+
     async.forEach(task.partitions, function (taskpart, callback) {
-  
-      // console.log(taskpart.proxy_parc);
-      
       var filterRequest = new Client.Web.Filter();   
       var iterator = taskpart.start;
 
       var promiseWhile = function( action) {
         return new Promise(function(resolve, reject) {
           var func = function(json) {
+            
             if (json) {
+              indicator++;
+            // console.log('---')
               filterFunction(json, task, taskpart.proxy_parc, function(bool) {
                 // renderTaskCompletedView(task._id);
-                indicator++;
+                
                 if (bool) {
                   filterSuccess += 1;
                 }
-                
                 renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
               });
             }
-
-            if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || iterator >= taskpart.end ) {  
+            if ( iterator >= taskpart.end ) {   // getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || 
               return reject(new Error("stop"));
             } 
             return Promise.resolve(action())
-              .then(func)
-              .catch(function() {
-                reject()
-              });
-          };
+            .then(func)
+            .catch(function(err) {
+              reject(err)
+            });
+          }
           process.nextTick(func);
-        })
+        });
       }
 
       promiseWhile(function() {
         return new Promise(function(resolve, reject) {
-          setTimeout(function() {
-            resolve(filterRequest.getUser( task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); // FIX pass param 
-            iterator++;
-          }, 20);
+          resolve(filterRequest.getUser( task.input_array[iterator], returnProxyFunc(taskpart.proxy_parc) )); 
+          iterator++;
         });
       }).then(function() {
         callback();
       }).catch(function (err) {
-        if (err.message == 'stop') {
-          
-          callback();
-        } else {
-          console.log(err.message);
-        }
-      });
 
-     }, function(err) {
+          if(err.message != 'stop') {
+            // console.log(err)
+            loggerDb(task._id, 'Ошибка при фильтрации ' + err._username + ': ' + err.message);
+          } else {
+            console.log(err)
+          }
         
-        if(err) {
-          console.log(err)
-        }
-        loggerDb(task._id, 'Фильтрация остановлена');
-        setStateView(task._id, 'stopped');
-
-         
+          callback();
+      })
+      
+    }, function(err) {
+      loggerDb(task._id, 'Фильтрация остановлена');
+      setStateView(task._id, 'stopped');
     }); 
   })
   .catch(function(err) {
-    console.log(err);
+    console.log(err)
   })
 }
 
@@ -244,11 +236,17 @@ var apiFilterSession = function(user, task, token) { //FIX
 
     var iterator = 1;
     var filterSuccess = 0;
+
+    console.log(task.input_array[0])
+    console.log(task.input_array[1])
     var promiseWhile = function(action) {
       return new Promise(function(resolve, reject) {
         var func = function(iterator) {
+          console.log(iterator)
           if (iterator) {
-            filterSessionUser(user._id, ses, task, task.input_array[iterator], returnProxyFunc(user.proxy), function(success) {
+            console.log(task.input_array[iterator - 1])
+
+            filterSessionUser(user._id, ses, task, task.input_array[iterator - 1], returnProxyFunc(user.proxy), function(success) {
               if(success) {
                 filterSuccess += 1;
               }
@@ -270,7 +268,7 @@ var apiFilterSession = function(user, task, token) { //FIX
     promiseWhile(function() {
       return new Promise(function(resolve, reject) {
         setTimeout(function() {
-          resolve(iterator);
+          resolve(iterator); 
           iterator++;
         }, 3000);
       });
@@ -582,7 +580,7 @@ function locFb(proxy, task, cb) {
           var jsonRes = JSON.parse(res.body)
           indicator += jsonRes.data.length
           // console.log(indicator)
-          renderCustomCompletedView(task._id, 'Найдено локаций: ' + indicator)
+          renderCustomCompletedView(task._id, 'Локации: ' + indicator)
           jsonRes.data.forEach(function(item) {
             locations_array.push(item.id)
           })

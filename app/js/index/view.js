@@ -123,6 +123,7 @@ function getStateView(id) {
 }
 
 function setCompleteView(id, complete) {
+  $('#table1').find("td").eq(4).width(150)
   $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(complete);
 }
 
