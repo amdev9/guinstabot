@@ -2,30 +2,52 @@
 var Promise =  require('bluebird')
 var ind = 0;
 
-var promiseFor = Promise.method(function(condition, action, value) {
-  if (!condition(value))
-    return value;
-  return action(value)
-    .then(promiseFor.bind(null, condition, action));
+// var promiseFor = Promise.method(function(condition, action, value) {
+//   if (!condition(value))
+//     return value;
+//   return action(value)
+//     .then(promiseFor.bind(null, condition, action));
+// });
+
+// var condFunc = function(count) {
+//   return count < 10;
+// }
+
+// var actionFunc = function(count) {
+//   return getUser()
+//   .then(function(res) { 
+//     console.log(res); 
+//     return ++count;
+//   });
+// };
+
+// promiseFor(condFunc, actionFunc, 0)
+//   .then(console.log.bind(console, ' all done '));
+
+var promiseWhile = Promise.method(function(condition, action) {
+    if (!condition()) return;
+    return action().then(promiseWhile.bind(null, condition, action));
 });
 
-var condFunc = function(count) {
-  return count < 10;
+var condFunc = function() {
+  return ind < 10;
 }
 
-var actionFunc = function(count) {
+var actionFunc = function() {
   return getUser()
   .then(function(res) { 
     console.log(res); 
-    return ++count;
+    // return ++count;
   });
 };
 
-promiseFor(condFunc, actionFunc, 0)
+
+promiseWhile(condFunc, actionFunc)
   .then(console.log.bind(console, ' all done '));
 
 
 function getUser() {
+
   return new Promise(function(resolve, reject) {
     setTimeout(function() {
       var r = ind++ + ' test'

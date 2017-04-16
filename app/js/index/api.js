@@ -104,6 +104,7 @@ var apiFilterNoSession = function(task, token) {
     async.forEach(task.partitions, function (taskpart, callback) {
       var filterRequest = new Client.Web.Filter();   
       var count = taskpart.start;
+      
       var promiseFor = Promise.method(function(condition, action, value) {
         if (condition(value))
           return value;
