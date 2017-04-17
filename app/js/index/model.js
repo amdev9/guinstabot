@@ -104,10 +104,6 @@ function runTasksDb(rows) {
         var token = { row: row._id }
         tokens.set(row._id, token)
         apiParseAccounts(row, row.task, token);
-      } else if (row.task && row.task.name == 'filtration') {
-        var token = { row: row._id }
-        tokens.set(row._id, token)
-        apiFilterAccounts(row, token);
       } else if (row.name && row.name == 'filtration') {
         var token = { row: row._id }
         tokens.set(row._id, token)
@@ -145,19 +141,6 @@ function getExistedUserRows(rows) {
   })
 }
 
-
-function completeUserTaskDb(rows, taskName, params) {
-  getExistedUserRows(rows)
-    .then(function(result) {
-      if (taskName == 'parse_concurrents') {
-        parseConcurrentsUserDb(result, taskName, params);
-      } else if (taskName == 'filtration') {
-        filtrationUserDb(result, taskName, params);
-      }
-  }).catch(function(err) {
-    console.log(err);
-  });
-}
 
 function checkAccountsDb(user_ids) {
   tokens.clear()
@@ -226,6 +209,7 @@ function usersTaskDb(tasks, users) {
   users.forEach(function(user_id, i) {
     db.get(user_id).then(function(user) {
       user.task = tasks[i];
+      console.log(user.task)
       db.put(user).then(function(result) {
         setTaskView(user._id, user.task.name);
       }).catch(function (err) {

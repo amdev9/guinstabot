@@ -30,20 +30,16 @@ ipc.on('edit', (event, item) => {
     var user = item;  
     if (user.task.name == 'parse_concurrents') {
       editParseConcurrents(user.task);
-    } else if (user.task.name == 'filtration') {
-      editFiltration(user.task);
     } 
 
   } else {
 
     var rows = { _id: item._id, _rev: item._rev };
     saveTypeRowsDom('task', rows);
-
     var task = item;
     if (task.name == 'parse_concurrents') {
       editParseConcurrents(task);
     } else if (task.name == 'filtration') {
-      // updateElementsAccessibility('task');
       editFiltration(task);
     } else if (task.name == 'create_accounts') {
       editCreateAccounts(task);
@@ -55,19 +51,13 @@ ipc.on('edit', (event, item) => {
 
 function updateElementsAccessibility(type) {
   if (type == 'user') {
-    updateElemView(['parse_concurrents', 'filtration']);
+    updateElemView(['parse_concurrents']);
   } else {
     updateElemView(['parse_geo', 'filtration', 'create_accounts']);
-    disableCustomElem();
   }
 }
 
-function disableCustomElem() {
-  $("#div_avatar").addClass("disabled");
-  $("#avatar").prop("disabled", true);
-  $("#proxy_file").prop("disabled", false);
-  $("#proxy_file_button").prop("disabled", false);
-}
+
 
 function saveTypeRowsDom(type, rows) {
   $("div.container").data(type, rows);
@@ -188,35 +178,7 @@ function filtrationUiData(taskName) {
   this.proxy_file = document.getElementById("proxy_file").value;
 }
 
-function filtrationUser(taskName) {
-
-  var users = $("div.container").data('user');
-  var dotation = [];
-  var tasks = [];  
-  var task0 = new filtrationUiData(taskName);
-  var concurParsed = [];
-  readFilePromise(task0.inputfile, 'utf8').then(function(data) {
-    concurParsed = data.split(EOL);
-    concurParsed = concurParsed.filter(isEmpty);
-    var to_parse_usernames = concurParsed.length;
-    var div = Math.floor(to_parse_usernames / users.length);
-    var rem = to_parse_usernames % users.length;
-    dotation[0] = rem + div;
-    tasks.push(task0);
-    task0.input_array = concurParsed.slice(0, dotation[0]);      
-    for (var i = 1; i < users.length; i++) {
-      var taskI = new filtrationUiData(taskName);
-      dotation[i] = dotation[i-1]+div;
-      taskI.input_array = concurParsed.slice(dotation[i-1], dotation[i]);
-      tasks.push(taskI);
-    }
-    console.log(tasks);
-    ipc.send('add_task_event', tasks, users);
-    window.close();
-  });
-}
-
-function filtrationTask(taskName) {
+function filtration(taskName) {
 
   var task = new filtrationUiData(taskName);
   task.type = 'task';
@@ -281,13 +243,7 @@ function filtrationTask(taskName) {
   });
 }
 
-function filtration(taskName) {
-  if ($("div.container").data('user')) {
-    filtrationUser(taskName);
-  } else {
-    filtrationTask(taskName);
-  } 
-}
+
 
 function parseConcurrents(taskName) {
 
