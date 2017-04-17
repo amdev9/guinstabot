@@ -1,6 +1,8 @@
 var util = require("util");
 var _ = require("underscore");
 var fs = require("fs");
+var concat = require('concat-stream')
+
 var Request = require('../request');
 var routes = require('../routes');
 var Helpers = require('../../../helpers');
@@ -74,8 +76,14 @@ WebRequest.prototype.setHost = function(host) {
 };
 
 
+WebRequest.prototype.setToken = function(token) {
+    this.token = token;
+    return this;
+}
+
 
 WebRequest.prototype.send = function (options) {
+    // console.log('web send')
     var that = this;
     return this._mergeOptions(options)
         .then(function(opts) {
@@ -87,7 +95,42 @@ WebRequest.prototype.send = function (options) {
         })
         .then(function(opts) { 
             options = opts;
-            return [Request.requestClient(options), options]
+
+            return new Promise(function(resolve, reject) {
+              var xhr = Request.requestClient(options)
+              var res;
+              var body = concat(function(data) {
+                res.body = data.toString();
+                if (res.statusCode == 200 ) {
+                    resolve([res, options]);
+                } else {
+                    reject(res)
+                }
+              })
+              
+              xhr.on('response', function(response) {
+                res = response;
+              }).on('data', function(chunk) {
+                body.write(chunk);
+              }).on('end', function() {
+                body.end()
+              }).catch(function(err) {
+              })
+              .then(function(res) {
+
+              });
+            
+            // console.log(that.getToken())
+
+              if (that.getToken()) {          
+                that.getToken().cancel = function() { 
+                  xhr.abort();
+                  return reject(new Error("Cancelled"));
+                };
+              }
+            })
+
+            // return [Request.requestClient(options), options]
         })
         .spread(function(response, options) {
             if(that._jsonEndpoint) {
@@ -108,6 +151,11 @@ WebRequest.prototype.send = function (options) {
             return that.beforeError(error, options, 0)
         })
         .catch(function (err) {
+
+            if(err.message == 'Cancelled') {
+                throw new Exceptions.RequestCancel();
+            }
+
             if(!err || !err.response)
                 throw err;    
             var response = err.response;

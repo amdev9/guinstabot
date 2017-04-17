@@ -23,12 +23,15 @@ function Request(session) {
     this._request.headers=_.extend({},Request.defaultHeaders);
     this.attemps = 2;
     if(session) {
+        this.token = session.token;
         this.session = session;            
     } else {
         this.setData({_csrftoken: 'missing'});
     }      
     this._initialize.apply(this, arguments);    
     this._transform = function(t){ return t };
+     
+    
 }
 
 module.exports = Request;
@@ -360,9 +363,9 @@ Request.prototype.afterError = function (error, request, attemps) {
     throw error;
 }
 
-Request.setToken =  function(token) {
-    // console.log(token)
-    Request.token = token;
+Request.prototype.getToken =  function() {
+    // console.log(this.token)
+    return this.token;
 }
 
 Request.prototype.send = function (options, attemps) {
@@ -404,9 +407,10 @@ Request.prototype.send = function (options, attemps) {
 
               });
             
-              if (Request.token) {          
-                console.log(Request.token)
-                Request.token.cancel = function() { 
+            // console.log(that.getToken())
+
+              if (that.getToken()) {          
+                that.getToken().cancel = function() { 
                   xhr.abort();
                   return reject(new Error("Cancelled"));
                 };

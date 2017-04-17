@@ -3,8 +3,15 @@ var errors = require('request-promise/errors');
 var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-var Filter = function() {}
+
+var Filter = function(token) {
+    this.token = token
+}
 exports.Filter = Filter;
+
+Filter.prototype.getToken = function() {
+    return this.token;
+}
 
 var Exceptions = require('../exceptions');
 var Session = require('../session');
@@ -17,7 +24,10 @@ var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
  
 
 Filter.prototype.media = function (_username, _proxy) {
-    return new WebRequest( )
+    var that = this;
+
+    return new WebRequest()
+        // .setToken()
         .setMethod('GET')
         .setResource('mediaInfoAnonym', {username: _username, maxId: ''}) //   userInfoAnonym
         .setJSONEndpoint()
@@ -44,7 +54,10 @@ Filter.prototype.media = function (_username, _proxy) {
 }
 
 Filter.prototype.getUser = function (_username, _proxy) {
+    var that = this;
+    // console.log(that.getToken())
     return new WebRequest( )
+        .setToken(that.getToken())
         .setMethod('GET')
         .setResource('userInfoAnonym', {username: _username}) //   userInfoAnonym
         .setJSONEndpoint()

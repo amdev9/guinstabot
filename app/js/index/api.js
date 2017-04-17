@@ -64,179 +64,15 @@ function filterFunction(json, task, proxy, cb) {
 }
 
 
-function filterApi(task, token) {
-  mkdirFolder(logsDir)
-  .then(function() {
-    setStateView(task._id, 'run');    
-    loggerDb(task._id, 'Фильтрация аудитории');
-    setCompleteView(task._id, '-');
-    fs.truncate(task.outputfile, 0, function() { 
-      loggerDb(task._id, 'Файл подготовлен');
-    });
-    Client.Request.setToken(token)
-    var indicator = 0;
-    var filterSuccess = 0;
-
-    async.forEach(task.partitions, function (taskpart, callback) {
-      var filterRequest = new Client.Web.Filter();   
-      var count = taskpart.start;
-      
-      var promiseFor = Promise.method(function(condition, action, value) {
-        if (condition(value))
-          return value;
-        return action(value)
-          .then(promiseFor.bind(null, condition, action));
-      });
-
-      var condFunc = function(count) {
-        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= taskpart.end;
-      }
-
-      var actionFunc = function(count) {
-        return filterRequest.getUser(task.input_array[count], returnProxyFunc(taskpart.proxy_parc))
-        .then(function(res) { 
-
-          filterFunction(res, task, taskpart.proxy_parc, function(bool) {
-            indicator++;
-            if (bool) {
-              filterSuccess += 1;
-            }
-            renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
-          });
-
-          return ++count;
-        });
-      };
-
-      promiseFor(condFunc, actionFunc, count)
-        .then(function() {
-          // console.log('done!');
-          callback();
-        })
-        .catch(function (err) {
-          if(err.message != 'stop') {
-            console.log(err)
-            loggerDb(task._id, 'Ошибка при фильтрации ' + err._username + ': ' + err.message);
-          } else {
-            console.log(err)
-          }
-          callback();
-      })
-    }, function(err) {
-      loggerDb(task._id, 'Фильтрация остановлена');
-      setStateView(task._id, 'stopped');
-    }); 
-  })
-  .catch(function(err) {
-    console.log(err)
-  })
-}
 
 
-function parseApi(user, task, token) {
-  mkdirFolder(cookieDir)
-  .then(function() {
-    setStateView(user._id, 'run');
-    renderNewTaskCompletedView(user._id);
-    loggerDb(user._id, 'Парсинг аудитории');
-
-    fs.truncate(task.outputfile, 0, function() { 
-      loggerDb(user._id, 'Файл подготовлен'); 
-    });
-    var indicator = 0;
-
-    const device = new Client.Device(user.username);
-    var cookiePath = path.join(cookieDir, user._id + ".json");
-    const storage = new Client.CookieFileStorage(cookiePath);
-    
-    Client.Request.setToken(token)
-    var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
-      .then(function(session) {
-        if(session) {
-          updateUserStatusDb(user._id, 'Активен');
-          return session;
-        }
-      })
-      
-    if(task.parsed_conc.length == 0) {
-      throw new Error("stop");  
-    }
-
-    console.log(task.parsed_conc.length)
-    var count = 0;
-    var penalty = 0;
-    task.parsed_conc.forEach(function(conc_user) {
-      ses.then(function(session) {
-        return [session, Client.Account.searchForUser(session, conc_user)]   
-      }).all()
-      .then(function([session, account]) {
-        var feed;
-
-        if (task.parse_type == true) {
-          feed = new Client.Feed.AccountFollowers(session, account.id);
-        } else {
-          feed = new Client.Feed.AccountFollowing(session, account.id);
-        }
-
-        var promiseWhile = Promise.method(function(condition, action) {
-          if (condition())
-            return;
-          return action()
-            .then(promiseWhile.bind(null, condition, action));
-        });
-
-        var condFunc = function() {
-          return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit * task.parsed_conc.length - penalty; // fix for
-        }
-
-        var actionFunc = function() {
-          return feed.get()
-          .then(function(res) { 
-
-            res.forEach(function (item, i , arr) {
-              if (count < task.max_limit * task.parsed_conc.length) {
-                appendStringFile(task.outputfile, item._params.username);
-                renderTaskCompletedView(user._id);
-              }
-              count++
-            });
-            if (!feed.getCursor()) {
-
-              penalty += task.max_limit - count
-              throw new Error("stop");  
-            }
-          });
-        };
-
-        promiseWhile(condFunc, actionFunc)
-          .then(function() {
-          setStateView(user._id, 'stopped');
-          console.log('done!');
-        })
-        .catch(function (err) {
-          // console.log(err);
-          setStateView(user._id, 'stopped');
-        })
-      })
-      .catch(function (err) {
-
-        // console.log(err)
-        setStateView(user._id, 'stopped');
-      });
-    });
-  })
-  .catch(function(err) {
-    setStateView(user._id, 'stopped');
-    console.log(err);
-  })
-}
-
-function fastCreateAccount(task, email, username, password, proxy, cb) {
+function fastCreateAccount(task, email, username, password, proxy, token, cb) {
 
   var cookiePath = path.join(cookieDir, email + '.json')
   const storage = new Client.CookieFileStorage(cookiePath);
   var device = new Client.Device(email);
   var session = new Client.Session(device, storage, proxy);
+  session.token = token;
   new Client.AccountEmailCreator(session)
     .setEmail(email)
     .setUsername(username)
@@ -255,161 +91,6 @@ function fastCreateAccount(task, email, username, password, proxy, cb) {
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
-
-function createApi(task, token) {
-  mkdirFolder(logsDir)
-  mkdirFolder(cookieDir)
-  .then(function() {
-    setStateView(task._id, 'run');
-    loggerDb(task._id, 'Регистрация аккаунтов');
-    setCompleteView(task._id, '-');
-
-
-    Client.Request.setToken(token)
-    const NAMES = require('./config/names').names;
-    const SURNAMES = require('./config/names').surnames;
-
-    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
-    proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
-    // var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
-
-    var email_array = [];
-    if (!task.own_emails) {
-      for(var i = 0; i < task.emails_cnt; i++) {
-        var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-        email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
-      }
-    } else {
-      email_array = task.email_parsed;
-    }
-
-    if(!proxy_array || email_array.length == 0) {
-      console.log("empty");
-      return;
-    }
-
-    var chunked = _.chunk(email_array, proxy_array.length);
-    _.object = function(list, values) {
-      if (list == null) return {};
-      var result = {};
-      for (var i = 0, l = list.length; i < l; i++) {
-        if (values) {
-          result[list[i]] = values[i];
-        } else {
-          result[list[i][0]] = list[i][1];
-        }
-      }
-      return result;
-    };
-    
-    // var promiseWhile = Promise.method(function(condition, action) {
-    //   if (condition())
-    //     return;
-    //   return action()
-    //     .then(promiseWhile.bind(null, condition, action));
-    // });
-
-    // var condFunc = function() {
-    //   return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit * task.parsed_conc.length - penalty; // fix for
-    // }
-
-    // var actionFunc = function() {
-    //   return feed.get()
-    //   .then(function(res) { 
-
-         
-    //   });
-    // };
-
-    // promiseWhile(condFunc, actionFunc)
-    //   .then(function() {
-    //   setStateView(user._id, 'stopped');
-    //   console.log('done!');
-    // })
-    // .catch(function (err) {
-    //   console.log(err);
-    //   setStateView(user._id, 'stopped');
-    // })
-
-    ////////
-    var promiseWhile = function( action, email_tuple) {
-      var resolver = Promise.defer();
-      var filterSuccess = 0;
-      var i = 0;
-      var indicator = 0;
-      var func = function() {
-        async.mapValues( _.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
-          var password = generatePassword(); 
-          var name = email.split("@")[0];
-
-          // console.log(email)
-          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), function(session, err) {
-            indicator++;
-            if (err) {
-              if (err instanceof Client.Exceptions.APIError) {
-                // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-              } else {
-                console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-              }     
-
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            }
-            
-            if (session) {
-              filterSuccess += 1;
-              console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
-              appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
-
-              // renderTaskCompletedView(task._id);
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            }
-
-          });
-
-
-        }, function(err, result) {
-          console.log("DONE!");
-          setStateView(task._id, 'stopped');
-          loggerDb(task._id, 'Регистрация остановлена');  
-        });
-        i++;
-        if(getStateView(task._id) == 'stop' || i > email_tuple.length - 1) {
-          return resolver.resolve(); 
-        }
-        return Promise.cast(action(email_tuple))
-          .then(func)
-          .catch(resolver.reject);
-      };
-      process.nextTick(func);
-      return resolver.promise;
-
-    };
-
-    var actionFunc = function() {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
-          resolve();
-        }, task.reg_timeout * 1000);
-      });
-    };
-
-    promiseWhile(actionFunc, chunked)
-    .catch(function (err) {
-      console.log(err);
-    });
-    //
-
-  })
-  .catch(function(err) {
-    console.log(err);
-    setStateView(task._id, 'stopped');
-  })
-}
-
 
 function locFb(proxy, task, cb) {
 
@@ -542,6 +223,10 @@ function removeDup(task, filepath) {
 }
 
 
+/*****************************
+ * Parse geo                 *                      
+ *****************************/
+
 function parseGeoApi(task, token) {
   mkdirFolder(logsDir)
     .then(function() {
@@ -622,6 +307,315 @@ function parseGeoApi(task, token) {
    
 }
 
+/*****************************
+ * Filter accounts           *                      
+ *****************************/
+
+function filterApi(task, token) { ///////////////////// FIX !!!
+  mkdirFolder(logsDir)
+  .then(function() {
+    setStateView(task._id, 'run');    
+    loggerDb(task._id, 'Фильтрация аудитории');
+    setCompleteView(task._id, '-');
+    fs.truncate(task.outputfile, 0, function() { 
+      loggerDb(task._id, 'Файл подготовлен');
+    });
+
+    var indicator = 0;
+    var filterSuccess = 0;
+
+    async.each(task.partitions, function (taskpart, callback) {
+
+      var filterRequest = new Client.Web.Filter(token);   
+      var count = taskpart.start;
+      var promiseFor = Promise.method(function(condition, action, value) {
+        if (condition(value))
+          return value;
+        return action(value)
+          .then(promiseFor.bind(null, condition, action));
+      });
+      var condFunc = function(count) {
+        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= taskpart.end;
+      }
+      var actionFunc = function(count) {
+        return filterRequest.getUser(task.input_array[count], returnProxyFunc(taskpart.proxy_parc))
+        .then(function(res) { 
+
+          filterFunction(res, task, taskpart.proxy_parc, function(bool) {
+            indicator++;
+            if (bool) {
+              filterSuccess += 1;
+            }
+            renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
+          });
+
+          return ++count;
+        });
+      };
+      promiseFor(condFunc, actionFunc, count)
+      .then(function() {
+        console.log('done!');
+        callback();
+      })
+      .catch(function (err) {
+        console.log(err)
+        callback(err);
+      })
+
+
+    }, function(err) {
+      if( err ) {
+      // One of the iterations produced an error.
+      // All processing will now stop.
+        console.log('failed to process');
+        // setStateView(task._id, 'stopped');
+      } else {
+        console.log(' have been processed successfully');
+        setStateView(task._id, 'stopped');
+      }
+    })
+  })
+  .catch(function(err) {
+    console.log(err)
+  })
+}
+
+
+
+/*****************************
+ * Parse concurents          *                      
+ *****************************/
+ 
+function parseApi(user, task, token) {
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(user._id, 'run');
+    renderNewTaskCompletedView(user._id);
+    loggerDb(user._id, 'Парсинг аудитории');
+
+    fs.truncate(task.outputfile, 0, function() { 
+      loggerDb(user._id, 'Файл подготовлен'); 
+    });
+
+    var indicator = 0;
+    const device = new Client.Device(user.username);
+    var cookiePath = path.join(cookieDir, user._id + ".json");
+    const storage = new Client.CookieFileStorage(cookiePath);
+    
+    var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
+      .then(function(session) {
+        if(session) {
+          updateUserStatusDb(user._id, 'Активен');
+          session.token = token;
+          return session;
+        }
+      })
+      
+    if(task.parsed_conc.length == 0) {
+      throw new Error("stop");  
+    }
+
+    console.log(task.parsed_conc.length)
+    var count = 0;
+    var penalty = 0;
+    task.parsed_conc.forEach(function(conc_user) {
+      ses.then(function(session) {
+        return [session, Client.Account.searchForUser(session, conc_user)]   
+      }).all()
+      .then(function([session, account]) {
+        var feed;
+
+        if (task.parse_type == true) {
+          feed = new Client.Feed.AccountFollowers(session, account.id);
+        } else {
+          feed = new Client.Feed.AccountFollowing(session, account.id);
+        }
+
+        var promiseWhile = Promise.method(function(condition, action) {
+          if (condition())
+            return;
+          return action()
+            .then(promiseWhile.bind(null, condition, action));
+        });
+
+        var condFunc = function() {
+          return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit * task.parsed_conc.length - penalty; // fix for
+        }
+
+        var actionFunc = function() {
+          return feed.get()
+          .then(function(res) { 
+
+            res.forEach(function (item, i , arr) {
+              if (count < task.max_limit * task.parsed_conc.length) {
+                appendStringFile(task.outputfile, item._params.username);
+                renderTaskCompletedView(user._id);
+              }
+              count++
+            });
+            if (!feed.getCursor()) {
+
+              penalty += task.max_limit - count
+              throw new Error("stop");  
+            }
+          });
+        };
+
+        promiseWhile(condFunc, actionFunc)
+          .then(function() {
+          setStateView(user._id, 'stopped');
+          console.log('done!');
+        })
+        .catch(function (err) {
+          // console.log(err);
+          setStateView(user._id, 'stopped');
+        })
+      })
+      .catch(function (err) {
+
+        // console.log(err)
+        setStateView(user._id, 'stopped');
+      });
+    });
+  })
+  .catch(function(err) {
+    setStateView(user._id, 'stopped');
+    console.log(err);
+  })
+}
+
+/*****************************
+ * Create accounts           *                      
+ *****************************/
+ 
+function createApi(task, token) {
+  mkdirFolder(logsDir)
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Регистрация аккаунтов');
+    setCompleteView(task._id, '-');
+
+
+    const NAMES = require('./config/names').names;
+    const SURNAMES = require('./config/names').surnames;
+
+    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
+    proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+    // var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+
+    var email_array = [];
+    if (!task.own_emails) {
+      for(var i = 0; i < task.emails_cnt; i++) {
+        var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
+        email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
+      }
+    } else {
+      email_array = task.email_parsed;
+    }
+
+    if(!proxy_array || email_array.length == 0) {
+      console.log("empty");
+      return;
+    }
+
+    var chunked = _.chunk(email_array, proxy_array.length);
+    _.object = function(list, values) {
+      if (list == null) return {};
+      var result = {};
+      for (var i = 0, l = list.length; i < l; i++) {
+        if (values) {
+          result[list[i]] = values[i];
+        } else {
+          result[list[i][0]] = list[i][1];
+        }
+      }
+      return result;
+    };
+    
+    var promiseWhile = function(action) {
+      var resolver = Promise.defer();
+      var filterSuccess = 0;
+      var i = 0;
+      var indicator = 0;
+      var func = function() {
+
+        async.mapValues( _.object(chunked[i], proxy_array), function (proxy, email, callback) {
+          var password = generatePassword(); 
+          var name = email.split("@")[0];
+
+          console.log(email)
+          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), token, function(session, err) {
+            indicator++;
+            if (err) {
+              if (err instanceof Client.Exceptions.APIError) {
+                // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+              } else {
+                console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+              }     
+
+              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              callback();
+            }
+            
+            if (session) {
+              filterSuccess += 1;
+              console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
+              appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
+
+              // renderTaskCompletedView(task._id);
+              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              callback();
+            }
+
+          });
+
+
+        }, function(err, result) {
+          console.log("DONE!");
+          setStateView(task._id, 'stopped');
+          loggerDb(task._id, 'Регистрация остановлена');  
+        });
+        i++;
+        if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
+          return resolver.resolve(); 
+        }
+        return Promise.cast(action)
+          .then(func)
+          .catch(resolver.reject);
+      };
+      process.nextTick(func);
+      return resolver.promise;
+
+    };
+
+    var actionFunc = function() {
+      return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+          resolve();
+        }, task.reg_timeout * 1000);
+      });
+    };
+
+    promiseWhile(actionFunc)
+    .catch(function (err) {
+      console.log(err);
+    });
+    //
+
+  })
+  .catch(function(err) {
+    console.log(err);
+    setStateView(task._id, 'stopped');
+  })
+}
+
+/*****************************
+ * Check accounts            *                          
+ *****************************/
+
 function checkApi(user_id, username, password, proxy, token) {
   mkdirFolder(cookieDir)
   .then(function() {
@@ -632,12 +626,11 @@ function checkApi(user_id, username, password, proxy, token) {
     var cookiePath = path.join(cookieDir, username + ".json");
     var storage = new Client.CookieFileStorage(cookiePath);
     var session = new Client.Session(device, storage);
+    session.token = token;
     if(_.isString(proxy) && !_.isEmpty(proxy)) {
       session.proxyUrl = returnProxyFunc(proxy);
     }
-    Client.Request.setToken(token)
-    console.log(token)
-    Client.Session.login(session, username, password, token)
+    Client.Session.login(session, username, password)
       .then(function(session) {
         updateUserStatusDb(user_id, 'Активен');
         setStateView(user_id, 'stopped');
@@ -654,7 +647,6 @@ function checkApi(user_id, username, password, proxy, token) {
           else {
             updateUserStatusDb(user_id, err.name);
           }
-          // console.log(err);
         } else {
           updateUserStatusDb(user_id, 'Произошла ошибка');
           console.log(err);

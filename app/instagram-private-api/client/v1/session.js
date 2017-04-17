@@ -119,7 +119,7 @@ Session.prototype.destroy = function () {
 };
 
 
-Session.login = function(session, username, password, token) {
+Session.login = function(session, username, password) {
 
     return new Request(session)
         .setResource('login')
@@ -148,13 +148,9 @@ Session.login = function(session, username, password, token) {
             throw error;
         })
         .then(function () {
-            Request.setToken(token)
-
             return [session, QE.sync(session)];
         })
         .spread(function (session) {
-            Request.setToken(token)
-
             var autocomplete = Relationship.autocompleteUserList(session)
                 .catch(Exceptions.RequestsLimitError, function() {
                     // autocompleteUserList has ability to fail often
@@ -165,32 +161,21 @@ Session.login = function(session, username, password, token) {
             return [session, autocomplete];
         })
         .spread(function (session) {
-            Request.setToken(token)
-
             return [session, new Timeline(session).get()];
         })
         .spread(function (session) {
-            Request.setToken(token)
-
             return [session, Thread.recentRecipients(session)];
         })
         .spread(function (session) {
-            Request.setToken(token)
-
             return [session, new Inbox(session).get()];
         })
         .spread(function (session) {
-            Request.setToken(token)
-
             return [session, Megaphone.logSeenMainFeed(session)];
         })
         .spread(function(session) {
-
             return session;
         })
         .catch(Exceptions.CheckpointError, function(error) {
-            Request.setToken(token)
-            
             // This situation is not really obvious,
             // but even if you got checkpoint error (aka captcha or phone)
             // verification, it is still an valid session unless `sessionid` missing
