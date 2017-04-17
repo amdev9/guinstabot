@@ -15,39 +15,13 @@ var softname = config.App.softname;
 
 var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
 
-function mediaFilter(json, task, proxy, cb) {
-  if (json.isBusiness) {
-    mediaSessionFilter(json, task, cb);
-  } else {
-    mediaNoSessionFilter(json, task, proxy, cb);
-  }
-}
 
-function mediaNoSessionFilter(json, task, proxy, cb) {
+function mediaFilter(json, task, proxy, cb) {
   var filterRequest = new Client.Web.Filter();
   filterRequest.media(json.username, proxy).then(function(response) {
     appendStringFile(task.outputfile, json.username);
     cb();
   });
-}
-
-function mediaSessionFilter(json, task, cb) {
-  var feed = new Client.Feed.UserMedia(session, json.id);
-  var p = new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(feed.get())
-    }, 2000);
-  });
-  p = p.then(function(results) {
-    if (new Date(results[0]._params.takenAt) >= new Date(task.lastdate + ' 00:00:00')) {
-      // console.log (results[0]._params.takenAt);  
-      // console.log("not private && data checked")
-      appendStringFile(task.outputfile, json.username);
-      cb(true);
-    }
-  }).catch(error => {
-    console.log(error);
-  });     
 }
 
 function filterFunction(json, task, proxy, cb) {
@@ -90,7 +64,7 @@ function filterFunction(json, task, proxy, cb) {
 }
 
 
-function apiFilterAccounts(task, token) {
+function filterApi(task, token) {
   mkdirFolder(logsDir)
   .then(function() {
     setStateView(task._id, 'run');    
@@ -159,7 +133,7 @@ function apiFilterAccounts(task, token) {
 }
 
 
-function apiParseAccounts(user, task, token) {
+function parseApi(user, task, token) {
   mkdirFolder(cookieDir)
   .then(function() {
     setStateView(user._id, 'run');
@@ -174,6 +148,7 @@ function apiParseAccounts(user, task, token) {
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + ".json");
     const storage = new Client.CookieFileStorage(cookiePath);
+    
     Client.Request.setToken(token)
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
       .then(function(session) {
@@ -239,29 +214,14 @@ function apiParseAccounts(user, task, token) {
           console.log('done!');
         })
         .catch(function (err) {
-          console.log(err);
+          // console.log(err);
           setStateView(user._id, 'stopped');
         })
       })
       .catch(function (err) {
 
-        console.log(2, err)
+        // console.log(err)
         setStateView(user._id, 'stopped');
-        if (err instanceof Client.Exceptions.APIError) {
-          if(err.ui) {
-            updateUserStatusDb(user._id, err.ui); 
-          } else if (err.name == 'RequestCancel') {
-
-          }
-          else {
-            updateUserStatusDb(user._id, err.name);
-          }
-          // console.log(err);
-        } else {
-          updateUserStatusDb(user._id, 'Произошла ошибка');
-          console.log(err);
-        }
-
       });
     });
   })
@@ -296,7 +256,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function apiCreateAccounts(task, token) {
+function createApi(task, token) {
   mkdirFolder(logsDir)
   mkdirFolder(cookieDir)
   .then(function() {
@@ -582,7 +542,7 @@ function removeDup(task, filepath) {
 }
 
 
-function apiParseGeoAccounts(task, token) {
+function parseGeoApi(task, token) {
   mkdirFolder(logsDir)
     .then(function() {
       setStateView(task._id, 'run');
@@ -662,7 +622,7 @@ function apiParseGeoAccounts(task, token) {
    
 }
 
-function apiSessionCheck(user_id, username, password, proxy, token) {
+function checkApi(user_id, username, password, proxy, token) {
   mkdirFolder(cookieDir)
   .then(function() {
    
@@ -676,12 +636,14 @@ function apiSessionCheck(user_id, username, password, proxy, token) {
       session.proxyUrl = returnProxyFunc(proxy);
     }
     Client.Request.setToken(token)
-    Client.Session.login(session, username, password)
+    console.log(token)
+    Client.Session.login(session, username, password, token)
       .then(function(session) {
         updateUserStatusDb(user_id, 'Активен');
         setStateView(user_id, 'stopped');
       })
       .catch(function (err) {
+        console.log(err)
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
           if(err.ui) {

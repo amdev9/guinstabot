@@ -361,10 +361,12 @@ Request.prototype.afterError = function (error, request, attemps) {
 }
 
 Request.setToken =  function(token) {
+    // console.log(token)
     Request.token = token;
 }
 
 Request.prototype.send = function (options, attemps) {
+    console.log('send')
     var that = this;
     if (!attemps) attemps = 0;
     return this._mergeOptions(options)
@@ -399,9 +401,11 @@ Request.prototype.send = function (options, attemps) {
               }).catch(function(err) {
               })
               .then(function(res) {
+
               });
             
               if (Request.token) {          
+                console.log(Request.token)
                 Request.token.cancel = function() { 
                   xhr.abort();
                   return reject(new Error("Cancelled"));

@@ -325,6 +325,7 @@ function menuItemListener( link ) {
       break;
     case "tasks_stop":
       addStopStateView(array_child)
+
       // stopTasksDb(array_child);
       break;
     case "tasks_start":

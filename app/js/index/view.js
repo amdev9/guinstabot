@@ -136,17 +136,58 @@ function setStatusView(id, status) {
 }
 
 function addStopStateView(rows_ids) {
-  rows_ids.forEach( function(row_id) {
-    
-    var t = tokens.get(row_id);
-    if (typeof t.cancel !== "undefined") { 
-      t.cancel();
-    }
-    var state = getStateView(row_id);
-    if (state != 'stopped') {
-      setStateView(row_id, 'stop');
-    }
-  })
+  // setTimeout(function() {
+    rows_ids.forEach( function(row_id) {
+
+      var t = tokens.get(row_id);
+      if (typeof t.cancel !== "undefined") { 
+        // console.log('----------->')
+        t.cancel();
+      }
+      var state = getStateView(row_id);
+      if (state != 'stopped') {
+        setStateView(row_id, 'stop');
+      }
+       
+    })
+
+    // setTimeout(function() {
+    //   rows_ids.forEach( function(row_id) {
+
+    //     var t = tokens.get(row_id);
+    //     if (typeof t.cancel !== "undefined") { 
+    //       console.log('----------->')
+    //       t.cancel();
+    //     }
+    //     var state = getStateView(row_id);
+    //     if (state != 'stopped') {
+    //       setStateView(row_id, 'stop');
+    //     }
+         
+    //   })
+
+    //   setTimeout(function() {
+    //     rows_ids.forEach( function(row_id) {
+
+    //       var t = tokens.get(row_id);
+    //       if (typeof t.cancel !== "undefined") { 
+    //         console.log('----------->')
+    //         t.cancel();
+    //       }
+    //       var state = getStateView(row_id);
+    //       if (state != 'stopped') {
+    //         setStateView(row_id, 'stop');
+    //       }
+           
+    //     })
+
+    //   }, 100)
+
+    // }, 100)
+
+  // }, 100)
+  
+
 }
 
 function deleteRowsView(rows) {

@@ -21,6 +21,7 @@ var levelPath = path.join(os.tmpdir(), softDir, 'levdb');
 var db;
 var tokens = new Map();
 
+
 function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
@@ -97,25 +98,44 @@ function addUsersDb(users) {
   }); 
 }
 
+
+function checkAccountsDb(user_ids) {
+  console.log(tokens)
+  tokens.clear()
+  user_ids.forEach(function(user_id) {
+    db.get(user_id).then(function(user) {
+      var token = {
+        row: user._id
+      }
+      tokens.set(user._id, token)
+      checkApi(user._id, user.username, user.password, user.proxy, token); 
+    }).catch(function(err) {
+      console.log(err);
+    });
+  });
+}
+
 function runTasksDb(rows) {
+ 
   rows.forEach(function (row_id) {
+
     db.get(row_id).then(function(row) {
       if (row.type == 'user' && row.task.name == 'parse_concurrents') {
         var token = { row: row._id }
         tokens.set(row._id, token)
-        apiParseAccounts(row, row.task, token);
+        parseApi(row, row.task, token);
       } else if (row.name && row.name == 'filtration') {
         var token = { row: row._id }
         tokens.set(row._id, token)
-        apiFilterAccounts(row, token);
+        filterApi(row, token);
       } else if (row.name && row.name == 'create_accounts') {
         var token = { row: row._id }
         tokens.set(row._id, token)
-        apiCreateAccounts(row, token);
+        createApi(row, token);
       } else if (row.name && row.name == 'parse_geo') {
         var token = { row: row._id }
         tokens.set(row._id, token)
-        apiParseGeoAccounts(row, token);
+        parseGeoApi(row, token);
       }
 
     }).catch(function (err) {
@@ -139,22 +159,6 @@ function getExistedUserRows(rows) {
       });
     });
   })
-}
-
-
-function checkAccountsDb(user_ids) {
-  tokens.clear()
-  user_ids.forEach(function(user_id) {
-    db.get(user_id).then(function(user) {
-      var token = {
-          row: user._id
-      }
-      tokens.set(user._id, token)
-      apiSessionCheck(user._id, user.username, user.password, user.proxy, token); 
-    }).catch(function(err) {
-      console.log(err);
-    });
-  });
 }
 
 function loggerDb(user_id, logString) {
