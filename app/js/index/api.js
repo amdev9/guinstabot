@@ -507,6 +507,8 @@ function parseApi(user, task, token) {
     var count = 0;
     var penalty = 0;
     task.parsed_conc.forEach(function(conc_user) {
+      // console.log(conc_user)
+      
       ses.then(function(session) {
         return [session, Client.Account.searchForUser(session, conc_user)]   
       }).all()
@@ -564,6 +566,9 @@ function parseApi(user, task, token) {
         // console.log(err)
         setStateView(user._id, 'stopped');
       });
+    
+
+
     });
   })
   .catch(function(err) {
