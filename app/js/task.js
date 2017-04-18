@@ -190,57 +190,59 @@ function filtration(taskName) {
   } else {
     task._id = new Date().toISOString().replace(".", "").replace(":", "");
   }
+  ipc.send('add_task_event', task);
+  window.close();
+  
+  // readFilePromise(task.inputfile, 'utf8').then(function(data) {
+  //   var parsed_array = [];
+  //   parsed_array = data.split(EOL);
+  //   parsed_array = parsed_array.filter(isEmpty);
 
-  readFilePromise(task.inputfile, 'utf8').then(function(data) {
-    var parsed_array = [];
-    parsed_array = data.split(EOL);
-    parsed_array = parsed_array.filter(isEmpty);
-
-    task.input_array = parsed_array;
-    var proxyParsed = [];
-    readFilePromise(task.proxy_file, 'utf8').then(function(data) {
-      proxyParsed = data.split(EOL);
-      proxyParsed = proxyParsed.filter(isEmpty);
+  //   task.input_array = parsed_array;
+  //   var proxyParsed = [];
+  //   readFilePromise(task.proxy_file, 'utf8').then(function(data) {
+  //     proxyParsed = data.split(EOL);
+  //     proxyParsed = proxyParsed.filter(isEmpty);
 
        
-      if (proxyParsed.length > 0) {
-        var to_parse_usernames = parsed_array.length;
-        var div = Math.floor(to_parse_usernames / (proxyParsed.length) );
-        var rem = to_parse_usernames % (proxyParsed.length);
-        var partition = new Array(proxyParsed.length);
-        partition.fill({});
+  //     if (proxyParsed.length > 0) {
+  //       var to_parse_usernames = parsed_array.length;
+  //       var div = Math.floor(to_parse_usernames / (proxyParsed.length) );
+  //       var rem = to_parse_usernames % (proxyParsed.length);
+  //       var partition = new Array(proxyParsed.length);
+  //       partition.fill({});
 
-        var partitionObjZero = {};
-        partitionObjZero.start = 0;
-        partitionObjZero.end = rem + div;
-        partitionObjZero.proxy_parc = proxyParsed[0];
-        partition[0] = partitionObjZero;
-        console.log(partition[0]);
-        for (var i = 1; i < proxyParsed.length; i++) {
-          var partitionObjI = {};
-          partitionObjI.start = partition[i-1].end;
-          partitionObjI.end = partition[i-1].end + div;
-          partitionObjI.proxy_parc = proxyParsed[i];
-          partition[i] = partitionObjI;
-          console.log(partition[i]);
-        }
-        console.log(partition);
-        task.partitions = partition;
-      } else {
-        var partition = [];
-        var partitionObj = {};
-        partitionObj.start = 0;
-        partitionObj.end = parsed_array.length;
-        partitionObj.proxy_parc = "";
-        partition[0] = partitionObj;
-        console.log(partition);
-        task.partitions = partition;
-      }
+  //       var partitionObjZero = {};
+  //       partitionObjZero.start = 0;
+  //       partitionObjZero.end = rem + div;
+  //       partitionObjZero.proxy_parc = proxyParsed[0];
+  //       partition[0] = partitionObjZero;
+  //       console.log(partition[0]);
+  //       for (var i = 1; i < proxyParsed.length; i++) {
+  //         var partitionObjI = {};
+  //         partitionObjI.start = partition[i-1].end;
+  //         partitionObjI.end = partition[i-1].end + div;
+  //         partitionObjI.proxy_parc = proxyParsed[i];
+  //         partition[i] = partitionObjI;
+  //         console.log(partition[i]);
+  //       }
+  //       console.log(partition);
+  //       task.partitions = partition;
+  //     } else {
+  //       var partition = [];
+  //       var partitionObj = {};
+  //       partitionObj.start = 0;
+  //       partitionObj.end = parsed_array.length;
+  //       partitionObj.proxy_parc = "";
+  //       partition[0] = partitionObj;
+  //       console.log(partition);
+  //       task.partitions = partition;
+  //     }
       
-      ipc.send('add_task_event', task);
-      window.close();
-    });
-  });
+  //     ipc.send('add_task_event', task);
+  //     // window.close();
+  //   });
+  // });
 }
 
 

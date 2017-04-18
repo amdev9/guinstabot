@@ -369,7 +369,7 @@ Request.prototype.getToken =  function() {
 }
 
 Request.prototype.send = function (options, attemps) {
-    console.log('send')
+    // console.log('send')
     var that = this;
     if (!attemps) attemps = 0;
     return this._mergeOptions(options)

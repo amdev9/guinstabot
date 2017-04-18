@@ -100,7 +100,7 @@ function addUsersDb(users) {
 
 
 function checkAccountsDb(user_ids) {
-  console.log(tokens)
+  // console.log(tokens)
   tokens.clear()
   user_ids.forEach(function(user_id) {
     db.get(user_id).then(function(user) {
@@ -213,7 +213,7 @@ function usersTaskDb(tasks, users) {
   users.forEach(function(user_id, i) {
     db.get(user_id).then(function(user) {
       user.task = tasks[i];
-      console.log(user.task)
+      // console.log(user.task)
       db.put(user).then(function(result) {
         setTaskView(user._id, user.task.name);
       }).catch(function (err) {

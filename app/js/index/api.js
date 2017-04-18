@@ -196,49 +196,31 @@ function locMedia(task, proxy, location, callback) {
         console.log(err);
       }
     } else {
-      console.log(err);
+      // console.log(err);
     }
    
   });
 }
 
 
-function removeDup(task, filepath) {
-  renderCustomCompletedView(task._id, 'Удаляем дубликаты')
-  fs.readFile(filepath, 'utf8', (err, data) => {
-    if (err) throw err;
-    var unique = data.replace(/ /g, "").split(/\r\n|\r|\n/).filter(function(elem, index, self) {
-      return index == self.indexOf(elem);
-    })
-    fs.truncate(filepath, 0, () => {
-      unique.forEach(function(str, i) {
-        appendStringFile(filepath, str);
-        if (i == unique.length - 1 ) {
-          renderCustomCompletedView(task._id, unique.length)
-          console.log('REMOVED duplicates')
-        }
-      })
-    })
-  });
-}
-
-
 /*****************************
- * Parse geo                 *                      
+ * TASK Parse geo            *                      
  *****************************/
 
 function parseGeoApi(task, token) {
   mkdirFolder(logsDir)
-    .then(function() {
-      setStateView(task._id, 'run');
-      loggerDb(task._id, 'Парсинг по гео');
+  .then(function() {
+
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Парсинг по гео');
+    
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      if (err) throw err;
       
-      var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
       proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
       var proxy = returnProxyFunc(proxy_array[0]);
 
       // task.anonym_profile 
-
       locFb(proxy, task, function(locations_array) {
         if(!locations_array) {
           setStateView(task._id, 'stopped');
@@ -260,12 +242,12 @@ function parseGeoApi(task, token) {
           }
           return result;
         };
-        var promiseWhile = function(action, location_tuple) {
+        var promiseWhile = function(action) {
           var resolver = Promise.defer();
           var indicator = 0;
           var i = 0;
           var func = function(results) {
-            async.mapValues(_.object(location_tuple[i], proxy_array), function (proxy, location, callback) {
+            async.mapValues(_.object(chunked[i], proxy_array), function (proxy, location, callback) {
               locMedia(task, proxy, location, callback);
             }, function(err, result) {
               console.log("DONE! stopped");
@@ -276,10 +258,10 @@ function parseGeoApi(task, token) {
 
             });
             i++;
-            if(getStateView(task._id) == 'stop' || i > location_tuple.length - 1) {
+            if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
               return resolver.resolve(); 
             }
-            return Promise.cast(action(location_tuple))
+            return Promise.cast(action())
               .then(func)
               .catch(resolver.reject);
           };
@@ -294,21 +276,26 @@ function parseGeoApi(task, token) {
             // }, task.reg_timeout * 1000);
           });
         };
-        promiseWhile(actionFunc, chunked)
-          .then(function() {
-            console.log("DONE! logger");
-            
-            // setStateView(task._id, 'stopped'); ///// ??
-          }).catch(function (err) {
-            console.log(err);
-          });
-        })
-      }) 
+        promiseWhile(actionFunc)
+        .then(function() {
+          console.log("DONE! logger");
+          
+          // setStateView(task._id, 'stopped'); ///// ??
+        }).catch(function (err) {
+          console.log(err);
+        });
+      })
+
+    });
+  })
+  .catch(function(err) {
+    console.log(err)
+  }) 
    
 }
 
 /*****************************
- * Filter accounts           *                      
+ * TASK Filter accounts      *                      
  *****************************/
 
 function filterApi(task, token) { ///////////////////// FIX !!!
@@ -321,58 +308,159 @@ function filterApi(task, token) { ///////////////////// FIX !!!
       loggerDb(task._id, 'Файл подготовлен');
     });
 
+
     var indicator = 0;
     var filterSuccess = 0;
 
-    async.each(task.partitions, function (taskpart, callback) {
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      proxy_array = proxy_array.split(EOL).filter(isEmpty).filter(validateProxyString);
+      if (err) throw err;
+      fs.readFile(task.inputfile, 'utf8', function(err, users_array) {
+        users_array = users_array.split(EOL).filter(isEmpty);
 
-      var filterRequest = new Client.Web.Filter(token);   
-      var count = taskpart.start;
-      var promiseFor = Promise.method(function(condition, action, value) {
-        if (condition(value))
-          return value;
-        return action(value)
-          .then(promiseFor.bind(null, condition, action));
-      });
-      var condFunc = function(count) {
-        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= taskpart.end;
-      }
-      var actionFunc = function(count) {
-        return filterRequest.getUser(task.input_array[count], returnProxyFunc(taskpart.proxy_parc))
-        .then(function(res) { 
+        // console.log(proxy_array, users_array)
 
-          filterFunction(res, task, taskpart.proxy_parc, function(bool) {
-            indicator++;
-            if (bool) {
-              filterSuccess += 1;
+        var chunked = _.chunk(users_array, proxy_array.length);
+        _.object = function(list, values) {
+          if (list == null) return {};
+          var result = {};
+          for (var i = 0, l = list.length; i < l; i++) {
+            if (values) {
+              result[list[i]] = values[i];
+            } else {
+              result[list[i][0]] = list[i][1];
             }
-            renderUserCompletedView(task._id, task.input_array.length, indicator, filterSuccess); 
+          }
+          return result;
+        };
+
+
+        var promiseWhile = function(action) {
+          var resolver = Promise.defer();
+          var indicator = 0;
+          var i = 0;
+          var func = function(results) {
+            async.mapValues(_.object(chunked[i], proxy_array), function (proxy, user, callback) {
+
+              var filterRequest = new Client.Web.Filter(token);   
+              filterRequest.getUser(user, returnProxyFunc(proxy))
+                .then(function(res) { 
+                  filterFunction(res, task, proxy, function(bool) { // proxy fix
+                    indicator++;
+                    if (bool) {
+                      filterSuccess += 1;
+                    }
+                    // console.log(indicator)
+                    renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+                  });
+
+                  callback() 
+                })
+                .catch(function(err) { 
+                  indicator++;       
+                  callback(err)
+                });
+
+            }, function(err, result) {
+              console.log("DONE! stopped");
+              setStateView(task._id, 'stopped');
+              loggerDb(task._id, 'Фильтрация остановлена'); 
+            });
+            i++;
+            if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
+              return resolver.resolve(); 
+            }
+            return Promise.cast(action())
+              .then(func)
+              .catch(resolver.reject);
+          };
+          process.nextTick(func);
+          return resolver.promise;
+        };
+
+        var actionFunc = function() {
+          return new Promise(function(resolve, reject) {
+            resolve();
           });
-
-          return ++count;
+        };
+        promiseWhile(actionFunc)
+        .then(function() {
+          console.log("DONE! logger");
+        }).catch(function (err) {
+          console.log(err);
         });
-      };
-      promiseFor(condFunc, actionFunc, count)
-      .then(function() {
-        console.log('done!');
-        callback();
-      })
-      .catch(function (err) {
-        console.log(err)
-        callback(err);
-      })
 
 
-    }, function(err) {
-      if( err ) {
-      // One of the iterations produced an error.
-      // All processing will now stop.
-        console.log('failed to process');
-        // setStateView(task._id, 'stopped');
-      } else {
-        console.log(' have been processed successfully');
-        setStateView(task._id, 'stopped');
-      }
+
+        // console.log(_.object(chunked[0], proxy_array) )
+        // console.log(users_array.length, proxy_array.length)
+
+        // var filterRequest = new Client.Web.Filter(token);   
+        // var promiseFor = Promise.method(function(condition, action, value) {
+        //   if (condition(value))
+        //     return value;
+        //   return action(value)
+        //     .then(promiseFor.bind(null, condition, action));
+        // });
+        // var condFunc = function(count) {
+
+        //   return count > chunked.length - 1; // getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' ||
+        // }
+        // var actionFunc = function(count) {
+        //   console.log(count)
+        //   return new Promise((resolve, reject) => {
+
+        //     async.mapValues( _.object(chunked[count], proxy_array), function (proxy, user, callback) {
+
+        //       console.log(proxy, user)
+              
+        //       filterRequest.getUser(user, returnProxyFunc(proxy))
+        //       .then(function(res) { 
+
+        //         filterFunction(res, task,  proxy, function(bool) { // proxy fix
+        //           indicator++;
+        //           if (bool) {
+        //             filterSuccess += 1;
+        //           }
+        //           console.log(indicator)
+        //           renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+        //         });
+        //         callback() 
+        //       })
+        //       .catch(function(err) { 
+        //         indicator++;       
+        //         callback(err)
+        //       });
+
+        //     }, function(err, result) {
+        //       console.log("DONE!");
+        //       resolve(++count);
+        //       // setStateView(task._id, 'stopped');
+        //       // loggerDb(task._id, 'Фильтрация остановлена');  
+        //     });
+            
+            
+        //   })
+          
+
+        // };
+        // promiseFor(condFunc, actionFunc, 0)
+        // .then(function() {
+        //   console.log('done!');
+        //   // callback();
+        // })
+        // .catch(function (err) {
+        //   console.log(err)
+        //   // if(err.message == 'Cancelled') {
+        //   //   // callback(err);
+        //   // } else {
+        //   //   // callback();
+        //   // }
+          
+        // })
+
+
+      })
     })
   })
   .catch(function(err) {
@@ -383,7 +471,7 @@ function filterApi(task, token) { ///////////////////// FIX !!!
 
 
 /*****************************
- * Parse concurents          *                      
+ * USER Parse concurents     *                      
  *****************************/
  
 function parseApi(user, task, token) {
@@ -415,7 +503,7 @@ function parseApi(user, task, token) {
       throw new Error("stop");  
     }
 
-    console.log(task.parsed_conc.length)
+    // console.log(task.parsed_conc.length)
     var count = 0;
     var penalty = 0;
     task.parsed_conc.forEach(function(conc_user) {
@@ -464,7 +552,7 @@ function parseApi(user, task, token) {
         promiseWhile(condFunc, actionFunc)
           .then(function() {
           setStateView(user._id, 'stopped');
-          console.log('done!');
+          // console.log('done!');
         })
         .catch(function (err) {
           // console.log(err);
@@ -485,126 +573,132 @@ function parseApi(user, task, token) {
 }
 
 /*****************************
- * Create accounts           *                      
+ * TASK Create accounts      *                      
  *****************************/
  
 function createApi(task, token) {
   mkdirFolder(logsDir)
-  mkdirFolder(cookieDir)
+  .then(function() {
+    mkdirFolder(cookieDir)
+  })
   .then(function() {
     setStateView(task._id, 'run');
     loggerDb(task._id, 'Регистрация аккаунтов');
     setCompleteView(task._id, '-');
 
-
     const NAMES = require('./config/names').names;
     const SURNAMES = require('./config/names').surnames;
 
-    var proxy_array = fs.readFileSync(task.proxy_file, 'utf8')  
-    proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
-    // var proxy_array = fs.readFileSync(task.proxy_file, 'utf8').split('\n').filter(isEmpty).filter(validateProxyString); // check
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      if (err) throw err;
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
 
-    var email_array = [];
-    if (!task.own_emails) {
-      for(var i = 0; i < task.emails_cnt; i++) {
-        var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-        email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
-      }
-    } else {
-      email_array = task.email_parsed;
-    }
-
-    if(!proxy_array || email_array.length == 0) {
-      console.log("empty");
-      return;
-    }
-
-    var chunked = _.chunk(email_array, proxy_array.length);
-    _.object = function(list, values) {
-      if (list == null) return {};
-      var result = {};
-      for (var i = 0, l = list.length; i < l; i++) {
-        if (values) {
-          result[list[i]] = values[i];
-        } else {
-          result[list[i][0]] = list[i][1];
+      var email_array = [];
+      if (!task.own_emails) {
+        for(var i = 0; i < task.emails_cnt; i++) {
+          var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
+          email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
         }
+      } else {
+        email_array = task.email_parsed;
       }
-      return result;
-    };
-    
-    var promiseWhile = function(action) {
-      var resolver = Promise.defer();
-      var filterSuccess = 0;
-      var i = 0;
-      var indicator = 0;
-      var func = function() {
 
-        async.mapValues( _.object(chunked[i], proxy_array), function (proxy, email, callback) {
-          var password = generatePassword(); 
-          var name = email.split("@")[0];
+      if(!proxy_array || email_array.length == 0) {
+        console.log("empty");
+        return;
+      }
 
-          console.log(email)
-          fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), token, function(session, err) {
-            indicator++;
-            if (err) {
-              if (err instanceof Client.Exceptions.APIError) {
-                // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-              } else {
-                console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-              }     
-
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            }
-            
-            if (session) {
-              filterSuccess += 1;
-              console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
-              appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
-
-              // renderTaskCompletedView(task._id);
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            }
-
-          });
-
-
-        }, function(err, result) {
-          console.log("DONE!");
-          setStateView(task._id, 'stopped');
-          loggerDb(task._id, 'Регистрация остановлена');  
-        });
-        i++;
-        if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
-          return resolver.resolve(); 
+      var chunked = _.chunk(email_array, proxy_array.length);
+      _.object = function(list, values) {
+        if (list == null) return {};
+        var result = {};
+        for (var i = 0, l = list.length; i < l; i++) {
+          if (values) {
+            result[list[i]] = values[i];
+          } else {
+            result[list[i][0]] = list[i][1];
+          }
         }
-        return Promise.cast(action)
-          .then(func)
-          .catch(resolver.reject);
+        return result;
       };
-      process.nextTick(func);
-      return resolver.promise;
+      
+      // console.log(_.object(chunked[0], proxy_array))
+      // console.log(email_array.length, proxy_array.length)
 
-    };
+      var promiseWhile = function(action, email_tuple) {
+        var resolver = Promise.defer();
+        var filterSuccess = 0;
+        var i = 0;
+        var indicator = 0;
+        var func = function(results) {
 
-    var actionFunc = function() {
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
-          resolve();
-        }, task.reg_timeout * 1000);
+          async.mapValues( _.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
+            var password = generatePassword(); 
+            var name = email.split("@")[0];
+
+            // console.log(proxy, email)
+            fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), token, function(session, err) {
+              indicator++;
+              if (err) {
+                if (err instanceof Client.Exceptions.APIError) {
+                  // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                  loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+                } else {
+                  console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
+                  loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
+                }     
+
+                renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+                callback();
+              }
+              
+              if (session) {
+                filterSuccess += 1;
+                console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
+                appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
+
+                // renderTaskCompletedView(task._id);
+                renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+                callback();
+              }
+
+            });
+
+
+          }, function(err, result) {
+            console.log("DONE!");
+          });
+          i++;
+          if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
+            return resolver.resolve(); 
+          }
+          return Promise.cast(action(email_tuple))
+            .then(func)
+            .catch(resolver.reject);
+        };
+        process.nextTick(func);
+        return resolver.promise;
+
+      };
+
+      var actionFunc = function() {
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve(chunked);
+          }, task.reg_timeout * 1000);
+        });
+      };
+
+      promiseWhile(actionFunc, chunked)
+      .catch(function (err) {
+        console.log(err);
+        setStateView(task._id, 'stopped');
+        loggerDb(task._id, 'Регистрация остановлена');  
+      }).catch(function (err) {
+        console.log(err);
       });
-    };
 
-    promiseWhile(actionFunc)
-    .catch(function (err) {
-      console.log(err);
-    });
-    //
-
+    })
   })
   .catch(function(err) {
     console.log(err);
@@ -613,7 +707,7 @@ function createApi(task, token) {
 }
 
 /*****************************
- * Check accounts            *                          
+ * USER Check accounts       *                          
  *****************************/
 
 function checkApi(user_id, username, password, proxy, token) {
@@ -636,7 +730,7 @@ function checkApi(user_id, username, password, proxy, token) {
         setStateView(user_id, 'stopped');
       })
       .catch(function (err) {
-        console.log(err)
+        // console.log(err)
         setStateView(user_id, 'stopped');
         if (err instanceof Client.Exceptions.APIError) {
           if(err.ui) {
