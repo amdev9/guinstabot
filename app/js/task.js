@@ -1,13 +1,17 @@
 ipc = require('electron').ipcRenderer;
-var _ = require('lodash')
-var turf = require('@turf/turf')
-var mapboxgl = require('mapbox-gl');
-var MapboxDraw = require('@mapbox/mapbox-gl-draw');
 
+var fs = require('fs')
+var os = require('os'), EOL = os.EOL
+var Promise = require('bluebird')
+var _ = require('lodash')
+
+
+var turf = require('@turf/turf')
+var mapboxgl = require('mapbox-gl')
+var MapboxDraw = require('@mapbox/mapbox-gl-draw')
 var Point = require('point-geometry')
-var fs = require("fs");
-var os = require('os'), EOL = os.EOL;
-var Promise = require('bluebird');
+
+
 var readFilePromise = Promise.promisify(require("fs").readFile);
 const {dialog} = require('electron').remote
 var config = require('../config/default');
@@ -56,7 +60,6 @@ function updateElementsAccessibility(type) {
     updateElemView(['parse_geo', 'filtration', 'create_accounts']);
   }
 }
-
 
 
 function saveTypeRowsDom(type, rows) {
@@ -192,57 +195,6 @@ function filtration(taskName) {
   }
   ipc.send('add_task_event', task);
   window.close();
-  
-  // readFilePromise(task.inputfile, 'utf8').then(function(data) {
-  //   var parsed_array = [];
-  //   parsed_array = data.split(EOL);
-  //   parsed_array = parsed_array.filter(isEmpty);
-
-  //   task.input_array = parsed_array;
-  //   var proxyParsed = [];
-  //   readFilePromise(task.proxy_file, 'utf8').then(function(data) {
-  //     proxyParsed = data.split(EOL);
-  //     proxyParsed = proxyParsed.filter(isEmpty);
-
-       
-  //     if (proxyParsed.length > 0) {
-  //       var to_parse_usernames = parsed_array.length;
-  //       var div = Math.floor(to_parse_usernames / (proxyParsed.length) );
-  //       var rem = to_parse_usernames % (proxyParsed.length);
-  //       var partition = new Array(proxyParsed.length);
-  //       partition.fill({});
-
-  //       var partitionObjZero = {};
-  //       partitionObjZero.start = 0;
-  //       partitionObjZero.end = rem + div;
-  //       partitionObjZero.proxy_parc = proxyParsed[0];
-  //       partition[0] = partitionObjZero;
-  //       console.log(partition[0]);
-  //       for (var i = 1; i < proxyParsed.length; i++) {
-  //         var partitionObjI = {};
-  //         partitionObjI.start = partition[i-1].end;
-  //         partitionObjI.end = partition[i-1].end + div;
-  //         partitionObjI.proxy_parc = proxyParsed[i];
-  //         partition[i] = partitionObjI;
-  //         console.log(partition[i]);
-  //       }
-  //       console.log(partition);
-  //       task.partitions = partition;
-  //     } else {
-  //       var partition = [];
-  //       var partitionObj = {};
-  //       partitionObj.start = 0;
-  //       partitionObj.end = parsed_array.length;
-  //       partitionObj.proxy_parc = "";
-  //       partition[0] = partitionObj;
-  //       console.log(partition);
-  //       task.partitions = partition;
-  //     }
-      
-  //     ipc.send('add_task_event', task);
-  //     // window.close();
-  //   });
-  // });
 }
 
 
@@ -253,29 +205,23 @@ function parseConcurrents(taskName) {
   var users = $("div.container").data('user');
 
   users.forEach(function(user, iter, arr) {
-    var task = {};
-    task.name = taskName;
-    task.outputfile = document.getElementById("parsed_accounts").value;
-    task.max_limit = document.getElementById("max_limit").value;
-    var followTrueSubscribeFalse = false;
+    var task = {}
+    task.name = taskName
+    task.outputfile = document.getElementById("parsed_accounts").value
+    task.max_limit = document.getElementById("max_limit").value
+    var followTrueSubscribeFalse = false
     if (document.getElementById("follow").checked == true) {
-      followTrueSubscribeFalse = true;
+      followTrueSubscribeFalse = true
     }
-    task.parse_type = followTrueSubscribeFalse;
+    task.parse_type = followTrueSubscribeFalse
 
-    var concurParsed = document.getElementById("parsed_conc").value.split(EOL);
-    concurParsed = concurParsed.filter(isEmpty);
-    var to_parse_usernames = concurParsed.length;
-    var div = Math.floor(to_parse_usernames / users.length);
-    var rem = to_parse_usernames % users.length;
-    var dotation = [];
-    dotation[0] = rem + div;
-    for (var i = 1; i < users.length; i++) {
-      dotation[i] = dotation[i-1]+div;
-    }
-    task.parsed_conc = (iter == 0) ? concurParsed.slice(0, dotation[iter]) : concurParsed.slice(dotation[iter-1], dotation[iter]);
-    tasks.push(task);
-    if(iter == arr.length - 1) {      
+    var concurParsed = document.getElementById("parsed_conc").value.split(EOL).filter(isEmpty)
+    var sizeOfChunk = _.ceil(concurParsed.length / users.length)
+    task.parsed_conc = _.chunk(concurParsed, sizeOfChunk)[iter]
+    tasks.push(task)
+
+    if(iter == arr.length - 1) {   
+      // console.log(tasks, users)   
       ipc.send('add_task_event', tasks, users);
       window.close();
     }
