@@ -17,7 +17,7 @@ var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
 
 
 function mediaFilter(json, task, proxy, cb) {
-  var filterRequest = new Client.Web.Filter();
+  var filterRequest = new Client.Web.Filter(token);
   filterRequest.media(json.username, proxy).then(function(response) {
     appendStringFile(task.outputfile, json.username);
     cb();
@@ -65,144 +65,6 @@ function filterFunction(json, task, proxy, cb) {
 
 
 
-
-function fastCreateAccount(task, email, username, password, proxy, token, cb) {
-
-  var cookiePath = path.join(cookieDir, email + '.json')
-  const storage = new Client.CookieFileStorage(cookiePath);
-  var device = new Client.Device(email);
-  var session = new Client.Session(device, storage, proxy);
-  session.token = token;
-  new Client.AccountEmailCreator(session)
-    .setEmail(email)
-    .setUsername(username)
-    .setPassword(password)
-    .setName('')
-    .register()
-    .spread(function(account, discover) {
-      cb(account)
-      // console.log("Discovery Feed", discover);
-    })
-    .catch(function(err) {
-      cb(null, err)
-    })
-}
-
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function locFb(proxy, task, cb) {
-
-  // Выполнено: Собираем локации
-  renderCustomCompletedView(task._id, 'Ищем локации')
-
-  var lng = task.centroid[0]
-  var lat = task.centroid[1]
-  var distance = Math.floor(task.distance * 1000)
-  var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
-  ////// 50000
-
-  var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
-  
-  // console.log(locations)
-  
-  var fb;
-  var locations_array = [];
-  var fb = new Client.Web.fbSearchPlace(proxy, locations);
-  var promiseWhile = function(action) {
-    return new Promise(function(resolve, reject) { 
-      var indicator = 0;
-      var func = function(res) { 
-        if (res) {
-          var jsonRes = JSON.parse(res.body)
-          indicator += jsonRes.data.length
-          // console.log(indicator)
-          renderCustomCompletedView(task._id, 'Локации: ' + indicator)
-          jsonRes.data.forEach(function(item) {
-            locations_array.push(item.id)
-          })
-          if (getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !jsonRes.paging) { 
-            return reject(new Error("stop"));  
-          }
-          // console.log(jsonRes.paging.next)
-        }
-        return Promise.resolve(action())
-          .then(func)
-          .catch(function(err) {
-            reject(err)
-          }) 
-      }
-      process.nextTick(func)
-    }) 
-  }
-  promiseWhile(function() {
-    return new Promise(function(resolve, reject) {
-      resolve(fb.get());
-    });
-  })
-  .catch(function (err) {
-    console.log(err);
-    if (getStateView(task._id) != 'stop' && getStateView(task._id) != 'stopped') {
-      cb(locations_array);
-    } else {
-      cb();
-    }
-  });
-}
-
-function locMedia(task, proxy, location, callback) {
-
-  renderNewTaskCompletedView(task._id)
-  var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);  
-  var promiseWhile = function(action) {
-    return new Promise(function(resolve, reject) { 
-      var indicator = 0;
-      var func = function(res) { 
-        if (res) {
-          if ( getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || !res.location.media.page_info.end_cursor) {
-            return callback();
-          }
-          var unique = res.location.media.nodes.filter(function(elem, index, self) {
-            return index == self.indexOf(elem);
-          })
-          // Выполнено: current_value + unique.length
-          unique.forEach(function(node) {
-            appendStringFile(task.output_file, node.owner.id);
-            // console.log(node.owner.id) // show on menu
-          })
-          renderTaskValueCompletedView(task._id, unique.length);
-
-          // console.log(proxy, location, res.location.media.page_info.end_cursor, res.location.media.nodes.length) 
-          // appendStringFile(task.output_file, proxy + ' ' + location + ' ' + res.location.media.page_info.end_cursor + ' ' + res.location.media.nodes.length);
-        }
-        return Promise.resolve(action())
-          .then(func)
-          .catch(function(err) {
-            reject(err)
-          })
-      }
-      process.nextTick(func)
-    }) 
-  }
-  promiseWhile(function() {
-    return new Promise(function(resolve, reject) {
-      resolve(locationReq.get());
-    });
-  })
-  .catch(function (err) {
-    if (err instanceof Client.Exceptions.APIError) {
-      if (!err instanceof  Client.Exceptions.NotFoundError) {
-        console.log(err);
-      }
-    } else {
-      // console.log(err);
-    }
-   
-  });
-}
-
-
 /*****************************
  * TASK Parse geo            *                      
  *****************************/
@@ -220,14 +82,35 @@ function parseGeoApi(task, token) {
       proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
       var proxy = returnProxyFunc(proxy_array[0]);
 
-      // task.anonym_profile 
-      locFb(proxy, task, function(locations_array) {
-        if(!locations_array) {
-          setStateView(task._id, 'stopped');
-          renderCustomCompletedView(task._id, '-')
-          loggerDb(task._id, 'Парсинг по гео остановлен');  
-          return;
-        }
+
+
+  // FIND LOCATIONS
+  // var lng = task.centroid[0]
+  // var lat = task.centroid[1]
+  // var distance = Math.floor(task.distance * 1000)
+  // var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
+  // ////// 50000
+
+  // var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
+  
+  // // console.log(locations)
+  
+  // var fb;
+  // var locations_array = [];
+  // var fb = new Client.Web.fbSearchPlace(proxy, locations);
+
+
+  //       if (res) {
+  //         var jsonRes = JSON.parse(res.body)
+  //         indicator += jsonRes.data.length
+  //         // console.log(indicator)
+  //         renderCustomCompletedView(task._id, 'Локации: ' + indicator)
+  //         jsonRes.data.forEach(function(item) {
+  //           locations_array.push(item.id)
+  //         })
+
+  //         !jsonRes.paging
+
 
         var chunked = _.chunk(locations_array, proxy_array.length);
         _.object = function(list, values) {
@@ -242,50 +125,28 @@ function parseGeoApi(task, token) {
           }
           return result;
         };
-        var promiseWhile = function(action) {
-          var resolver = Promise.defer();
-          var indicator = 0;
-          var i = 0;
-          var func = function(results) {
-            async.mapValues(_.object(chunked[i], proxy_array), function (proxy, location, callback) {
-              locMedia(task, proxy, location, callback);
-            }, function(err, result) {
-              console.log("DONE! stopped");
-              setStateView(task._id, 'stopped');
-              loggerDb(task._id, 'Парсинг по гео остановлен'); 
 
-              // removeDup(task, task.output_file)  // make it on streams
+// LOCATION FEED
+        // locMedia(task, proxy, location, callback);
+        //   var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);  
+  
 
-            });
-            i++;
-            if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
-              return resolver.resolve(); 
-            }
-            return Promise.cast(action())
-              .then(func)
-              .catch(resolver.reject);
-          };
-          process.nextTick(func);
-          return resolver.promise;
-        };
+        // if (res) {
+        //   if ( getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || ) {
+        //     return callback();
+        //   }
+        //   var unique = res.location.media.nodes.filter(function(elem, index, self) {
+        //     return index == self.indexOf(elem);
+        //   })
+        //   // Выполнено: current_value + unique.length
+        //   unique.forEach(function(node) {
+        //     appendStringFile(task.output_file, node.owner.id);
+        //     // console.log(node.owner.id) // show on menu
+        //   })
 
-        var actionFunc = function() {
-          return new Promise(function(resolve, reject) {
-            // setTimeout(function() {
-            resolve(chunked);
-            // }, task.reg_timeout * 1000);
-          });
-        };
-        promiseWhile(actionFunc)
-        .then(function() {
-          console.log("DONE! logger");
-          
-          // setStateView(task._id, 'stopped'); ///// ??
-        }).catch(function (err) {
-          console.log(err);
-        });
-      })
+        //   !res.location.media.page_info.end_cursor
 
+    //   })
     });
   })
   .catch(function(err) {
@@ -298,7 +159,7 @@ function parseGeoApi(task, token) {
  * TASK Filter accounts      *                      
  *****************************/
 
-function filterApi(task, token) { ///////////////////// FIX !!!
+function filterApi(task, token) { 
   mkdirFolder(logsDir)
   .then(function() {
     setStateView(task._id, 'run');    
@@ -309,16 +170,11 @@ function filterApi(task, token) { ///////////////////// FIX !!!
     });
 
 
-    var indicator = 0;
-    var filterSuccess = 0;
-
     fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
       proxy_array = proxy_array.split(EOL).filter(isEmpty).filter(validateProxyString);
       if (err) throw err;
       fs.readFile(task.inputfile, 'utf8', function(err, users_array) {
         users_array = users_array.split(EOL).filter(isEmpty);
-
-        // console.log(proxy_array, users_array)
 
         var chunked = _.chunk(users_array, proxy_array.length);
         _.object = function(list, values) {
@@ -334,132 +190,70 @@ function filterApi(task, token) { ///////////////////// FIX !!!
           return result;
         };
 
+        var count = 0;
+        var filterSuccess = 0;
+        var indicator = 0;
 
-        var promiseWhile = function(action) {
-          var resolver = Promise.defer();
-          var indicator = 0;
-          var i = 0;
-          var func = function(results) {
-            async.mapValues(_.object(chunked[i], proxy_array), function (proxy, user, callback) {
-
-              var filterRequest = new Client.Web.Filter(token);   
-              filterRequest.getUser(user, returnProxyFunc(proxy))
-                .then(function(res) { 
-                  filterFunction(res, task, proxy, function(bool) { // proxy fix
-                    indicator++;
-                    if (bool) {
-                      filterSuccess += 1;
-                    }
-                    // console.log(indicator)
-                    renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                  });
-
-                  callback() 
-                })
-                .catch(function(err) { 
-                  indicator++;       
-                  callback(err)
-                });
-
-            }, function(err, result) {
-              console.log("DONE! stopped");
-              setStateView(task._id, 'stopped');
-              loggerDb(task._id, 'Фильтрация остановлена'); 
-            });
-            i++;
-            if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
-              return resolver.resolve(); 
-            }
-            return Promise.cast(action())
-              .then(func)
-              .catch(resolver.reject);
-          };
-          process.nextTick(func);
-          return resolver.promise;
-        };
-
-        var actionFunc = function() {
-          return new Promise(function(resolve, reject) {
-            resolve();
-          });
-        };
-        promiseWhile(actionFunc)
-        .then(function() {
-          console.log("DONE! logger");
-        }).catch(function (err) {
-          console.log(err);
+        var promiseWhile = Promise.method(function(condition, action) {
+          if (condition())
+            return;
+          return action()
+            .then(promiseWhile.bind(null, condition, action));
         });
+        var condFunc = function() {
+          return count >= chunked.length;
+        }
+        var actionFunc = function() {
+          var chnk = _.object(chunked[count], _.shuffle(proxy_array)) 
 
-
-
-        // console.log(_.object(chunked[0], proxy_array) )
-        // console.log(users_array.length, proxy_array.length)
-
-        // var filterRequest = new Client.Web.Filter(token);   
-        // var promiseFor = Promise.method(function(condition, action, value) {
-        //   if (condition(value))
-        //     return value;
-        //   return action(value)
-        //     .then(promiseFor.bind(null, condition, action));
-        // });
-        // var condFunc = function(count) {
-
-        //   return count > chunked.length - 1; // getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' ||
-        // }
-        // var actionFunc = function(count) {
-        //   console.log(count)
-        //   return new Promise((resolve, reject) => {
-
-        //     async.mapValues( _.object(chunked[count], proxy_array), function (proxy, user, callback) {
-
-        //       console.log(proxy, user)
-              
-        //       filterRequest.getUser(user, returnProxyFunc(proxy))
-        //       .then(function(res) { 
-
-        //         filterFunction(res, task,  proxy, function(bool) { // proxy fix
-        //           indicator++;
-        //           if (bool) {
-        //             filterSuccess += 1;
-        //           }
-        //           console.log(indicator)
-        //           renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-        //         });
-        //         callback() 
-        //       })
-        //       .catch(function(err) { 
-        //         indicator++;       
-        //         callback(err)
-        //       });
-
-        //     }, function(err, result) {
-        //       console.log("DONE!");
-        //       resolve(++count);
-        //       // setStateView(task._id, 'stopped');
-        //       // loggerDb(task._id, 'Фильтрация остановлена');  
-        //     });
-            
-            
-        //   })
+          return new Promise( (resolve, reject) => {             
           
+          ///////
 
-        // };
-        // promiseFor(condFunc, actionFunc, 0)
-        // .then(function() {
-        //   console.log('done!');
-        //   // callback();
-        // })
-        // .catch(function (err) {
-        //   console.log(err)
-        //   // if(err.message == 'Cancelled') {
-        //   //   // callback(err);
-        //   // } else {
-        //   //   // callback();
-        //   // }
-          
-        // })
+          async.mapValues(chnk, function(proxy, filtername, callback) {
+
+            var filterRequest = new Client.Web.Filter(token);   
+            filterRequest.getUser(filtername, returnProxyFunc(proxy))
+            .then(function(res) { 
+              filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
+                indicator++;
+                if (bool) {
+                  filterSuccess += 1;
+                }
+                renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+                callback()
+              });
+
+            })
+            .catch(function(err) { 
+              indicator++;       
+
+              // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+              callback(err)
+            });
+        ///////
+
+          }, function(err, result) {
+            if(err.message == "Cancelled") {
+              setStateView(task._id, 'stopped')
+            }
+            renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+            resolve(count++)
+ 
+          })
 
 
+          })
+        };
+
+        promiseWhile(condFunc, actionFunc)
+        .then(function() {
+          setStateView(task._id, 'stopped')
+          console.log('done!');
+        })
+        .catch(function (err) {
+          console.log(err);
+        })
       })
     })
   })
@@ -487,7 +281,7 @@ function parseApi(user, task, token) {
 
     var indicator = 0;
     const device = new Client.Device(user.username);
-    var cookiePath = path.join(cookieDir, user._id + ".json");
+    var cookiePath = path.join(cookieDir, user._id + '.json');
     const storage = new Client.CookieFileStorage(cookiePath);
     
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
@@ -498,23 +292,17 @@ function parseApi(user, task, token) {
           return session;
         }
       })
-      
+
     if(task.parsed_conc.length == 0) {
       throw new Error("stop");  
     }
-
-    // console.log(task.parsed_conc.length)
-    var count = 0;
-    var penalty = 0;
-    task.parsed_conc.forEach(function(conc_user) {
-      // console.log(conc_user)
-      
+    async.eachSeries(task.parsed_conc, function(parsename, callback) {
+      var count = 0;
       ses.then(function(session) {
-        return [session, Client.Account.searchForUser(session, conc_user)]   
+        return [session, Client.Account.searchForUser(session, parsename)]   
       }).all()
       .then(function([session, account]) {
         var feed;
-
         if (task.parse_type == true) {
           feed = new Client.Feed.AccountFollowers(session, account.id);
         } else {
@@ -529,46 +317,51 @@ function parseApi(user, task, token) {
         });
 
         var condFunc = function() {
-          return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit * task.parsed_conc.length - penalty; // fix for
+          return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit;
         }
 
         var actionFunc = function() {
           return feed.get()
           .then(function(res) { 
-
             res.forEach(function (item, i , arr) {
-              if (count < task.max_limit * task.parsed_conc.length) {
+              if (count < task.max_limit) {
                 appendStringFile(task.outputfile, item._params.username);
                 renderTaskCompletedView(user._id);
               }
               count++
             });
             if (!feed.getCursor()) {
-
-              penalty += task.max_limit - count
               throw new Error("stop");  
             }
           });
         };
 
         promiseWhile(condFunc, actionFunc)
-          .then(function() {
-          setStateView(user._id, 'stopped');
-          // console.log('done!');
+        .then(function() {
+          console.log(parsename + ' done!');
+          callback()         
         })
         .catch(function (err) {
-          // console.log(err);
-          setStateView(user._id, 'stopped');
+          if(err.message == 'stop') {
+            callback()
+          } else {
+            console.log(err)
+            setStateView(user._id, 'stopped');
+          }
+          
         })
       })
       .catch(function (err) {
-
-        // console.log(err)
+        console.log(err)
         setStateView(user._id, 'stopped');
       });
-    
-
-
+    }, function(err) {
+      if( err ) {
+        console.log('A file failed to process');
+      } else {
+        console.log('All files have been processed successfully');
+        setStateView(user._id, 'stopped');
+      }
     });
   })
   .catch(function(err) {
@@ -627,82 +420,73 @@ function createApi(task, token) {
         return result;
       };
       
-      // console.log(_.object(chunked[0], proxy_array))
-      // console.log(email_array.length, proxy_array.length)
 
-      var promiseWhile = function(action, email_tuple) {
-        var resolver = Promise.defer();
-        var filterSuccess = 0;
-        var i = 0;
-        var indicator = 0;
-        var func = function(results) {
+      var count = 0;
+      var filterSuccess = 0;
+      var indicator = 0;
 
-          async.mapValues( _.object(email_tuple[i], proxy_array), function (proxy, email, callback) {
-            var password = generatePassword(); 
-            var name = email.split("@")[0];
-
-            // console.log(proxy, email)
-            fastCreateAccount(task, email, name, password, returnProxyFunc(proxy), token, function(session, err) {
-              indicator++;
-              if (err) {
-                if (err instanceof Client.Exceptions.APIError) {
-                  // console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                  loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-                } else {
-                  console.log(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message)
-                  loggerDb(task._id, 'Ошибка при регистрации ' + email + ' ' + proxy + ': ' + err.message);
-                }     
-
-                renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-                callback();
-              }
-              
-              if (session) {
-                filterSuccess += 1;
-                console.log(task.output_file, session._params.username + "|" + password + "|" + proxy)
-                appendStringFile(task.output_file, session._params.username + "|" + password + "|" + proxy);  //  email + "|" +
-
-                // renderTaskCompletedView(task._id);
-                renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-                callback();
-              }
-
-            });
-
-
-          }, function(err, result) {
-            console.log("DONE!");
-          });
-          i++;
-          if(getStateView(task._id) == 'stop' || i > chunked.length - 1) {
-            return resolver.resolve(); 
-          }
-          return Promise.cast(action(email_tuple))
-            .then(func)
-            .catch(resolver.reject);
-        };
-        process.nextTick(func);
-        return resolver.promise;
-
-      };
-
-      var actionFunc = function() {
-        return new Promise(function(resolve, reject) {
-          setTimeout(function() {
-            resolve(chunked);
-          }, task.reg_timeout * 1000);
-        });
-      };
-
-      promiseWhile(actionFunc, chunked)
-      .catch(function (err) {
-        console.log(err);
-        setStateView(task._id, 'stopped');
-        loggerDb(task._id, 'Регистрация остановлена');  
-      }).catch(function (err) {
-        console.log(err);
+      var promiseWhile = Promise.method(function(condition, action) {
+        if (condition())
+          return;
+        return action()
+          .then(promiseWhile.bind(null, condition, action));
       });
 
+      var condFunc = function() {
+        return count >= chunked.length;
+      }
+
+      var actionFunc = function() {
+        
+
+        var chnk = _.object(chunked[count], _.shuffle(proxy_array)) 
+
+        return new Promise( (resolve, reject) => {
+         
+ 
+          /////////
+
+              // var username = email.split("@")[0];
+              // var password = generatePassword(); 
+              // var cookiePath = path.join(cookieDir, email + '.json')
+              // var storage = new Client.CookieFileStorage(cookiePath);
+              // var device = new Client.Device(email);
+              // var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
+              // session.token = token;
+
+              // console.log(returnProxyFunc(proxy))
+
+              // new Client.AccountEmailCreator(session)
+              //   .setEmail(email)
+              //   .setUsername(username)
+              //   .setPassword(password)
+              //   .setName('')
+              //   .register()
+              //   .spread(function(account, discover) {
+              //     indicator++;
+              //     filterSuccess++;
+              //     appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
+              //     renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              //     callback();
+              //   })
+              //   .catch(function(err) {
+              //     indicator++;
+              //     console.log(err.message)
+              //     renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              //     callback();
+              //   })
+ 
+          /////////////
+        })
+      };
+
+      promiseWhile(condFunc, actionFunc)
+      .then(function() {
+        console.log('done!');
+      })
+      .catch(function (err) {
+        console.log(err);
+      })
     })
   })
   .catch(function(err) {

@@ -16,6 +16,9 @@ function isIpBlock(number) {
   return number >= 0 && number < 256;
 }
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
 function strInt(s) {
   s = s.replace(/\s+/g, '');

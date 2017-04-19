@@ -217,11 +217,11 @@ function parseConcurrents(taskName) {
 
     var concurParsed = document.getElementById("parsed_conc").value.split(EOL).filter(isEmpty)
     var sizeOfChunk = _.ceil(concurParsed.length / users.length)
-    task.parsed_conc = _.chunk(concurParsed, sizeOfChunk)[iter]
+    task.parsed_conc = _.chunk(concurParsed, sizeOfChunk)[iter] ? _.chunk(concurParsed, sizeOfChunk)[iter] : []
     tasks.push(task)
 
     if(iter == arr.length - 1) {   
-      // console.log(tasks, users)   
+      console.log(tasks, users)   
       ipc.send('add_task_event', tasks, users);
       window.close();
     }

@@ -4,6 +4,22 @@ var fs = require('fs')
 var Promise =  require('bluebird')
 var ind = 0;
 
+
+var ab = [1,2,3,4]
+
+var printDelay = function(conc_user) {
+  setTimeout(function() {
+    console.log(conc_user)
+  }, 1000)
+}
+
+for(var n = 0; n < ab.length; n++) {
+
+  printDelay(ab[n])
+}
+
+
+
 // async.mapValues({
 //     f1: 'file1',
 //     f2: 'file2',
@@ -22,70 +38,70 @@ var ind = 0;
 
 
 
-// assuming openFiles is an array of file names
-async.each([1,2,3,4], function(file, callback) {
+// // assuming openFiles is an array of file names
+// async.each([1,2,3,4], function(file, callback) {
 
-    // Perform operation on file here.
-    console.log('Processing file ' + file);
+//     // Perform operation on file here.
+//     console.log('Processing file ' + file);
 
-    if( file.length > 32 ) {
-      console.log('This file name is too long');
-      callback('File name too long');
-    } else {
-      // Do work to process file here
-      console.log('File processed');
-      callback();
-    }
-}, function(err) {
-    // if any of the file processing produced an error, err would equal that error
-    if( err ) {
-      // One of the iterations produced an error.
-      // All processing will now stop.
-      console.log('A file failed to process');
-    } else {
-      console.log('All files have been processed successfully');
-    }
-});
+//     if( file.length > 32 ) {
+//       console.log('This file name is too long');
+//       callback('File name too long');
+//     } else {
+//       // Do work to process file here
+//       console.log('File processed');
+//       callback();
+//     }
+// }, function(err) {
+//     // if any of the file processing produced an error, err would equal that error
+//     if( err ) {
+//       // One of the iterations produced an error.
+//       // All processing will now stop.
+//       console.log('A file failed to process');
+//     } else {
+//       console.log('All files have been processed successfully');
+//     }
+// });
 
 
-var promiseFor = Promise.method(function(condition, action, value) {
-  if (!condition(value))
-    return value;
-  return action(value)
-    .then(promiseFor.bind(null, condition, action));
-});
+// var promiseFor = Promise.method(function(condition, action, value) {
+//   if (!condition(value))
+//     return value;
+//   return action(value)
+//     .then(promiseFor.bind(null, condition, action));
+// });
 
-var condFunc = function(count) {
-  return count < 10;
-}
+// var condFunc = function(count) {
+//   return count < 10;
+// }
 
-var actionFunc = function(count) {
-  return getUser()
-  .then(function(res) { 
-    console.log(res); 
-    return ++count;
-  });
-};
+// var actionFunc = function(count) {
+//   return getUser()
+//   .then(function(res) { 
+//     console.log(res); 
+//     return ++count;
+//   });
+// };
 
-promiseFor(condFunc, actionFunc, 0)
-  .then(console.log.bind(console, ' all done '));
+// promiseFor(condFunc, actionFunc, 0)
+//   .then(console.log.bind(console, ' all done '));
 
-var promiseWhile = Promise.method(function(condition, action) {
-    if (!condition()) return;
-    return action().then(promiseWhile.bind(null, condition, action));
-});
+// var promiseWhile = Promise.method(function(condition, action) {
+//     if (!condition()) return;
+//     return action().then(promiseWhile.bind(null, condition, action));
+// });
 
-var condFunc = function() {
-  return ind < 10;
-}
+// var condFunc = function() {
+//   return ind < 10;
+// }
 
-var actionFunc = function() {
-  return getUser()
-  .then(function(res) { 
-    console.log(res); 
-    // return ++count;
-  });
-};
+// var actionFunc = function() {
+//   return getUser()
+//   .then(function(res) { 
+//     console.log(res); 
+//     // return ++count;
+//   });
+// };
 
 
 // promiseWhile(condFunc, actionFunc)
