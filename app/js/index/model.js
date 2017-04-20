@@ -125,15 +125,15 @@ function runTasksDb(rows) {
         tokens.set(row._id, token)
         parseApi(row, row.task, token);
       } else if (row.name && row.name == 'filtration') {
-        var token = [];// { row: row._id } 
+        var token = []; 
         tokens.set(row._id, token)
         filterApi(row, token);
       } else if (row.name && row.name == 'create_accounts') {
-        var token = { row: row._id }
+        var token = []; 
         tokens.set(row._id, token)
         createApi(row, token);
       } else if (row.name && row.name == 'parse_geo') {
-        var token = { row: row._id }
+        var token = []; 
         tokens.set(row._id, token)
         parseGeoApi(row, token);
       }

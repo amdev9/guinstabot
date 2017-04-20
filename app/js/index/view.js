@@ -145,7 +145,7 @@ function addStopStateView(rows_ids) {
         t.cancel();
       } else if (_.isArray(t)) {
         t.forEach(function(item) {
-          // console.log('----------->')
+          // console.log(item)
           item.cancel();
         })
 

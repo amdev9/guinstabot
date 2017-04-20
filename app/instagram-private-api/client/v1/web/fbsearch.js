@@ -3,12 +3,21 @@ var errors = require('request-promise/errors');
 var Promise = require('bluebird');
 var util = require('util');
 var iPhoneUserAgent = 'Mozilla/5.0 (Linux; U; Android 4.3; en-us; Google Nexus 4 - 4.3 - API 18 - 768x1280 Build/JLS36G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
-var fbSearchPlace = function(proxy, url) {
+
+var fbSearchPlace = function(proxy, url, token) {
+    this.token = token
+
     this.proxy = proxy;
     this.url = url;
     this.cursor = '';
     this.moreAvailable = null;
     this.iteration = 0;
+}
+
+exports.fbSearchPlace = fbSearchPlace;
+
+fbSearchPlace.prototype.getToken = function() {
+    return this.token;
 }
 
 fbSearchPlace.prototype.setCursor = function (cursor) {
@@ -19,8 +28,6 @@ fbSearchPlace.prototype.getCursor = function () {
     return this.cursor;
 };
 
-
-exports.fbSearchPlace = fbSearchPlace;
 
 var Exceptions = require('../exceptions');
 var Session = require('../session');

@@ -16,6 +16,266 @@ var softname = config.App.softname;
 var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
 
 
+/*****************************
+ * TASK Parse geo            *                      
+ *****************************/
+
+function parseGeoApi(task, token) { // add stop tokens
+  mkdirFolder(logsDir)
+  .then(function() {
+
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Парсинг по гео');
+    
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      if (err) throw err;
+
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+      var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
+  
+      // FIND LOCATIONS
+      var indicator = 0;
+      var lng = task.centroid[0]
+      var lat = task.centroid[1]
+      var distance = Math.floor(task.distance * 1000)
+      var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
+      var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
+      console.log(locations)
+      var fb;
+      var locations_array = [];
+
+      // var genToken = { proxy: proxy, locations: locations }
+      // token.push(genToken)
+
+      var fb = new Client.Web.fbSearchPlace(proxy, locations);
+
+      var promiseWhile = Promise.method(function(condition, action) {
+        if (condition())
+          return;
+        return action()
+          .then(promiseWhile.bind(null, condition, action));
+      });
+
+      var condFunc = function() {      
+        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || fb.getCursor() == null;
+      }
+
+      var actionFunc = function() {
+        return fb.get()
+        .then(function(res) {
+          var jsonRes = JSON.parse(res.body)
+          indicator += jsonRes.data.length
+          // console.log(fb.getCursor())
+          renderCustomCompletedView(task._id, 'Локации: ' + indicator)
+          jsonRes.data.forEach(function(item) {
+            locations_array.push(item.id)
+          })
+          
+        });
+      };
+
+      promiseWhile(condFunc, actionFunc)
+      .then(function() {
+        var chunked = _.chunk(locations_array, proxy_array.length);
+        var limit = 5; 
+        async.eachLimit(chunked, limit, function( item, callbackOut) { 
+          var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+          async.mapValues(chnk, function(proxy, location, callback) {
+            // console.log(proxy, location)
+            var genToken = { proxy: proxy, location: location }
+            token.push(genToken)
+
+            // LOCATION FEED
+            var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit, genToken);
+
+            var promiseWhile = Promise.method(function(condition, action) {
+              if (condition())
+                return;
+              return action()
+                .then(promiseWhile.bind(null, condition, action));
+            });
+            var condFunc = function() {     
+              // console.log(locationReq.getCursor()) 
+              return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
+            }
+            var actionFunc = function() {
+              return locationReq.get()
+              .then(function(res) { 
+                var unique = res.location.media.nodes.filter(function(elem, index, self) {
+                  return index == self.indexOf(elem);
+                })
+                // Выполнено: current_value + unique.length
+                unique.forEach(function(node) {
+                  appendStringFile(task.output_file, node.owner.id);
+                  // console.log(node.owner.id) // show on menu
+                })
+                renderTaskValueCompletedView(task._id, unique.length);
+              })
+            };
+
+            promiseWhile(condFunc, actionFunc)
+            .then(function() {
+              console.log('done1')
+              callback()
+            })
+            .catch(function(err) {
+              if(err.message == "Cancelled") {
+                callback(err)
+              } else { 
+                console.log(err)
+                callback()
+              }
+            })
+          
+
+          }, function(err, result) {
+             
+            if (err) {
+              console.log('callbackOut(err);')
+              callbackOut(err); // if cancelled
+            } else {
+              console.log('callbackOut()')
+              callbackOut()
+            }
+          })
+        }, function(err) {
+          if( err ) {
+            console.log('A file failed to process');
+            setStateView(task._id, 'stopped');
+          } else {
+            console.log('All files have been processed successfully');
+            setStateView(task._id, 'stopped');
+          }
+        });
+      })
+      .catch(function (err) {
+        console.log(err)
+      })
+    });
+  })
+  .catch(function(err) {
+    console.log(err)
+  }) 
+   
+}
+
+
+/*****************************
+ * TASK Create accounts      *                      
+ *****************************/
+ 
+function createApi(task, token) { // change token to array && add timeot between same proxy
+  mkdirFolder(logsDir)
+  .then(function() {
+    mkdirFolder(cookieDir)
+  })
+  .then(function() {
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Регистрация аккаунтов');
+    setCompleteView(task._id, '-');
+
+    const NAMES = require('./config/names').names;
+    const SURNAMES = require('./config/names').surnames;
+
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      if (err) throw err;
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+
+      var email_array = [];
+      if (!task.own_emails) {
+        for(var i = 0; i < task.emails_cnt; i++) {
+          var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
+          email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
+        }
+      } else {
+        email_array = task.email_parsed;
+      }
+
+      if(!proxy_array || email_array.length == 0) {
+        console.log("empty");
+        return;
+      }
+
+      var chunked = _.chunk(email_array, proxy_array.length);
+      var filterSuccess = 0;
+      var indicator = 0;
+      var limit = 2;  
+      async.eachLimit(chunked, limit, function( item, callbackOut) { 
+        var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+        async.mapValues(chnk, function(proxy, email, callback) {
+          
+          var genToken = { proxy: proxy, email: email }
+          token.push(genToken)
+        
+          var username = email.split("@")[0];
+          var password = generatePassword(); 
+          var cookiePath = path.join(cookieDir, email + '.json')
+          var storage = new Client.CookieFileStorage(cookiePath);
+          var device = new Client.Device(email);
+          var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
+          session.token = genToken; 
+
+          console.log(returnProxyFunc(proxy))
+
+          new Client.AccountEmailCreator(session)
+            .setEmail(email)
+            .setUsername(username)
+            .setPassword(password)
+            .setName('')
+            .register()
+            .spread(function(account, discover) {
+              indicator++;
+              filterSuccess++;
+              appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
+              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+              callback();
+            })
+            .catch(function(err) {
+              indicator++;
+              if(err.message == "Cancelled") {
+                callback(err)
+              } else { 
+                console.log(err)
+                // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+                callback()
+              }
+            })
+ 
+          
+          }, function(err, result) {
+            renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
+            if (err) {
+              console.log('callbackOut(err);')
+              callbackOut(err); // if cancelled
+            } else {
+              console.log('callbackOut()')
+              callbackOut()
+            }
+          })
+        }, function(err) {
+          if( err ) {
+            console.log('A file failed to process');
+            setStateView(task._id, 'stopped');
+          } else {
+            console.log('All files have been processed successfully');
+            setStateView(task._id, 'stopped');
+          }
+        });
+
+        
+      })
+
+  })
+  .catch(function(err) {
+    console.log(err);
+    setStateView(task._id, 'stopped');
+  })
+}
+
+/*****************************
+ * TASK Filter accounts      *                      
+ *****************************/
+
 function mediaFilter(json, task, proxy, cb) {
   var filterRequest = new Client.Web.Filter(token);
   filterRequest.media(json.username, proxy).then(function(response) {
@@ -64,143 +324,6 @@ function filterFunction(json, task, proxy, cb) {
     cb(false);
   }
 }
-
-
-/*****************************
- * TASK Parse geo            *                      
- *****************************/
-
-function parseGeoApi(task, token) { // add stop tokens
-  mkdirFolder(logsDir)
-  .then(function() {
-
-    setStateView(task._id, 'run');
-    loggerDb(task._id, 'Парсинг по гео');
-    
-    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
-      if (err) throw err;
-
-      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
-      var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
-  
-      // FIND LOCATIONS
-      var indicator = 0;
-      var lng = task.centroid[0]
-      var lat = task.centroid[1]
-      var distance = Math.floor(task.distance * 1000)
-      var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
-      var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
-      console.log(locations)
-      var fb;
-      var locations_array = [];
-      var fb = new Client.Web.fbSearchPlace(proxy, locations);
-
-      var promiseWhile = Promise.method(function(condition, action) {
-        if (condition())
-          return;
-        return action()
-          .then(promiseWhile.bind(null, condition, action));
-      });
-
-      var condFunc = function() {      
-        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || fb.getCursor() == null;
-      }
-
-      var actionFunc = function() {
-        return fb.get()
-        .then(function(res) {
-          var jsonRes = JSON.parse(res.body)
-          indicator += jsonRes.data.length
-          // console.log(fb.getCursor())
-          renderCustomCompletedView(task._id, 'Локации: ' + indicator)
-          jsonRes.data.forEach(function(item) {
-            locations_array.push(item.id)
-          })
-          
-        });
-      };
-
-      promiseWhile(condFunc, actionFunc)
-      .then(function() {
-        var chunked = _.chunk(locations_array, proxy_array.length);
-        var limit = 5; 
-        async.eachLimit(chunked, limit, function( item, callbackOut) { 
-          var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
- 
-          async.mapValues(chnk, function(proxy, location, callback) {
-            // console.log(proxy, location)
-            // LOCATION FEED
-            var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit);
-
-            var promiseWhile = Promise.method(function(condition, action) {
-              if (condition())
-                return;
-              return action()
-                .then(promiseWhile.bind(null, condition, action));
-            });
-            var condFunc = function() {     
-              // console.log(locationReq.getCursor()) 
-              return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
-            }
-            var actionFunc = function() {
-              return locationReq.get()
-              .then(function(res) { 
-                var unique = res.location.media.nodes.filter(function(elem, index, self) {
-                  return index == self.indexOf(elem);
-                })
-                // Выполнено: current_value + unique.length
-                unique.forEach(function(node) {
-                  appendStringFile(task.output_file, node.owner.id);
-                  // console.log(node.owner.id) // show on menu
-                })
-                renderTaskValueCompletedView(task._id, unique.length);
-              })
-            };
-
-            promiseWhile(condFunc, actionFunc)
-            .then(function() {
-              console.log('done1')
-              callback()
-            })
-            .catch(function(err) {
-              console.log(err)
-              callback()
-            })
-          
-          }, function(err, result) {
-             
-            if (err) {
-              console.log('callbackOut(err);')
-              callbackOut(err); // if cancelled
-            } else {
-              console.log('callbackOut()')
-              callbackOut()
-            }
-          })
-        }, function(err) {
-          if( err ) {
-            console.log('A file failed to process');
-            setStateView(task._id, 'stopped');
-          } else {
-            console.log('All files have been processed successfully');
-            setStateView(task._id, 'stopped');
-          }
-        });
-      })
-      .catch(function (err) {
-        console.log(err)
-      })
-    });
-  })
-  .catch(function(err) {
-    console.log(err)
-  }) 
-   
-}
-
-/*****************************
- * TASK Filter accounts      *                      
- *****************************/
 
 function filterApi(task, token) { 
   mkdirFolder(logsDir)
@@ -381,118 +504,6 @@ function parseApi(user, task, token) {
   })
 }
 
-/*****************************
- * TASK Create accounts      *                      
- *****************************/
- 
-function createApi(task, token) { // change token to array && add timeot between same proxy
-  mkdirFolder(logsDir)
-  .then(function() {
-    mkdirFolder(cookieDir)
-  })
-  .then(function() {
-    setStateView(task._id, 'run');
-    loggerDb(task._id, 'Регистрация аккаунтов');
-    setCompleteView(task._id, '-');
-
-    const NAMES = require('./config/names').names;
-    const SURNAMES = require('./config/names').surnames;
-
-    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
-      if (err) throw err;
-      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
-
-      var email_array = [];
-      if (!task.own_emails) {
-        for(var i = 0; i < task.emails_cnt; i++) {
-          var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-          email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
-        }
-      } else {
-        email_array = task.email_parsed;
-      }
-
-      if(!proxy_array || email_array.length == 0) {
-        console.log("empty");
-        return;
-      }
-
-      var chunked = _.chunk(email_array, proxy_array.length);
-      var filterSuccess = 0;
-      var indicator = 0;
-      var limit = 2;  
-      async.eachLimit(chunked, limit, function( item, callbackOut) { 
-        var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-        async.mapValues(chnk, function(proxy, email, callback) {
-          
-          // var genToken = { proxy: proxy, filtername: filtername }
-          // token.push(genToken)
-          // var filterRequest = new Client.Web.Filter(genToken); 
-
-          var username = email.split("@")[0];
-          var password = generatePassword(); 
-          var cookiePath = path.join(cookieDir, email + '.json')
-          var storage = new Client.CookieFileStorage(cookiePath);
-          var device = new Client.Device(email);
-          var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
-          session.token = token; 
-
-          console.log(returnProxyFunc(proxy))
-
-          new Client.AccountEmailCreator(session)
-            .setEmail(email)
-            .setUsername(username)
-            .setPassword(password)
-            .setName('')
-            .register()
-            .spread(function(account, discover) {
-              indicator++;
-              filterSuccess++;
-              appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            })
-            .catch(function(err) {
-              indicator++;
-              if(err.message == "Cancelled") {
-                callback(err)
-              } else { 
-                console.log(err)
-                // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                callback()
-              }
-            })
- 
-          
-          }, function(err, result) {
-            renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
-            if (err) {
-              console.log('callbackOut(err);')
-              callbackOut(err); // if cancelled
-            } else {
-              console.log('callbackOut()')
-              callbackOut()
-            }
-          })
-        }, function(err) {
-          if( err ) {
-            console.log('A file failed to process');
-            setStateView(task._id, 'stopped');
-          } else {
-            console.log('All files have been processed successfully');
-            setStateView(task._id, 'stopped');
-          }
-        });
-
-        
-      })
-
-  })
-  .catch(function(err) {
-    console.log(err);
-    setStateView(task._id, 'stopped');
-  })
-}
 
 /*****************************
  * USER Check accounts       *                          
