@@ -140,14 +140,21 @@ function addStopStateView(rows_ids) {
     rows_ids.forEach( function(row_id) {
 
       var t = tokens.get(row_id);
-      if (typeof t.cancel !== "undefined") { 
-        // console.log('----------->')
+
+      if (!_.isArray(t) && typeof t.cancel !== "undefined") { 
         t.cancel();
+      } else if (_.isArray(t)) {
+        t.forEach(function(item) {
+          // console.log('----------->')
+          item.cancel();
+        })
+
       }
-      var state = getStateView(row_id);
-      if (state != 'stopped') {
-        setStateView(row_id, 'stop');
-      }
+
+      // var state = getStateView(row_id);
+      // if (state != 'stopped') {
+      //   setStateView(row_id, 'stop');
+      // }
        
     })
 

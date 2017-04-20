@@ -8,7 +8,7 @@ var Geolocation = function(proxy, location, max_limit) {
     this.max_limit = max_limit  // add check if
     this.proxy = proxy
     this.locationId = location
-    this.cursor = null;
+    this.cursor = '';
     this.moreAvailable = null;
     this.iteration = 0;
     this.fetched = 0;
@@ -31,12 +31,10 @@ var CONSTANTS = require('../constants');
 var WebRequest = require('./web-request');
 var Helpers = require('../../../helpers');
 var Exceptions = require("../exceptions");
-var ORIGIN = CONSTANTS.HOST.slice(0, -1); // Trailing / in origin
+var ORIGIN = CONSTANTS.HOST.slice(0, -1);  
 
 
 Geolocation.prototype.get = function () {
-
-    // console.log('Geolocation req')
     var that = this;
     return new WebRequest( )
         .setMethod('GET')
@@ -55,16 +53,17 @@ Geolocation.prototype.get = function () {
         .send({
             followRedirect: true,
             proxy: that.proxy
-        }) // false
+        })  
         .then(function(response) {
             return new Promise((resolve, reject) => {
-                that.fetched = that.fetched + response.location.media.nodes.length
-                // console.log(that.fetched, that.max_limit)  
+                 
+                that.fetched += response.location.media.nodes.length
                 if (that.fetched >= that.max_limit) {
-                    response.location.media.page_info.end_cursor = null;
-                }
-                if (response.location.media.page_info.end_cursor) {
+                    that.setCursor(null);
+                } else if (response.location.media.page_info.end_cursor) {
                     that.setCursor(response.location.media.page_info.end_cursor)
+                } else {
+                    that.setCursor(null);
                 }
                 resolve(response);
             });

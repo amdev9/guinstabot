@@ -124,6 +124,8 @@ WebRequest.prototype.send = function (options) {
 
               if (that.getToken()) {          
                 that.getToken().cancel = function() { 
+                
+                  // console.log(that.getToken())
                   xhr.abort();
                   return reject(new Error("Cancelled"));
                 };
