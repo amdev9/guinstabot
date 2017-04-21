@@ -221,7 +221,7 @@ function createApi(task, token) { // change token to array && add timeot between
           var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
           session.token = genToken; 
 
-          console.log(returnProxyFunc(proxy))
+          // console.log(returnProxyFunc(proxy))
 
           new Client.AccountEmailCreator(session)
             .setEmail(email)
@@ -442,24 +442,22 @@ function parseApi(user, task, token) {
         return [session, Client.Account.searchForUser(session, parsename)]   
       }).all()
       .then(function([session, account]) {
+
         var feed;
         if (task.parse_type == true) {
           feed = new Client.Feed.AccountFollowers(session, account.id);
         } else {
           feed = new Client.Feed.AccountFollowing(session, account.id);
         }
-
         var promiseWhile = Promise.method(function(condition, action) {
           if (condition())
             return;
           return action()
             .then(promiseWhile.bind(null, condition, action));
         });
-
         var condFunc = function() {
           return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit;
         }
-
         var actionFunc = function() {
           return feed.get()
           .then(function(res) { 
@@ -471,33 +469,36 @@ function parseApi(user, task, token) {
               count++
             });
             if (!feed.getCursor()) {
-              throw new Error("stop");  
+              throw new Error('cursor')
             }
           });
         };
-
         promiseWhile(condFunc, actionFunc)
         .then(function() {
           console.log(parsename + ' done!');
           callback()         
         })
         .catch(function (err) {
-          if(err.message == 'stop') {
-            callback()
+          if (err.message == "Cancelled") {
+            callback(err)
           } else {
             console.log(err)
-            setStateView(user._id, 'stopped');
+            callback()
           }
-          
         })
       })
       .catch(function (err) {
-        console.log(err)
-        setStateView(user._id, 'stopped');
+        if (err.message == "Cancelled") {
+          callback(err)
+        } else {
+          console.log(err)
+          callback()
+        }
       });
     }, function(err) {
       if( err ) {
         console.log('A file failed to process');
+        setStateView(user._id, 'stopped');
       } else {
         console.log('All files have been processed successfully');
         setStateView(user._id, 'stopped');
@@ -505,8 +506,8 @@ function parseApi(user, task, token) {
     });
   })
   .catch(function(err) {
-    setStateView(user._id, 'stopped');
     console.log(err);
+    setStateView(user._id, 'stopped');
   })
 }
 

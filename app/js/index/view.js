@@ -136,65 +136,16 @@ function setStatusView(id, status) {
 }
 
 function addStopStateView(rows_ids) {
-  // setTimeout(function() {
-    rows_ids.forEach( function(row_id) {
-
-      var t = tokens.get(row_id);
-
-      if (!_.isArray(t) && typeof t.cancel !== "undefined") { 
-        t.cancel();
-      } else if (_.isArray(t)) {
-        t.forEach(function(item) {
-          // console.log(item)
-          item.cancel();
-        })
-
-      }
-
-      // var state = getStateView(row_id);
-      // if (state != 'stopped') {
-      //   setStateView(row_id, 'stop');
-      // }
-       
-    })
-
-    // setTimeout(function() {
-    //   rows_ids.forEach( function(row_id) {
-
-    //     var t = tokens.get(row_id);
-    //     if (typeof t.cancel !== "undefined") { 
-    //       console.log('----------->')
-    //       t.cancel();
-    //     }
-    //     var state = getStateView(row_id);
-    //     if (state != 'stopped') {
-    //       setStateView(row_id, 'stop');
-    //     }
-         
-    //   })
-
-    //   setTimeout(function() {
-    //     rows_ids.forEach( function(row_id) {
-
-    //       var t = tokens.get(row_id);
-    //       if (typeof t.cancel !== "undefined") { 
-    //         console.log('----------->')
-    //         t.cancel();
-    //       }
-    //       var state = getStateView(row_id);
-    //       if (state != 'stopped') {
-    //         setStateView(row_id, 'stop');
-    //       }
-           
-    //     })
-
-    //   }, 100)
-
-    // }, 100)
-
-  // }, 100)
-  
-
+  rows_ids.forEach( function(row_id) {
+    var t = tokens.get(row_id);
+    if (t && !_.isArray(t) && typeof t.cancel !== "undefined") { 
+      t.cancel();
+    } else if (_.isArray(t)) {
+      t.forEach(function(item) {
+        item.cancel();
+      })
+    }
+  })
 }
 
 function deleteRowsView(rows) {

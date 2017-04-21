@@ -6,19 +6,7 @@ var ind = 0;
 
 
 var ab = [1,2,3,4]
-
-var printDelay = function(conc_user) {
-  setTimeout(function() {
-    console.log(conc_user)
-  }, 1000)
-}
-
-for(var n = 0; n < ab.length; n++) {
-
-  printDelay(ab[n])
-}
-
-
+ 
 
 // async.mapValues({
 //     f1: 'file1',

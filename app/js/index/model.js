@@ -269,6 +269,8 @@ function updateTaskStatusDb(task_id, statusValue) {
 
 function deleteRowsDb(rows) {
   deleteRowsView(rows);
+  addStopStateView(rows); 
+
   // FIX
   // get all docs and get _rev
   // then delete all docs 
