@@ -27,7 +27,7 @@ Filter.prototype.media = function (_username, _proxy) {
     var that = this;
 
     return new WebRequest()
-        // .setToken()
+        .setToken(that.getToken())
         .setMethod('GET')
         .setResource('mediaInfoAnonym', {username: _username, maxId: ''}) //   userInfoAnonym
         .setJSONEndpoint()

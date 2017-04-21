@@ -45,6 +45,7 @@ fbSearchPlace.prototype.get = function () {
         that.url = that.getCursor()
     }
     return new WebRequest( )
+        .setToken(that.getToken())
         .setMethod('GET')
         .setUrlFb(that.url) 
         .setHeaders({

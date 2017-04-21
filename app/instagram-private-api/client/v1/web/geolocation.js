@@ -44,6 +44,7 @@ var ORIGIN = CONSTANTS.HOST.slice(0, -1);
 Geolocation.prototype.get = function () {
     var that = this;
     return new WebRequest( )
+        .setToken(that.getToken())
         .setMethod('GET')
         .setResource('geoLocationAnonym', {locationId: that.locationId, maxId: that.getCursor() }) //   userInfoAnonym
         .setJSONEndpoint()

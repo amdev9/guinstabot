@@ -44,10 +44,10 @@ function parseGeoApi(task, token) { // add stop tokens
       var fb;
       var locations_array = [];
 
-      // var genToken = { proxy: proxy, locations: locations }
-      // token.push(genToken)
+      var genToken = { proxy: proxy, locations: locations }
+      token.push(genToken)
 
-      var fb = new Client.Web.fbSearchPlace(proxy, locations);
+      var fb = new Client.Web.fbSearchPlace(proxy, locations, genToken);
 
       var promiseWhile = Promise.method(function(condition, action) {
         if (condition())
@@ -149,8 +149,14 @@ function parseGeoApi(task, token) { // add stop tokens
         });
       })
       .catch(function (err) {
-        console.log(err)
+        if(err.message == "Cancelled") {
+                 setStateView(task._id, 'stopped');
+              } else { 
+                console.log(err)
+                setStateView(task._id, 'stopped');
+              }
       })
+
     });
   })
   .catch(function(err) {
