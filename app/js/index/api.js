@@ -20,7 +20,7 @@ var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
  * TASK Parse geo            *                      
  *****************************/
 
-function parseGeoApi(task, token) { // add stop tokens
+function parseGeoApi(task, token) { 
   mkdirFolder(logsDir)
   .then(function() {
 
@@ -170,7 +170,7 @@ function parseGeoApi(task, token) { // add stop tokens
  * TASK Create accounts      *                      
  *****************************/
  
-function createApi(task, token) { // change token to array && add timeot between same proxy
+function createApi(task, token) { //  add timeot between same proxy
   mkdirFolder(logsDir)
   .then(function() {
     mkdirFolder(cookieDir)
@@ -205,7 +205,7 @@ function createApi(task, token) { // change token to array && add timeot between
       var chunked = _.chunk(email_array, proxy_array.length);
       var filterSuccess = 0;
       var indicator = 0;
-      var limit = 2;  
+      var limit = 1;  
       async.eachLimit(chunked, limit, function( item, callbackOut) { 
         var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
         async.mapValues(chnk, function(proxy, email, callback) {
@@ -221,56 +221,53 @@ function createApi(task, token) { // change token to array && add timeot between
           var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
           session.token = genToken; 
 
-          // console.log(returnProxyFunc(proxy))
-
           new Client.AccountEmailCreator(session)
-            .setEmail(email)
-            .setUsername(username)
-            .setPassword(password)
-            .setName('')
-            .register()
-            .spread(function(account, discover) {
-              indicator++;
-              filterSuccess++;
-              appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
-              renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-              callback();
-            })
-            .catch(function(err) {
-              indicator++;
-              if(err.message == "Cancelled") {
-                callback(err)
-              } else { 
-                console.log(err)
-                // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                callback()
-              }
-            })
- 
-          
-          }, function(err, result) {
-            renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
-            if (err) {
-              console.log('callbackOut(err);')
-              callbackOut(err); // if cancelled
-            } else {
-              console.log('callbackOut()')
-              callbackOut()
+          .setEmail(email)
+          .setUsername(username)
+          .setPassword(password)
+          .setName('')
+          .register()
+          .spread(function(account, discover) {
+            indicator++;
+            filterSuccess++;
+            appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
+            renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+            callback();
+          })
+          .catch(function(err) {
+            indicator++;
+            if(err.message == "Cancelled") {
+              callback(err)
+            } else { 
+              console.log(err)
+              // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+              callback()
             }
           })
-        }, function(err) {
-          if( err ) {
-            console.log('A file failed to process');
-            setStateView(task._id, 'stopped');
+        }, function(err, result) {
+          var timerId;
+          renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
+          if (err) {
+            clearTimeout(timerId)
+            console.log('callbackOut(err);')
+            callbackOut(err); // if cancelled
           } else {
-            console.log('All files have been processed successfully');
-            setStateView(task._id, 'stopped');
+            
+            console.log('callbackOut()')
+            callbackOut()
+          
           }
-        });
-
-        
-      })
-
+        })
+      }, function(err) {
+        if( err ) {
+          console.log('A file failed to process');
+          setStateView(task._id, 'stopped');
+        } else {
+          console.log('All files have been processed successfully');
+          setStateView(task._id, 'stopped');
+        }
+      });
+    })
   })
   .catch(function(err) {
     console.log(err);
@@ -511,7 +508,6 @@ function parseApi(user, task, token) {
   })
 }
 
-
 /*****************************
  * USER Check accounts       *                          
  *****************************/
@@ -531,27 +527,25 @@ function checkApi(user_id, username, password, proxy, token) {
       session.proxyUrl = returnProxyFunc(proxy);
     }
     Client.Session.login(session, username, password)
-      .then(function(session) {
-        updateUserStatusDb(user_id, 'Активен');
-        setStateView(user_id, 'stopped');
-      })
-      .catch(function (err) {
-        // console.log(err)
-        setStateView(user_id, 'stopped');
-        if (err instanceof Client.Exceptions.APIError) {
-          if(err.ui) {
-            updateUserStatusDb(user_id, err.ui); 
-          } else if (err.name == 'RequestCancel') {
+    .then(function(session) {
+      updateUserStatusDb(user_id, 'Активен');
+      setStateView(user_id, 'stopped');
+    })
+    .catch(function (err) {
+      setStateView(user_id, 'stopped');
+      if (err instanceof Client.Exceptions.APIError) {
+        if(err.ui) {
+          updateUserStatusDb(user_id, err.ui); 
+        } else if (err.name == 'RequestCancel') {
 
-          }
-          else {
-            updateUserStatusDb(user_id, err.name);
-          }
-        } else {
-          updateUserStatusDb(user_id, 'Произошла ошибка');
-          console.log(err);
         }
-      });
+        else {
+          updateUserStatusDb(user_id, err.name);
+        }
+      } else {
+        updateUserStatusDb(user_id, 'Произошла ошибка');
+        console.log(err);
+      }
+    });
   })
-
 }
