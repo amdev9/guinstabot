@@ -70,10 +70,14 @@ function contextListener() {
  */
 function clickListener() {
   document.addEventListener( "click", function(e) {
+    
+
     var clickeElIsLink = clickInsideElement( e, contextMenuLinkClassName );
     if ( clickeElIsLink ) {
-      e.preventDefault();
+       
+      e.preventDefault();      
       menuItemListener( clickeElIsLink );
+      
     } else {
       var button = e.which || e.button;
       if ( button === 1 ) {
@@ -110,8 +114,8 @@ function toggleMenuOn() {
   depends();
   if ( menuState !== 1 ) {
     menuState = 1;
+    // console.log(contextMenuActive)
     menu.classList.add( contextMenuActive );
-   
   }
 }
 
@@ -233,6 +237,7 @@ function selectEmptyMenuOff() {
   // console.log("selectEmptyMenuOff"); 
   $('.context-menu__item > a').each(function(i, val) {
     $('.context-menu__item').eq(i).removeClass("hidden");
+
   });
 }
 
@@ -240,13 +245,15 @@ function selectEmptyMenuOff() {
  * Turns the custom context menu off.
  */
 function toggleMenuOff() {
+
   selectEmptyMenuOff();
   if ( menuState !== 0 ) {
-    
+    // console.log(menuState); 
     menuState = 0;
     menu.classList.remove( contextMenuActive );
     
   }
+
 }
 
 /**
@@ -255,6 +262,7 @@ function toggleMenuOff() {
  * @param {Object} e The event
  */
 function positionMenu(e) {
+  // console.log(e)
   clickCoords = getPosition(e);
   clickCoordsX = clickCoords.x;
   clickCoordsY = clickCoords.y;
@@ -298,7 +306,9 @@ function positionMenu(e) {
  * @param {HTMLElement} link The link that was clicked
  */
 function menuItemListener( link ) {
+  // console.log('toggleMenuOff')
   toggleMenuOff();
+
   var array_child = [];
   if (taskItemInContext) {
     for (var i = 0; i < taskItemInContext.length; i++) {
@@ -339,6 +349,7 @@ function menuItemListener( link ) {
     default:
       break;
   }
+  
 }
 
 /**

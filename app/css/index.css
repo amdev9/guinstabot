@@ -71,7 +71,6 @@
 .context-menu__link {
   display: block;
   padding: 4px 12px;
-  /*color: #0066aa;*/
   color: #000;
   text-decoration: none!important;
 }
@@ -80,4 +79,7 @@
   color: #fff;
   background-color: #0066aa;
 }
+ 
+
+
 

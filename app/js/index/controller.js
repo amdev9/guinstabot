@@ -175,8 +175,9 @@ function showLogsController(rows) {
   })
 }
 
+let addView
 function addUsersController() {
-  let addView = new BrowserWindow({width: 600, height: 300, frame: true})
+  addView = new BrowserWindow({width: 600, height: 300, frame: true})
   addView.setMenu(null)
   addView.loadURL(url.format({
     pathname: path.join(__dirname, 'html', 'add.html'),
@@ -192,4 +193,5 @@ function addUsersController() {
     return false;
   }
   openDevTool(addView, devIsOpen); 
+  return addView
 }

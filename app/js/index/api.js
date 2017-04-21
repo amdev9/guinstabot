@@ -101,6 +101,8 @@ function parseGeoApi(task, token) {
             var actionFunc = function() {
               return locationReq.get()
               .then(function(res) { 
+
+                // console.log(res)
                 var unique = res.location.media.nodes.filter(function(elem, index, self) {
                   return index == self.indexOf(elem);
                 })
