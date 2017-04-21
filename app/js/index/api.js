@@ -205,9 +205,14 @@ function createApi(task, token) { //  add timeot between same proxy
       var chunked = _.chunk(email_array, proxy_array.length);
       var filterSuccess = 0;
       var indicator = 0;
+      var count1 = 0;
       var limit = 1;  
+
+      var timerArr = timers.get(task._id)
       async.eachLimit(chunked, limit, function( item, callbackOut) { 
         var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+        
+        
         async.mapValues(chnk, function(proxy, email, callback) {
           
           var genToken = { proxy: proxy, email: email }
@@ -245,17 +250,21 @@ function createApi(task, token) { //  add timeot between same proxy
             }
           })
         }, function(err, result) {
-          var timerId;
+   
           renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
           if (err) {
-            clearTimeout(timerId)
             console.log('callbackOut(err);')
             callbackOut(err); // if cancelled
           } else {
-            
-            console.log('callbackOut()')
-            callbackOut()
-          
+            var tim = (indicator == email_array.length) ? 0 : task.reg_timeout * 1000
+
+            var timerId = setTimeout(function() {
+              console.log('callbackOut()')
+              callbackOut()
+              timerArr.pop(timerId)
+            }, tim)
+            timerArr.push(timerId)
+
           }
         })
       }, function(err) {
@@ -328,6 +337,7 @@ function filterFunction(json, task, proxy, cb) {
   }
 }
 
+
 function filterApi(task, token) { 
   mkdirFolder(logsDir)
   .then(function() {
@@ -350,35 +360,60 @@ function filterApi(task, token) {
         async.eachLimit(chunked, limit, function( item, callbackOut) { 
           var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
           async.mapValues(chnk, function(proxy, filtername, callback) {
+            
             var genToken = { proxy: proxy, filtername: filtername }
             token.push(genToken)
-            var filterRequest = new Client.Web.Filter(genToken); 
-            filterRequest.getUser(filtername, returnProxyFunc(proxy))
-            .then(function(res) { 
-              filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
-                indicator++;
-                if (bool) {
-                  filterSuccess += 1;
+            var filterRequest = new Client.Web.Filter(genToken);
+            var filterAsync = function(filtername, proxy, cb) {
+              filterRequest.getUser(filtername, returnProxyFunc(proxy))
+              .then(function(res) { 
+                filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
+                  if (bool) {
+                    filterSuccess += 1;
+                  }
+                  renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+                  cb()
+                });
+              })
+              .catch(function(err) {   
+                if(err.message == "Cancelled") {
+                  cb(err)
+                } else { 
+                  if (err.statusCode != 404) {
+                    console.log(err)
+                  }
+                  cb()
                 }
-                renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                callback()
               });
-            })
-            .catch(function(err) { 
-              indicator++;       
-              if(err.message == "Cancelled") {
-                callback(err)
-              } else { 
-                console.log(err)
-                // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+            }
+            function myFunction(filtername, proxy, callbackF) {
+              filterAsync(filtername, proxy, function(err) {
+                if (err) return callbackF(err);
+                return callbackF();
+              });
+            }
+            var wrappedFilter = async.timeout(myFunction, 10000);
+            wrappedFilter(filtername, proxy, function(err) {
+              indicator++;
+              if (err) {
+                 // here token cancel
+                if (err.code === 'ETIMEDOUT') {
+                  console.log('------<')
+                  console.log(proxy, filtername)
+                  // console.log(err)
+                  callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
+                } else {
+                  callback(err)
+                }
+              } else {
                 callback()
               }
-            });    
+            });
           }, function(err, result) {
             renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
             if (err) {
               console.log('callbackOut(err);')
-              callbackOut(err); // if cancelled
+              callbackOut(err); 
             } else {
               console.log('callbackOut()')
               callbackOut()

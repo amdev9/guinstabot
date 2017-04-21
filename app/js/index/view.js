@@ -136,7 +136,21 @@ function setStatusView(id, status) {
 }
 
 function addStopStateView(rows_ids) {
-  rows_ids.forEach( function(row_id) {
+  rows_ids.forEach(function(row_id) {
+    
+    var ti = timers.get(row_id)
+    if (ti && !_.isArray(ti)) { 
+      clearTimeout(ti) 
+      console.log('timer stopped', ti)
+      setStateView(row_id, 'stopped');
+    } else if (_.isArray(ti)) {
+      ti.forEach(function(item) {
+        clearTimeout(item) 
+        console.log('timer stopped', item)
+        setStateView(row_id, 'stopped');
+      })
+    }
+    //////
     var t = tokens.get(row_id);
     if (t && !_.isArray(t) && typeof t.cancel !== "undefined") { 
       t.cancel();

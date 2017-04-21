@@ -20,7 +20,7 @@ var levelPath = path.join(os.tmpdir(), softDir, 'levdb');
 
 var db;
 var tokens = new Map();
-
+var timers = new Map();
 
 function initDb() {
   return mkdirFolder(levelPath)
@@ -130,7 +130,9 @@ function runTasksDb(rows) {
         filterApi(row, token);
       } else if (row.name && row.name == 'create_accounts') {
         var token = []; 
+        var timerIds = [];
         tokens.set(row._id, token)
+        timers.set(row._id, timerIds)
         createApi(row, token);
       } else if (row.name && row.name == 'parse_geo') {
         var token = []; 

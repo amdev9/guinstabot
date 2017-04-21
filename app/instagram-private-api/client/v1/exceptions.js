@@ -44,7 +44,7 @@ exports.RequestCancel = RequestCancel;
 
 
 function RequestError(payload) {
-    // console.log(payload);
+    console.log(payload);
     this.name = "RequestError";
     this.message = "It's not possible to make request!";
     this.json = {};
