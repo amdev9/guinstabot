@@ -114,6 +114,7 @@ function taskRenderNames(taskDbName) {
     case 'parse_concurrents': return 'Парсинг по конкурентам'
     case 'create_accounts': return 'Регистрация аккаунтов'
     case 'parse_geo': return 'Парсинг по гео'
+    case 'convertation': return 'Конвертация'
     default: return '-'
   }
 }

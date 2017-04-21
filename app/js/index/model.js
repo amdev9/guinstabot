@@ -124,6 +124,10 @@ function runTasksDb(rows) {
         var token = { row: row._id }
         tokens.set(row._id, token)
         parseApi(row, row.task, token);
+      } else if (row.type == 'user' && row.task.name == 'convertation') {
+        var token = { row: row._id }
+        tokens.set(row._id, token)
+        convertApi(row, row.task, token);
       } else if (row.name && row.name == 'filtration') {
         var token = []; 
         tokens.set(row._id, token)

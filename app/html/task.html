@@ -74,6 +74,8 @@
         <a class="nav-link" id="parse_geo_tab" data-toggle="tab" href="#parse_geo">Парсинг по гео</a>
         <a class="nav-link" id="filtration_tab" data-toggle="tab" href="#filtration">Фильтрация аудитории</a>
         <a class="nav-link" id="create_accounts_tab" data-toggle="tab" href="#create_accounts">Регистрация аккаунтов</a>
+        <a class="nav-link" id="convertation_tab" data-toggle="tab" href="#convertation">Конвертация</a>
+        
       </nav>
     </div>
     <div class="col-md-9">
@@ -286,8 +288,43 @@
             </div>
             </div>
           </form>
-
         </div>
+
+        <!-- convertation -->
+        <div class="tab-pane" id="convertation" role="tabpanel">
+          <form id="convertation_form" class="offset-1 col-10" >
+            <div class="form-group row align-items-center">
+              <p>Конвертация базы из ID в USERNAME</p>
+            </div>
+            
+            <div class="form-group row align-items-center">
+              <textarea class="form-control" id="in_accounts" name="in_accounts" rows="3"></textarea>
+            </div>
+            <div class="form-group row align-items-center">
+              <div class="col-3">
+                <button  onclick="clearTextArea('in_accounts')" class="btn btn-primary btn-sm">Очистить</button>
+              </div>
+              <div class="col-3">
+                <button  onclick="openParse('in_accounts')" class="btn btn-primary btn-sm">Выбрать файл для конвертации</button>
+              </div>
+            </div>
+
+            <div class="form-group row align-items-center">
+              <div class="input-group">
+                <input type="text" class="form-control form-control-sm" placeholder="Файл не выбран" name="out_accounts" id="out_accounts">
+                <span class="input-group-btn">
+                  <button onclick="saveFile('out_accounts')" class="btn btn-secondary btn-sm" type="button">Выбрать файл для результатов</button>
+                </span>
+              </div>
+            </div>
+            <div class="form-group row align-items-center">
+              <div class="offset-3 col-9">
+                <button name="convertation" type="submit" class="btn btn-outline-primary btn-lg">Сохранить задачу</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!--  -->
 
         <!-- create_accounts -->
         <div class="tab-pane" id="create_accounts" role="tabpanel">

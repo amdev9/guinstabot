@@ -83,6 +83,29 @@ $(function() {
     }
   });
 
+  $("#convertation_form").validate({
+    rules: {
+      in_accounts: "required",
+      out_accounts: "required"
+    },
+    messages: {
+      in_accounts: "Введите имена аккаунтов для конвертации",
+      out_accounts: "Выберите файл"
+    },
+    highlight: function(element) {
+      $(element).closest('.form-group').addClass('has-danger');
+    },
+    unhighlight: function(element) {
+      $(element).closest('.form-group').removeClass('has-danger');
+    },
+    errorElement: 'span',
+    errorClass: 'form-control-feedback form-control-sm',  // 'help-block',
+
+    submitHandler: function(form) {
+      completeTask('convertation');
+    }
+  });
+
 
   $("#parse_geo_form").validate({
     rules: {

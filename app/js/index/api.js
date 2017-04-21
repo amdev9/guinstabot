@@ -443,6 +443,8 @@ function filterApi(task, token) {
  *****************************/
  
 function parseApi(user, task, token) {
+
+
   mkdirFolder(cookieDir)
   .then(function() {
     setStateView(user._id, 'run');
@@ -476,7 +478,6 @@ function parseApi(user, task, token) {
         return [session, Client.Account.searchForUser(session, parsename)]   
       }).all()
       .then(function([session, account]) {
-
         var feed;
         if (task.parse_type == true) {
           feed = new Client.Feed.AccountFollowers(session, account.id);
@@ -537,6 +538,59 @@ function parseApi(user, task, token) {
         console.log('All files have been processed successfully');
         setStateView(user._id, 'stopped');
       }
+    });
+  })
+  .catch(function(err) {
+    console.log(err);
+    setStateView(user._id, 'stopped');
+  })
+}
+
+
+function convertApi(user, task, token) {
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(user._id, 'run');
+    renderNewTaskCompletedView(user._id);
+    loggerDb(user._id, 'Конвертация');
+
+    fs.truncate(task.outputfile, 0, function() { 
+      loggerDb(user._id, 'Файл подготовлен'); 
+    });
+
+    const device = new Client.Device(user.username);
+    var cookiePath = path.join(cookieDir, user._id + '.json');
+    const storage = new Client.CookieFileStorage(cookiePath);
+    var limit = 1; 
+
+    var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
+    .then(function(session) {
+      if(session) {
+        updateUserStatusDb(user._id, 'Активен');
+        session.token = token;
+        return session;
+      }
+    })
+    .then(function(session) {
+      async.eachLimit(task.parsed_conc, limit, function(item, callback) {       
+        setTimeout(function() {
+          // console.log(item)
+          // callback();
+          new Client.Account.getById(session, item)
+          .then(function(account) {
+            console.log(account.params);
+            callback();
+          })
+        }, 1000)
+      }, function(err) {
+        if( err ) {
+          console.log('A file failed to process');
+          setStateView(user._id, 'stopped');
+        } else {
+          console.log('All files have been processed successfully');
+          setStateView(user._id, 'stopped');
+        }
+      });
     });
   })
   .catch(function(err) {

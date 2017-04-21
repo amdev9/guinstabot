@@ -34,7 +34,9 @@ ipc.on('edit', (event, item) => {
     var user = item;  
     if (user.task.name == 'parse_concurrents') {
       editParseConcurrents(user.task);
-    } 
+    } else if (user.task.name == 'convertation') {
+      editConvertation(user.task);
+    }
 
   } else {
 
@@ -55,7 +57,7 @@ ipc.on('edit', (event, item) => {
 
 function updateElementsAccessibility(type) {
   if (type == 'user') {
-    updateElemView(['parse_concurrents']);
+    updateElemView(['parse_concurrents', 'convertation']);
   } else {
     updateElemView(['parse_geo', 'filtration', 'create_accounts']);
   }
@@ -228,6 +230,32 @@ function parseConcurrents(taskName) {
   });
 }
 
+function editConvertation(task) {
+  updateElemView(['convertation']);
+  document.getElementById("in_accounts").value = task.parsed_conc.join(EOL);
+  document.getElementById("out_accounts").value = task.outputfile;
+}
+
+function convertation(taskName) {
+  var tasks = [];
+  var users = $("div.container").data('user');
+
+  users.forEach(function(user, iter, arr) {
+    var task = {}
+    task.name = taskName
+    task.outputfile = document.getElementById("out_accounts").value
+    var concurParsed = document.getElementById("in_accounts").value.split(EOL).filter(isEmpty)
+    var sizeOfChunk = _.ceil(concurParsed.length / users.length)
+    task.parsed_conc = _.chunk(concurParsed, sizeOfChunk)[iter] ? _.chunk(concurParsed, sizeOfChunk)[iter] : []
+    tasks.push(task)
+
+    if(iter == arr.length - 1) {   
+      console.log(tasks, users)   
+      ipc.send('add_task_event', tasks, users);
+      window.close();
+    }
+  });
+}
  
 function checkDisabler() {
   if (document.getElementById('own_emails').checked == true) {
@@ -400,6 +428,8 @@ function completeTask(taskName) {
     createAccounts(taskName);
   } else if (taskName == 'parse_geo') {
     parseGeo(taskName);
+  } else if (taskName == 'convertation') {
+    convertation(taskName);
   }
 }
 
