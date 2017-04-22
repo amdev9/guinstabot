@@ -250,7 +250,98 @@ function parseGeoApi(task, token) {
  * TASK Create accounts      *                      
  *****************************/
  
+function chunkedCreate(task, token, proxy_array) {
+  const NAMES = require('./config/names').names;
+  const SURNAMES = require('./config/names').surnames;
 
+  var email_array = [];
+  if (!task.own_emails) {
+    email_array = _.times(task.emails_cnt, function() {
+      var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
+      return name + getRandomInt(1000, 999999) + '@gmail.com';
+    })
+  } else {
+    email_array = task.email_parsed;
+  }
+
+  if(!proxy_array || email_array.length == 0) {
+    console.log("empty");
+    return;
+  }
+
+  var chunked = _.chunk(email_array, proxy_array.length);
+  var filterSuccess = 0;
+  var indicator = 0;
+
+  var limit = 1;  
+  var timerArr = timers.get(task._id)
+  async.eachLimit(chunked, limit, function( item, callbackOut) { 
+
+    var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+    async.mapValues(chnk, function(proxy, email, callback) {
+      
+      var genToken = { proxy: proxy, email: email }
+      token.push(genToken)
+    
+      var username = email.split("@")[0];
+      var password = generatePassword(); 
+      var cookiePath = path.join(cookieDir, email + '.json')
+      var storage = new Client.CookieFileStorage(cookiePath);
+      var device = new Client.Device(email);
+      var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
+      session.token = genToken; 
+
+      new Client.AccountEmailCreator(session)
+      .setEmail(email)
+      .setUsername(username)
+      .setPassword(password)
+      .setName('')
+      .register()
+      .spread(function(account, discover) {
+        indicator++;
+        filterSuccess++;
+        appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
+        renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
+        callback();
+      })
+      .catch(function(err) {
+        indicator++;
+        if(err.message == "Cancelled") {
+          callback(err)
+        } else { 
+          // console.log(err) // to log file
+          renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
+          callback()
+        }
+      })
+    }, function(err, result) {
+
+      renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
+      if (err) {
+        console.log('callbackOut(err);')
+        callbackOut(err); // if cancelled
+      } else {
+
+        var tim = (indicator == email_array.length) ? 0 : task.reg_timeout * 1000
+        var timerId = setTimeout(function() {
+          console.log('callbackOut()')
+          callbackOut()
+          timerArr.pop(timerId)
+        }, tim)
+        timerArr.push(timerId)
+      }
+    })
+  }, function(err) {
+    if( err ) {
+      console.log('A file failed to process');
+      setStateView(task._id, 'stopped');
+    } else {
+      console.log('All files have been processed successfully');
+      setStateView(task._id, 'stopped');
+    }
+  });
+
+}
 
 function createApi(task, token) { //  add timeot between same proxy
   mkdirFolder(logsDir)
@@ -262,104 +353,13 @@ function createApi(task, token) { //  add timeot between same proxy
     loggerDb(task._id, 'Регистрация аккаунтов');
     setCompleteView(task._id, '-');
 
-    const NAMES = require('./config/names').names;
-    const SURNAMES = require('./config/names').surnames;
-
     fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
       if (err) throw err;
       proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString).filter(function(elem, index, self) {
         return index == self.indexOf(elem);
       });
 
-      var email_array = [];
-      if (!task.own_emails) {
-
-        email_array = _.times(task.emails_cnt, function() {
-          var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-          return name + getRandomInt(1000, 999999) + '@gmail.com';
-        })
- 
-      } else {
-        email_array = task.email_parsed;
-      }
-
-      if(!proxy_array || email_array.length == 0) {
-        console.log("empty");
-        return;
-      }
-
-      var chunked = _.chunk(email_array, proxy_array.length);
-      var filterSuccess = 0;
-      var indicator = 0;
-      var count1 = 0;
-      var limit = 1;  
-
-      var timerArr = timers.get(task._id)
-      async.eachLimit(chunked, limit, function( item, callbackOut) { 
-        var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-        
-        async.mapValues(chnk, function(proxy, email, callback) {
-          
-          var genToken = { proxy: proxy, email: email }
-          token.push(genToken)
-        
-          var username = email.split("@")[0];
-          var password = generatePassword(); 
-          var cookiePath = path.join(cookieDir, email + '.json')
-          var storage = new Client.CookieFileStorage(cookiePath);
-          var device = new Client.Device(email);
-          var session = new Client.Session(device, storage, returnProxyFunc(proxy) );
-          session.token = genToken; 
-
-          new Client.AccountEmailCreator(session)
-          .setEmail(email)
-          .setUsername(username)
-          .setPassword(password)
-          .setName('')
-          .register()
-          .spread(function(account, discover) {
-            indicator++;
-            filterSuccess++;
-            appendStringFile(task.output_file, account._params.username + "|" + password + "|" + proxy); 
-            renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess)
-            callback();
-          })
-          .catch(function(err) {
-            indicator++;
-            if(err.message == "Cancelled") {
-              callback(err)
-            } else { 
-              console.log(err)
-              // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-              callback()
-            }
-          })
-        }, function(err, result) {
-   
-          renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
-          if (err) {
-            console.log('callbackOut(err);')
-            callbackOut(err); // if cancelled
-          } else {
-            var tim = (indicator == email_array.length) ? 0 : task.reg_timeout * 1000
-
-            var timerId = setTimeout(function() {
-              console.log('callbackOut()')
-              callbackOut()
-              timerArr.pop(timerId)
-            }, tim)
-            timerArr.push(timerId)
-          }
-        })
-      }, function(err) {
-        if( err ) {
-          console.log('A file failed to process');
-          setStateView(task._id, 'stopped');
-        } else {
-          console.log('All files have been processed successfully');
-          setStateView(task._id, 'stopped');
-        }
-      });
+      chunkedCreate(task, token, proxy_array)
     })
   })
   .catch(function(err) {
@@ -467,7 +467,7 @@ function chunkedFilter(task, token, proxy_array, users_array) {
   async.eachLimit(chunked, limit, function( item, callbackOut) {  // repeats
     var chnk = _.zipObject(item, _.shuffle(proxy_array))  // repeats
 
-     console.log( chnk, _.size(chnk))
+     // console.log( chnk, _.size(chnk))
     async.mapValues(chnk, function(proxy, filtername, callback) {
        
       var genToken = { proxy: proxy, filtername: filtername }
