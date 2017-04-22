@@ -79,7 +79,8 @@ const WEB_ROUTES = {
     userInfo: '<%= id %>/',
     userInfoAnonym: '<%= username %>',
     mediaInfoAnonym: '<%= username %>/media/<%= maxId ? ("?max_id=" + maxId) : "" %>',
-    geoLocationAnonym: 'explore/locations/<%= locationId %>/<%= maxId ? ("?max_id=" + maxId) : "" %>' // 
+    geoLocationAnonym: 'explore/locations/<%= locationId %>/<%= maxId ? ("?max_id=" + maxId) : "" %>',
+    mediaPost: 'p/<%= mediaId %>'
 }
 
 const PRIVATE_KEY = {

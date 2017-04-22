@@ -55,14 +55,10 @@ InstagramV1.Web.Challenge = challenge.Challenge;
 InstagramV1.Web.CaptchaVerificationChallenge = challenge.CaptchaVerificationChallenge;
 InstagramV1.Web.EmailVerificationChallenge = challenge.EmailVerificationChallenge;
 InstagramV1.Web.PhoneVerificationChallenge = challenge.PhoneVerificationChallenge;
-
-var filter = require('./v1/web/filter');
-InstagramV1.Web.Filter = filter.Filter;
-
-var geolocation = require('./v1/web/geolocation');
-InstagramV1.Web.Geolocation = geolocation.Geolocation;
-
-var fbsearch = require('./v1/web/fbsearch');
-InstagramV1.Web.fbSearchPlace = fbsearch.fbSearchPlace;
+ 
+InstagramV1.Web.Filter = require('./v1/web/filter').Filter;
+InstagramV1.Web.Geolocation = require('./v1/web/geolocation').Geolocation;
+InstagramV1.Web.fbSearchPlace = require('./v1/web/fbsearch').fbSearchPlace;
+InstagramV1.Web.Media = require('./v1/web/media').Media;
 
 module.exports = InstagramV1;

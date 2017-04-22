@@ -96,6 +96,18 @@ function openParse(selector) {
   });
 }
 
+function openParseRemoveDup(selector) {
+  var path = dialog.showOpenDialog({properties: ['openFile']}); 
+  readFile(path[0], function(data) {
+    
+    var unique = data.split(EOL).filter(isEmpty).filter(function(elem, index, self) {
+      return index == self.indexOf(elem);
+    })
+     
+    document.getElementById(selector).value = unique.join(EOL);
+  });
+}
+
 function readFile(filepath, cb) {
   fs.readFile(filepath, 'utf8', (err, data) => {
     if (err) throw err;

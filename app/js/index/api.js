@@ -34,7 +34,7 @@ function parseGeoApi(task, token) {
       var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
   
       // FIND LOCATIONS
-      var indicator = 0;
+      var iLoc = 0, iCode = 0, iUser = 0;
       var lng = task.centroid[0]
       var lat = task.centroid[1]
       var distance = Math.floor(task.distance * 1000)
@@ -64,9 +64,8 @@ function parseGeoApi(task, token) {
         return fb.get()
         .then(function(res) {
           var jsonRes = JSON.parse(res.body)
-          indicator += jsonRes.data.length
-          // console.log(fb.getCursor())
-          renderCustomCompletedView(task._id, 'Локации: ' + indicator)
+          iLoc += jsonRes.data.length
+          render3View(task._id, iLoc, iCode, iUser)
           jsonRes.data.forEach(function(item) {
             locations_array.push(item.id)
           })
@@ -78,10 +77,11 @@ function parseGeoApi(task, token) {
       .then(function() {
         var chunked = _.chunk(locations_array, proxy_array.length);
         var limit = 5; 
+        var mediaCodes = [];
         async.eachLimit(chunked, limit, function( item, callbackOut) { 
           var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
           async.mapValues(chnk, function(proxy, location, callback) {
-            // console.log(proxy, location)
+
             var genToken = { proxy: proxy, location: location }
             token.push(genToken)
 
@@ -95,23 +95,18 @@ function parseGeoApi(task, token) {
                 .then(promiseWhile.bind(null, condition, action));
             });
             var condFunc = function() {     
-              // console.log(locationReq.getCursor()) 
               return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
             }
             var actionFunc = function() {
               return locationReq.get()
               .then(function(res) { 
 
-                // console.log(res)
-                var unique = res.location.media.nodes.filter(function(elem, index, self) {
-                  return index == self.indexOf(elem);
+                iCode += res.location.media.nodes.length;
+                render3View(task._id, iLoc, iCode, iUser);
+
+                res.location.media.nodes.forEach(function(node) {
+                  mediaCodes.push(node.code)    
                 })
-                // Выполнено: current_value + unique.length
-                unique.forEach(function(node) {
-                  appendStringFile(task.output_file, node.owner.id);
-                  // console.log(node.owner.id) // show on menu
-                })
-                renderTaskValueCompletedView(task._id, unique.length);
               })
             };
 
@@ -129,7 +124,6 @@ function parseGeoApi(task, token) {
               }
             })
           
-
           }, function(err, result) {
              
             if (err) {
@@ -145,20 +139,58 @@ function parseGeoApi(task, token) {
             console.log('A file failed to process');
             setStateView(task._id, 'stopped');
           } else {
-            console.log('All files have been processed successfully');
-            setStateView(task._id, 'stopped');
+
+              var chunked = _.chunk(mediaCodes, proxy_array.length);
+              var lim = 5;
+              async.eachLimit(chunked, lim, function(item, callbackOut) { 
+                var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+                console.log(item)
+                async.mapValues(chnk, function(proxy, code, callback) {
+                  var mediaRequest = new Client.Web.Media();
+                  mediaRequest.get(code, returnProxyFunc(proxy))
+                  .then(function(owner) {
+                    iUser += 1
+                    appendStringFile(task.output_file, owner.username); 
+                    render3View(task._id, iLoc, iCode, iUser);
+                    callback()
+                  })
+                  .catch(function(err) {
+                    console.log(err)
+                  })
+                }, function(err, result) {
+                  render3View(task._id, iLoc, iCode, iUser);
+                  if (err) {
+                    console.log('callbackOut(err);')
+                    callbackOut(err); 
+                  } else {
+                    console.log('callbackOut()')
+                    callbackOut()
+                  }
+                })
+
+              }, function(err) {
+                if( err ) {
+                  console.log('A file failed to process');
+                  setStateView(task._id, 'stopped');
+                } else {
+                  render3View(task._id, iLoc, iCode, iUser);
+                  console.log('All files have been processed successfully');
+                  setStateView(task._id, 'stopped');
+                }
+              });
+               
           }
+
         });
       })
       .catch(function (err) {
         if(err.message == "Cancelled") {
-                 setStateView(task._id, 'stopped');
-              } else { 
-                console.log(err)
-                setStateView(task._id, 'stopped');
-              }
+          setStateView(task._id, 'stopped');
+        } else { 
+          console.log(err)
+          setStateView(task._id, 'stopped');
+        }
       })
-
     });
   })
   .catch(function(err) {
@@ -266,7 +298,6 @@ function createApi(task, token) { //  add timeot between same proxy
               timerArr.pop(timerId)
             }, tim)
             timerArr.push(timerId)
-
           }
         })
       }, function(err) {
@@ -292,9 +323,12 @@ function createApi(task, token) { //  add timeot between same proxy
 
 function mediaFilter(json, task, proxy, cb) {
   var filterRequest = new Client.Web.Filter(token);
-  filterRequest.media(json.username, proxy).then(function(response) {
+  filterRequest.media(json.username, proxy)
+  .then(function(response) {
+    // check data of media 
+    console.log('mediaFilter')
     appendStringFile(task.outputfile, json.username);
-    cb();
+    cb(true);
   });
 }
 
@@ -320,9 +354,7 @@ function filterFunction(json, task, proxy, cb) {
         var biography = json.biography ? json.biography.toLowerCase() : '';
         if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
           if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
-            appendStringFile(task.outputfile, json.username); //////////FIX
-            cb(true);
-            // mediaFilter(json, task, proxy, cb);
+            mediaFilter(json, task, proxy, cb);
           } else {
             appendStringFile(task.outputfile, json.username);
             cb(true);
@@ -402,6 +434,9 @@ function filterApi(task, token) {
                 if (err.code === 'ETIMEDOUT') {
                   console.log('------<')
                   console.log(proxy, filtername)
+
+                  // token.cancel for this request
+
                   // console.log(err)
                   callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
                 } else {
@@ -443,7 +478,6 @@ function filterApi(task, token) {
  *****************************/
  
 function parseApi(user, task, token) {
-
 
   mkdirFolder(cookieDir)
   .then(function() {
@@ -547,6 +581,10 @@ function parseApi(user, task, token) {
 }
 
 
+/*****************************
+ * USER covert id            *                      
+ *****************************/
+
 function convertApi(user, task, token) {
   mkdirFolder(cookieDir)
   .then(function() {
@@ -561,8 +599,8 @@ function convertApi(user, task, token) {
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + '.json');
     const storage = new Client.CookieFileStorage(cookiePath);
-    var limit = 1; 
-
+    var limit = 1;
+    var indicator  = 0;
     var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
     .then(function(session) {
       if(session) {
@@ -573,15 +611,15 @@ function convertApi(user, task, token) {
     })
     .then(function(session) {
       async.eachLimit(task.parsed_conc, limit, function(item, callback) {       
-        setTimeout(function() {
-          // console.log(item)
-          // callback();
-          new Client.Account.getById(session, item)
-          .then(function(account) {
-            console.log(account.params);
-            callback();
-          })
-        }, 1000)
+      
+        new Client.Account.getById(session, item) // change to web request
+        .then(function(account) {
+          indicator++;
+
+          console.log(account.params.username, indicator);
+          callback();
+        })
+
       }, function(err) {
         if( err ) {
           console.log('A file failed to process');

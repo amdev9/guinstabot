@@ -89,7 +89,7 @@ $(function() {
       out_accounts: "required"
     },
     messages: {
-      in_accounts: "Введите имена аккаунтов для конвертации",
+      in_accounts: "Введите идентификаторы аккаунтов для конвертации",
       out_accounts: "Выберите файл"
     },
     highlight: function(element) {

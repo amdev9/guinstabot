@@ -29,7 +29,7 @@ Filter.prototype.media = function (_username, _proxy) {
     return new WebRequest()
         .setToken(that.getToken())
         .setMethod('GET')
-        .setResource('mediaInfoAnonym', {username: _username, maxId: ''}) //   userInfoAnonym
+        .setResource('mediaInfoAnonym', {username: _username, maxId: ''})
         .setJSONEndpoint()
         .setHeaders({
             'Host': CONSTANTS.HOSTNAME,

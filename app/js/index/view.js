@@ -184,21 +184,31 @@ function renderNewTaskCompletedView(id) {
   $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(0);
 }
 
-function renderCustomCompletedView(id, value) {
-  $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(value);
-}
-
 function renderTaskCompletedView(id) {
   var currentValue = +getCompleteView(id);
   currentValue++;
   setCompleteView(id, currentValue);
 }
 
-function renderTaskValueCompletedView(id, value) {
-  var currentValue = +getCompleteView(id);
-  currentValue += value;
-  setCompleteView(id, currentValue);
+///////////////////////
+
+function render3View(id, first, second, third) {
+  $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(first + " / " + second + " / " + third);
 }
+
+// function renderCustomCompletedView(id, value) {
+//   $('#table1 tr[data-id="' + id + '"]').find("td").eq(4).html(value);
+// }
+
+// function renderTaskValueCompletedView(id, value) {
+//   var currentValue = +getCompleteView(id);
+//   currentValue += value;
+//   setCompleteView(id, currentValue);
+// }
+
+
+/////////////////
+
 
 function pad(n, width, z) {
   z = z || '0';

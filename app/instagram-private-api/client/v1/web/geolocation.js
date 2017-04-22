@@ -46,7 +46,7 @@ Geolocation.prototype.get = function () {
     return new WebRequest( )
         .setToken(that.getToken())
         .setMethod('GET')
-        .setResource('geoLocationAnonym', {locationId: that.locationId, maxId: that.getCursor() }) //   userInfoAnonym
+        .setResource('geoLocationAnonym', {locationId: that.locationId, maxId: that.getCursor() }) 
         .setJSONEndpoint()
         .setHeaders({
             'Host': CONSTANTS.HOSTNAME,
