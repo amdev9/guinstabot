@@ -15,7 +15,6 @@ var softname = config.App.softname;
 
 var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
 
-
 /*****************************
  * TASK Parse geo            *                      
  *****************************/
@@ -69,7 +68,6 @@ function parseGeoApi(task, token) {
           jsonRes.data.forEach(function(item) {
             locations_array.push(item.id)
           })
-          
         });
       };
 
@@ -139,24 +137,62 @@ function parseGeoApi(task, token) {
             console.log('A file failed to process');
             setStateView(task._id, 'stopped');
           } else {
-
+              console.log('Start media code parsing');
               var chunked = _.chunk(mediaCodes, proxy_array.length);
               var lim = 5;
               async.eachLimit(chunked, lim, function(item, callbackOut) { 
                 var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
                 console.log(item)
                 async.mapValues(chnk, function(proxy, code, callback) {
-                  var mediaRequest = new Client.Web.Media();
-                  mediaRequest.get(code, returnProxyFunc(proxy))
-                  .then(function(owner) {
-                    iUser += 1
-                    appendStringFile(task.output_file, owner.username); 
-                    render3View(task._id, iLoc, iCode, iUser);
-                    callback()
-                  })
-                  .catch(function(err) {
-                    console.log(err)
-                  })
+
+                  var genToken = { proxy: proxy, code: code }
+                  token.push(genToken)
+
+                  var mediaRequest = new Client.Web.Media(genToken);
+
+                  var filterAsync = function(code, proxy, cb) {
+                    mediaRequest.get(code, returnProxyFunc(proxy))
+                    .then(function(owner) {
+                      iUser += 1
+                      appendStringFile(task.output_file, owner.username); 
+                      render3View(task._id, iLoc, iCode, iUser);
+                      cb()
+                    })
+                    .catch(function(err) {
+                                       
+                      if(err.message == "Cancelled") {
+                        cb(err)
+                      } else { 
+                        console.log(err)
+                        // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
+                        cb()
+                      }
+                    })
+                  }
+                  function myFunction(code, proxy, callbackF) {
+                    filterAsync(code, proxy, function(err) {
+                      if (err) return callbackF(err);
+                      return callbackF();
+                    });
+                  }
+                  var wrappedFilter = async.timeout(myFunction, 10000);
+
+                  wrappedFilter(code, proxy, function(err) {
+                    if (err) {
+                      if (err.code === 'ETIMEDOUT') {
+                        console.log('------<')
+                        console.log(proxy, code)
+                        genToken.cancel()
+
+                        callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
+                      } else {
+                        callback(err)
+                      }
+                    } else {
+                      callback()
+                    }
+                  });
+
                 }, function(err, result) {
                   render3View(task._id, iLoc, iCode, iUser);
                   if (err) {
@@ -398,6 +434,7 @@ function filterApi(task, token) {
             var genToken = { proxy: proxy, filtername: filtername }
             token.push(genToken)
             var filterRequest = new Client.Web.Filter(genToken);
+
             var filterAsync = function(filtername, proxy, cb) {
               filterRequest.getUser(filtername, returnProxyFunc(proxy))
               .then(function(res) { 
@@ -434,8 +471,7 @@ function filterApi(task, token) {
                 if (err.code === 'ETIMEDOUT') {
                   console.log('------<')
                   console.log(proxy, filtername)
-
-                  // token.cancel for this request
+                  genToken.cancel() // for this request
 
                   // console.log(err)
                   callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)

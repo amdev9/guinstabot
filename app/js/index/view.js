@@ -151,6 +151,7 @@ function addStopStateView(rows_ids) {
         setStateView(row_id, 'stopped');
       })
     }
+    
     //////
     var t = tokens.get(row_id);
     if (t && !_.isArray(t) && typeof t.cancel !== "undefined") { 
