@@ -4,9 +4,20 @@ var fs = require('fs')
 var Promise =  require('bluebird')
 var ind = 0;
 
+var _ = require('lodash')
 
 var ab = [1,2,3,4]
  
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+ email_array = _.times(5, function() {
+  
+    return 'a' + getRandomInt(1000, 999999) + '@gmail.com'
+  })
+
+console.log(email_array)
 
 // async.mapValues({
 //     f1: 'file1',

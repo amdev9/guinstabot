@@ -19,34 +19,66 @@ var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
  * TASK Parse geo            *                      
  *****************************/
 
-function parseGeoApi(task, token) { 
-  mkdirFolder(logsDir)
+function findLocationFb(task, token, proxy_array, iRender) {
+  proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+  var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
+
+  // FIND LOCATIONS
+
+  var lng = task.centroid[0]
+  var lat = task.centroid[1]
+  var distance = Math.floor(task.distance * 1000)
+  var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
+  var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
+  var fb;
+  var locations_array = [];
+
+  var genToken = { proxy: proxy, locations: locations }
+  token.push(genToken)
+
+  var fb = new Client.Web.fbSearchPlace(proxy, locations, genToken);
+
+  var promiseWhile = Promise.method(function(condition, action) {
+    if (condition())
+      return;
+    return action()
+      .then(promiseWhile.bind(null, condition, action));
+  });
+
+  var condFunc = function() {      
+    return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || fb.getCursor() == null;
+  }
+
+  var actionFunc = function() {
+    return fb.get()
+    .then(function(res) {
+      var jsonRes = JSON.parse(res.body)
+      iRender.iLoc += jsonRes.data.length
+      render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser)
+      jsonRes.data.forEach(function(item) {
+        locations_array.push(item.id)
+      })
+    });
+  };
+  return promiseWhile(condFunc, actionFunc)
   .then(function() {
+    mediaFromLocation(task, token, proxy_array, locations_array, iRender)
+  })
+}
 
-    setStateView(task._id, 'run');
-    loggerDb(task._id, 'Парсинг по гео');
-    
-    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
-      if (err) throw err;
+function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
+  var chunked = _.chunk(locations_array, proxy_array.length);
+  var limit = 5; 
+  var mediaCodes = [];
+  async.eachLimit(chunked, limit, function( item, callbackOut) { 
+    var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+    async.mapValues(chnk, function(proxy, location, callback) {
 
-      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
-      var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
-  
-      // FIND LOCATIONS
-      var iLoc = 0, iCode = 0, iUser = 0;
-      var lng = task.centroid[0]
-      var lat = task.centroid[1]
-      var distance = Math.floor(task.distance * 1000)
-      var tok = '208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ'
-      var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&limit=100&access_token=' + tok 
-      console.log(locations)
-      var fb;
-      var locations_array = [];
-
-      var genToken = { proxy: proxy, locations: locations }
+      var genToken = { proxy: proxy, location: location }
       token.push(genToken)
 
-      var fb = new Client.Web.fbSearchPlace(proxy, locations, genToken);
+      // LOCATION FEED
+      var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit, genToken);
 
       var promiseWhile = Promise.method(function(condition, action) {
         if (condition())
@@ -54,172 +86,143 @@ function parseGeoApi(task, token) {
         return action()
           .then(promiseWhile.bind(null, condition, action));
       });
-
-      var condFunc = function() {      
-        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || fb.getCursor() == null;
+      var condFunc = function() {     
+        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
       }
-
       var actionFunc = function() {
-        return fb.get()
-        .then(function(res) {
-          var jsonRes = JSON.parse(res.body)
-          iLoc += jsonRes.data.length
-          render3View(task._id, iLoc, iCode, iUser)
-          jsonRes.data.forEach(function(item) {
-            locations_array.push(item.id)
+        return locationReq.get()
+        .then(function(res) { 
+
+          iRender.iCode += res.location.media.nodes.length;
+          render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
+
+          res.location.media.nodes.forEach(function(node) {
+            mediaCodes.push(node.code)    
           })
-        });
+        })
       };
 
       promiseWhile(condFunc, actionFunc)
       .then(function() {
-        var chunked = _.chunk(locations_array, proxy_array.length);
-        var limit = 5; 
-        var mediaCodes = [];
-        async.eachLimit(chunked, limit, function( item, callbackOut) { 
-          var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-          async.mapValues(chnk, function(proxy, location, callback) {
-
-            var genToken = { proxy: proxy, location: location }
-            token.push(genToken)
-
-            // LOCATION FEED
-            var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit, genToken);
-
-            var promiseWhile = Promise.method(function(condition, action) {
-              if (condition())
-                return;
-              return action()
-                .then(promiseWhile.bind(null, condition, action));
-            });
-            var condFunc = function() {     
-              return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
-            }
-            var actionFunc = function() {
-              return locationReq.get()
-              .then(function(res) { 
-
-                iCode += res.location.media.nodes.length;
-                render3View(task._id, iLoc, iCode, iUser);
-
-                res.location.media.nodes.forEach(function(node) {
-                  mediaCodes.push(node.code)    
-                })
-              })
-            };
-
-            promiseWhile(condFunc, actionFunc)
-            .then(function() {
-              console.log('done1')
-              callback()
-            })
-            .catch(function(err) {
-              if(err.message == "Cancelled") {
-                callback(err)
-              } else { 
-                console.log(err)
-                callback()
-              }
-            })
-          
-          }, function(err, result) {
-             
-            if (err) {
-              console.log('callbackOut(err);')
-              callbackOut(err); // if cancelled
-            } else {
-              console.log('callbackOut()')
-              callbackOut()
-            }
-          })
-        }, function(err) {
-          if( err ) {
-            console.log('A file failed to process');
-            setStateView(task._id, 'stopped');
-          } else {
-              console.log('Start media code parsing');
-              var chunked = _.chunk(mediaCodes, proxy_array.length);
-              var lim = 5;
-              async.eachLimit(chunked, lim, function(item, callbackOut) { 
-                var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-                console.log(item)
-                async.mapValues(chnk, function(proxy, code, callback) {
-
-                  var genToken = { proxy: proxy, code: code }
-                  token.push(genToken)
-
-                  var mediaRequest = new Client.Web.Media(genToken);
-
-                  var filterAsync = function(code, proxy, cb) {
-                    mediaRequest.get(code, returnProxyFunc(proxy))
-                    .then(function(owner) {
-                      iUser += 1
-                      appendStringFile(task.output_file, owner.username); 
-                      render3View(task._id, iLoc, iCode, iUser);
-                      cb()
-                    })
-                    .catch(function(err) {
-                                       
-                      if(err.message == "Cancelled") {
-                        cb(err)
-                      } else { 
-                        console.log(err)
-                        // renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                        cb()
-                      }
-                    })
-                  }
-                  function myFunction(code, proxy, callbackF) {
-                    filterAsync(code, proxy, function(err) {
-                      if (err) return callbackF(err);
-                      return callbackF();
-                    });
-                  }
-                  var wrappedFilter = async.timeout(myFunction, 10000);
-
-                  wrappedFilter(code, proxy, function(err) {
-                    if (err) {
-                      if (err.code === 'ETIMEDOUT') {
-                        console.log('------<')
-                        console.log(proxy, code)
-                        genToken.cancel()
-
-                        callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
-                      } else {
-                        console.log(err)
-                        callback(err)
-                      }
-                    } else {
-                      callback()
-                    }
-                  });
-
-                }, function(err, result) {
-                  render3View(task._id, iLoc, iCode, iUser);
-                  if (err) {
-                    console.log('callbackOut(err);')
-                    callbackOut(err); 
-                  } else {
-                    console.log('callbackOut()')
-                    callbackOut()
-                  }
-                })
-
-              }, function(err) {
-                if( err ) {
-                  console.log('A file failed to process');
-                  setStateView(task._id, 'stopped');
-                } else {
-                  render3View(task._id, iLoc, iCode, iUser);
-                  console.log('All files have been processed successfully');
-                  setStateView(task._id, 'stopped');
-                }
-              });
-               
-          }
-
-        });
+        console.log('done1')
+        callback()
       })
+      .catch(function(err) {
+        if(err.message == "Cancelled") {
+          callback(err)
+        } else { 
+          console.log(err)
+          callback()
+        }
+      })
+    
+    }, function(err, result) {
+       
+      if (err) {
+        console.log('callbackOut(err);')
+        callbackOut(err);  
+      } else {
+        console.log('callbackOut()')
+        callbackOut()
+      }
+    })
+  }, function(err) {
+    if( err ) {
+      console.log('A file failed to process');
+      setStateView(task._id, 'stopped');
+    } else {
+      mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, iRender)
+    }
+  });
+}
+
+var mediaAsync = function(token, task, iRender, code, proxy, cb) {
+  var genToken = { proxy: proxy, code: code }
+  token.push(genToken)
+  var mediaRequest = new Client.Web.Media(genToken);
+  mediaRequest.get(code, returnProxyFunc(proxy))
+  .then(function(owner) {
+    iRender.iUser += 1
+    appendStringFile(task.output_file, owner.username); 
+    render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
+    cb()
+  })
+  .catch(function(err) {
+    if(err.message == "Cancelled") {
+      cb(err)
+    } else { 
+      console.log(err)
+      cb()
+    }
+  })
+}
+
+function mediaFunction(token, task, iRender, code, proxy, callback) {
+  mediaAsync(token, task, iRender, code, proxy, function(err) {
+    if (err) return callback(err);
+    return callback();
+  });
+}
+
+function mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, iRender) {
+  console.log('Start media code parsing');
+  var chunked = _.chunk(mediaCodes, proxy_array.length);
+  var lim = 5;
+  async.eachLimit(chunked, lim, function(item, callbackOut) { 
+    var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+    async.mapValues(chnk, function(proxy, code, callback) {
+      
+      var wrappedMedia = async.timeout(mediaFunction, 10000);
+      wrappedMedia(token, task, iRender, code, proxy, function(err) {
+        if (err) {
+          if (err.code === 'ETIMEDOUT') {
+            console.log('------<')
+            console.log(proxy, code)
+            genToken.cancel()
+            callback() 
+          } else {
+            // console.log(err)
+            callback(err)
+          }
+        } else {
+          callback()
+        }
+      });
+
+    }, function(err, result) {
+      render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
+      if (err) {
+        console.log('callbackOut(err);')
+        callbackOut(err); 
+      } else {
+        console.log('callbackOut()')
+        callbackOut()
+      }
+    })
+
+  }, function(err) {
+    if( err ) {
+      console.log('A file failed to process');
+      setStateView(task._id, 'stopped');
+    } else {
+      render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
+      console.log('All files have been processed successfully');
+      setStateView(task._id, 'stopped');
+    }
+  });
+}
+
+function parseGeoApi(task, token) { 
+  mkdirFolder(logsDir)
+  .then(function() {
+
+    setStateView(task._id, 'run');
+    loggerDb(task._id, 'Парсинг по гео');
+    var iRender = {};
+    iRender.iLoc = 0, iRender.iCode = 0, iRender.iUser = 0;
+    fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
+      if (err) throw err;
+      findLocationFb(task, token, proxy_array, iRender)
       .catch(function (err) {
         if(err.message == "Cancelled") {
           setStateView(task._id, 'stopped');
@@ -228,15 +231,12 @@ function parseGeoApi(task, token) {
           setStateView(task._id, 'stopped');
         }
       })
-
-
-      
-    });
+    })
+  
   })
   .catch(function(err) {
     console.log(err)
   }) 
-   
 }
 
 
@@ -244,6 +244,8 @@ function parseGeoApi(task, token) {
  * TASK Create accounts      *                      
  *****************************/
  
+
+
 function createApi(task, token) { //  add timeot between same proxy
   mkdirFolder(logsDir)
   .then(function() {
@@ -263,10 +265,12 @@ function createApi(task, token) { //  add timeot between same proxy
 
       var email_array = [];
       if (!task.own_emails) {
-        for(var i = 0; i < task.emails_cnt; i++) {
+
+        email_array = _.times(task.emails_cnt, function() {
           var name = SURNAMES[Math.floor(Math.random() * SURNAMES.length)] + NAMES[Math.floor(Math.random() * SURNAMES.length)];
-          email_array.push(name + getRandomInt(1000, 999999) + '@gmail.com');
-        }
+          return name + getRandomInt(1000, 999999) + '@gmail.com';
+        })
+ 
       } else {
         email_array = task.email_parsed;
       }
@@ -285,7 +289,6 @@ function createApi(task, token) { //  add timeot between same proxy
       var timerArr = timers.get(task._id)
       async.eachLimit(chunked, limit, function( item, callbackOut) { 
         var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-        
         
         async.mapValues(chnk, function(proxy, email, callback) {
           
@@ -412,6 +415,93 @@ function filterFunction(json, task, proxy, cb) {
 }
 
 
+var filterAsync = function(task, genToken, users_array, iRender, filtername, proxy, cb) {
+  var filterRequest = new Client.Web.Filter(genToken);
+  filterRequest.getUser(filtername, returnProxyFunc(proxy))
+  .then(function(res) { 
+    filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
+      if (bool) {
+        iRender.iSuccess += 1;
+      }
+      renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
+      cb()
+    });
+  })
+  .catch(function(err) {   
+    if(err.message == "Cancelled") {
+      cb(err)
+    } else { 
+      if (err.statusCode != 404) {
+        console.log(err)
+      }
+      cb()
+    }
+  });
+}
+
+function myFunction(task, genToken, users_array, iRender, filtername, proxy, callback) {
+  filterAsync(task, genToken, users_array, iRender, filtername, proxy, function(err) {
+    if (err) return callback(err);
+    return callback();
+  });
+}
+
+function chunkedFilter(task, token, proxy_array, users_array) {
+
+  users_array = users_array.split(EOL).filter(isEmpty);
+  var chunked = _.chunk(users_array, proxy_array.length);
+
+  var iRender = {};
+  iRender.iIter = 0, iRender.iSuccess = 0;
+
+  var limit = 5; // test optimal value
+  async.eachLimit(chunked, limit, function( item, callbackOut) { 
+    var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+    async.mapValues(chnk, function(proxy, filtername, callback) {
+      
+      var genToken = { proxy: proxy, filtername: filtername }
+      token.push(genToken)
+
+      var wrappedFilter = async.timeout(myFunction, 10000);
+      wrappedFilter(task, genToken, users_array, iRender, filtername, proxy, function(err) {
+        iRender.iIter++;
+        if (err) {
+          if (err.code === 'ETIMEDOUT') {
+            console.log('------<')
+            console.log(proxy, filtername)
+            genToken.cancel() 
+            callback() 
+          } else {
+            // console.log(err)
+            callback(err)
+          }
+        } else {
+          callback()
+        }
+      });
+
+    }, function(err, result) {
+      renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
+      if (err) {
+        console.log('callbackOut(err);')
+        callbackOut(err); 
+      } else {
+        console.log('callbackOut()')
+        callbackOut()
+      }
+    })
+  }, function(err) {
+    renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
+    if( err ) {
+      console.log('A file failed to process');
+      setStateView(task._id, 'stopped');
+    } else {
+      console.log('All files have been processed successfully');
+      setStateView(task._id, 'stopped');
+    }
+  });
+}
+
 function filterApi(task, token) { 
   mkdirFolder(logsDir)
   .then(function() {
@@ -426,84 +516,9 @@ function filterApi(task, token) {
       proxy_array = proxy_array.split(EOL).filter(isEmpty).filter(validateProxyString);
       if (err) throw err;
       fs.readFile(task.inputfile, 'utf8', function(err, users_array) {
-        users_array = users_array.split(EOL).filter(isEmpty);
-        var chunked = _.chunk(users_array, proxy_array.length);
-        var filterSuccess = 0;
-        var indicator = 0;
-        var limit = 5; // test optimal value
-        async.eachLimit(chunked, limit, function( item, callbackOut) { 
-          var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
-          async.mapValues(chnk, function(proxy, filtername, callback) {
-            
-            var genToken = { proxy: proxy, filtername: filtername }
-            token.push(genToken)
-            var filterRequest = new Client.Web.Filter(genToken);
 
-            var filterAsync = function(filtername, proxy, cb) {
-              filterRequest.getUser(filtername, returnProxyFunc(proxy))
-              .then(function(res) { 
-                filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
-                  if (bool) {
-                    filterSuccess += 1;
-                  }
-                  renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-                  cb()
-                });
-              })
-              .catch(function(err) {   
-                if(err.message == "Cancelled") {
-                  cb(err)
-                } else { 
-                  if (err.statusCode != 404) {
-                    console.log(err)
-                  }
-                  cb()
-                }
-              });
-            }
-            function myFunction(filtername, proxy, callbackF) {
-              filterAsync(filtername, proxy, function(err) {
-                if (err) return callbackF(err);
-                return callbackF();
-              });
-            }
-            var wrappedFilter = async.timeout(myFunction, 10000);
-            wrappedFilter(filtername, proxy, function(err) {
-              indicator++;
-              if (err) {
-                if (err.code === 'ETIMEDOUT') {
-                  console.log('------<')
-                  console.log(proxy, filtername)
-                  genToken.cancel() 
-                  callback() 
-                } else {
-                  console.log(err)
-                  callback(err)
-                }
-              } else {
-                callback()
-              }
-            });
-          }, function(err, result) {
-            renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-            if (err) {
-              console.log('callbackOut(err);')
-              callbackOut(err); 
-            } else {
-              console.log('callbackOut()')
-              callbackOut()
-            }
-          })
-        }, function(err) {
-          renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
-          if( err ) {
-            console.log('A file failed to process');
-            setStateView(task._id, 'stopped');
-          } else {
-            console.log('All files have been processed successfully');
-            setStateView(task._id, 'stopped');
-          }
-        });
+        chunkedFilter(task, token, proxy_array, users_array);
+
       })
     })
   })
