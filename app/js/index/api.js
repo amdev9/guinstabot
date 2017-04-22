@@ -548,6 +548,82 @@ function filterApi(task, token) {
  * USER Parse concurents     *                      
  *****************************/
  
+
+function parseSes(user, task, token, ses) {
+
+  async.eachSeries(task.parsed_conc, function(parsename, callback) {
+    var count = 0;
+    ses.then(function(session) {
+      return [session, Client.Account.searchForUser(session, parsename)]   
+    }).all()
+    .then(function([session, account]) {
+      var feed;
+      if (task.parse_type == true) {
+        feed = new Client.Feed.AccountFollowers(session, account.id);
+      } else {
+        feed = new Client.Feed.AccountFollowing(session, account.id);
+      }
+      var promiseWhile = Promise.method(function(condition, action) {
+        if (condition())
+          return;
+        return action()
+          .then(promiseWhile.bind(null, condition, action));
+      });
+      var condFunc = function() {
+        return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit;
+      }
+      var actionFunc = function() {
+        return feed.get()
+        .then(function(res) { 
+          res.forEach(function (item, i , arr) {
+            if (count < task.max_limit) {
+              appendStringFile(task.outputfile, item._params.username);
+              renderTaskCompletedView(user._id);
+            }
+            count++
+          });
+          if (!feed.getCursor()) {
+            throw new Error('cursor')
+          }
+        });
+      };
+      promiseWhile(condFunc, actionFunc)
+      .then(function() {
+        console.log(parsename + ' done!');
+        callback()         
+      })
+      .catch(function (err) {
+        if (err.message == "Cancelled") {
+          callback(err)
+        } else {
+          console.log(err)
+          callback()
+        }
+      })
+    })
+    .catch(function (err) {
+      if (err.message == "Cancelled") {
+        callback(err)
+      } else {
+        console.log(err)
+        callback()
+      }
+    });
+
+
+  }, function(err) {
+    if( err ) {
+      console.log('A file failed to process');
+      setStateView(user._id, 'stopped');
+    } else {
+      console.log('All files have been processed successfully');
+      setStateView(user._id, 'stopped');
+    }
+  });
+
+}
+
+
 function parseApi(user, task, token) {
 
   mkdirFolder(cookieDir)
@@ -577,73 +653,9 @@ function parseApi(user, task, token) {
     if(task.parsed_conc.length == 0) {
       throw new Error("stop");  
     }
-    async.eachSeries(task.parsed_conc, function(parsename, callback) {
-      var count = 0;
-      ses.then(function(session) {
-        return [session, Client.Account.searchForUser(session, parsename)]   
-      }).all()
-      .then(function([session, account]) {
-        var feed;
-        if (task.parse_type == true) {
-          feed = new Client.Feed.AccountFollowers(session, account.id);
-        } else {
-          feed = new Client.Feed.AccountFollowing(session, account.id);
-        }
-        var promiseWhile = Promise.method(function(condition, action) {
-          if (condition())
-            return;
-          return action()
-            .then(promiseWhile.bind(null, condition, action));
-        });
-        var condFunc = function() {
-          return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || count >= task.max_limit;
-        }
-        var actionFunc = function() {
-          return feed.get()
-          .then(function(res) { 
-            res.forEach(function (item, i , arr) {
-              if (count < task.max_limit) {
-                appendStringFile(task.outputfile, item._params.username);
-                renderTaskCompletedView(user._id);
-              }
-              count++
-            });
-            if (!feed.getCursor()) {
-              throw new Error('cursor')
-            }
-          });
-        };
-        promiseWhile(condFunc, actionFunc)
-        .then(function() {
-          console.log(parsename + ' done!');
-          callback()         
-        })
-        .catch(function (err) {
-          if (err.message == "Cancelled") {
-            callback(err)
-          } else {
-            console.log(err)
-            callback()
-          }
-        })
-      })
-      .catch(function (err) {
-        if (err.message == "Cancelled") {
-          callback(err)
-        } else {
-          console.log(err)
-          callback()
-        }
-      });
-    }, function(err) {
-      if( err ) {
-        console.log('A file failed to process');
-        setStateView(user._id, 'stopped');
-      } else {
-        console.log('All files have been processed successfully');
-        setStateView(user._id, 'stopped');
-      }
-    });
+
+    parseSes(user, task, token, ses);
+
   })
   .catch(function(err) {
     console.log(err);
