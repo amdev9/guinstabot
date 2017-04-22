@@ -115,16 +115,16 @@ function virtualCheck(cb) {
       if(res == 'vm') {
         reject(res);
       } else {
-        taskList(function(res) {
-          if(res == 'vm') {
-            reject(res);
-          } else {
-            resolve(res);
-          }
-        });
+        resolve(res);
+        // taskList(function(res) {
+        //   if(res == 'vm') {
+        //     reject(res);
+        //   } else {
+        //     resolve(res);
+        //   }
+        // });
       }
     });
-
   })
 }
 

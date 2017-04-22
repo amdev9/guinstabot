@@ -186,6 +186,7 @@ function parseGeoApi(task, token) {
 
                         callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
                       } else {
+                        console.log(err)
                         callback(err)
                       }
                     } else {
@@ -227,6 +228,9 @@ function parseGeoApi(task, token) {
           setStateView(task._id, 'stopped');
         }
       })
+
+
+      
     });
   })
   .catch(function(err) {
@@ -358,7 +362,7 @@ function createApi(task, token) { //  add timeot between same proxy
  *****************************/
 
 function mediaFilter(json, task, proxy, cb) {
-  var filterRequest = new Client.Web.Filter(token);
+  var filterRequest = new Client.Web.Filter(); // add token
   filterRequest.media(json.username, proxy)
   .then(function(response) {
     // check data of media 
@@ -467,15 +471,13 @@ function filterApi(task, token) {
             wrappedFilter(filtername, proxy, function(err) {
               indicator++;
               if (err) {
-                 // here token cancel
                 if (err.code === 'ETIMEDOUT') {
                   console.log('------<')
                   console.log(proxy, filtername)
-                  genToken.cancel() // for this request
-
-                  // console.log(err)
-                  callback() // if timeout error -> else err.message == 'Cancelled', etc callback(err)
+                  genToken.cancel() 
+                  callback() 
                 } else {
+                  console.log(err)
                   callback(err)
                 }
               } else {
@@ -493,6 +495,7 @@ function filterApi(task, token) {
             }
           })
         }, function(err) {
+          renderUserCompletedView(task._id, users_array.length, indicator, filterSuccess); 
           if( err ) {
             console.log('A file failed to process');
             setStateView(task._id, 'stopped');
