@@ -20,7 +20,7 @@ var cookieDir = path.join(os.tmpdir(), softname.replace(/\s/g,'') , 'cookie');
  *****************************/
 
 function findLocationFb(task, token, proxy_array, iRender) {
-  proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+ 
   var proxy = returnProxyFunc( _.shuffle(proxy_array)[0] );
 
   // FIND LOCATIONS
@@ -136,9 +136,8 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
   });
 }
 
-var mediaAsync = function(token, task, iRender, code, proxy, cb) {
-  var genToken = { proxy: proxy, code: code }
-  token.push(genToken)
+var mediaAsync = function(genToken, task, iRender, code, proxy, cb) {
+  
   var mediaRequest = new Client.Web.Media(genToken);
   mediaRequest.get(code, returnProxyFunc(proxy))
   .then(function(owner) {
@@ -157,8 +156,8 @@ var mediaAsync = function(token, task, iRender, code, proxy, cb) {
   })
 }
 
-function mediaFunction(token, task, iRender, code, proxy, callback) {
-  mediaAsync(token, task, iRender, code, proxy, function(err) {
+function mediaFunction(genToken, task, iRender, code, proxy, callback) {
+  mediaAsync(genToken, task, iRender, code, proxy, function(err) {
     if (err) return callback(err);
     return callback();
   });
@@ -172,8 +171,11 @@ function mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, i
     var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
     async.mapValues(chnk, function(proxy, code, callback) {
       
+      var genToken = { proxy: proxy, code: code }
+      token.push(genToken)
+
       var wrappedMedia = async.timeout(mediaFunction, 10000);
-      wrappedMedia(token, task, iRender, code, proxy, function(err) {
+      wrappedMedia(genToken, task, iRender, code, proxy, function(err) {
         if (err) {
           if (err.code === 'ETIMEDOUT') {
             console.log('------<')
@@ -222,6 +224,10 @@ function parseGeoApi(task, token) {
     iRender.iLoc = 0, iRender.iCode = 0, iRender.iUser = 0;
     fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
       if (err) throw err;
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString).filter(function(elem, index, self) {
+        return index == self.indexOf(elem);
+      });
+
       findLocationFb(task, token, proxy_array, iRender)
       .catch(function (err) {
         if(err.message == "Cancelled") {
@@ -261,7 +267,9 @@ function createApi(task, token) { //  add timeot between same proxy
 
     fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
       if (err) throw err;
-      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString);
+      proxy_array = proxy_array.replace(/ /g, "").split(/\r\n|\r|\n/).filter(isEmpty).filter(validateProxyString).filter(function(elem, index, self) {
+        return index == self.indexOf(elem);
+      });
 
       var email_array = [];
       if (!task.own_emails) {
@@ -390,21 +398,22 @@ function filterFunction(json, task, proxy, cb) {
   if (followersCond && subscribersCond && publicationsCond && privateCond ) {
     if (task.stop_words_file != "") {
       fs.readFile(task.stop_words_file, function(err, f) {
-      var words = f.toString().split(EOL).filter(isEmpty);
-      words.forEach(function (word) {
-        word = word.toLowerCase();
-        var fullName = json.fullName ? json.fullName.toLowerCase() : '';
-        var biography = json.biography ? json.biography.toLowerCase() : '';
-        if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
-          if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
-            mediaFilter(json, task, proxy, cb);
-          } else {
-            appendStringFile(task.outputfile, json.username);
-            cb(true);
+        if (err) throw err;
+        var words = f.toString().split(EOL).filter(isEmpty);
+        words.forEach(function (word) {
+          word = word.toLowerCase();
+          var fullName = json.fullName ? json.fullName.toLowerCase() : '';
+          var biography = json.biography ? json.biography.toLowerCase() : '';
+          if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
+            if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
+              mediaFilter(json, task, proxy, cb);
+            } else {
+              appendStringFile(task.outputfile, json.username);
+              cb(true);
+            }
           }
-        }
-      })
-    });
+        })
+      });
     } else {
       appendStringFile(task.outputfile, json.username);
       cb(true);
@@ -416,6 +425,7 @@ function filterFunction(json, task, proxy, cb) {
 
 
 var filterAsync = function(task, genToken, users_array, iRender, filtername, proxy, cb) {
+  
   var filterRequest = new Client.Web.Filter(genToken);
   filterRequest.getUser(filtername, returnProxyFunc(proxy))
   .then(function(res) { 
@@ -448,22 +458,24 @@ function myFunction(task, genToken, users_array, iRender, filtername, proxy, cal
 
 function chunkedFilter(task, token, proxy_array, users_array) {
 
-  users_array = users_array.split(EOL).filter(isEmpty);
   var chunked = _.chunk(users_array, proxy_array.length);
 
   var iRender = {};
   iRender.iIter = 0, iRender.iSuccess = 0;
-
+  var iii = 0;
   var limit = 5; // test optimal value
-  async.eachLimit(chunked, limit, function( item, callbackOut) { 
-    var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
+  async.eachLimit(chunked, limit, function( item, callbackOut) {  // repeats
+    var chnk = _.zipObject(item, _.shuffle(proxy_array))  // repeats
+
+     console.log( chnk, _.size(chnk))
     async.mapValues(chnk, function(proxy, filtername, callback) {
-      
+       
       var genToken = { proxy: proxy, filtername: filtername }
       token.push(genToken)
 
       var wrappedFilter = async.timeout(myFunction, 10000);
       wrappedFilter(task, genToken, users_array, iRender, filtername, proxy, function(err) {
+        // console.log(iRender.iIter, filtername, proxy)
         iRender.iIter++;
         if (err) {
           if (err.code === 'ETIMEDOUT') {
@@ -513,12 +525,17 @@ function filterApi(task, token) {
     });
 
     fs.readFile(task.proxy_file, 'utf8', function(err, proxy_array) {
-      proxy_array = proxy_array.split(EOL).filter(isEmpty).filter(validateProxyString);
       if (err) throw err;
+      proxy_array = proxy_array.split(EOL).filter(isEmpty).filter(validateProxyString).filter(function(elem, index, self) {
+        return index == self.indexOf(elem);
+      });
+
       fs.readFile(task.inputfile, 'utf8', function(err, users_array) {
-
+        if (err) throw err;
+        users_array = users_array.split(EOL).filter(isEmpty).filter(function(elem, index, self) {
+          return index == self.indexOf(elem);
+        });
         chunkedFilter(task, token, proxy_array, users_array);
-
       })
     })
   })
