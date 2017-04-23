@@ -372,19 +372,38 @@ function createApi(task, token) { //  add timeot between same proxy
  * TASK Filter accounts      *                      
  *****************************/
 
-function mediaFilter(json, task, proxy, cb) {
-  var filterRequest = new Client.Web.Filter(); // add token
+function mediaFilter(json, task, proxy, genToken, callback) {
+  
+  var filterRequest = new Client.Web.Filter(genToken); 
   filterRequest.media(json.username, proxy)
   .then(function(response) {
-    // check data of media 
-    console.log('mediaFilter')
-    appendStringFile(task.outputfile, json.username);
-    cb(true);
+    
+    var timestamp = response.items[0].created_time;
+    var instaDate = new Date(timestamp*1000);
+    var uiDate = new Date(task.lastdate);
+
+    if(uiDate.getTime() < instaDate.getTime()) {
+      callback(null, true);
+    } else {
+      callback();
+    }
+    
+  })
+  .catch(function(err) {   
+    if(err.message == "Cancelled") {
+      callback(err)
+    } else { 
+      if (err.statusCode != 404) {
+        console.log(err)
+      }
+      callback()
+    }
   });
 }
 
-function filterFunction(json, task, proxy, cb) {
 
+function filterFunction(json, task, proxy, genToken, cb) {
+ 
   var followersCond = json.followerCount > task.followers.from && json.followerCount < task.followers.to;
   var subscribersCond = json.followingCount > task.subscribers.from && json.followingCount < task.subscribers.to;
   var publicationsCond = json.mediaCount > task.publications.from && json.mediaCount < task.publications.to;
@@ -395,31 +414,51 @@ function filterFunction(json, task, proxy, cb) {
   } else if (task.private == 'open') {
     var privateCond = json.isPrivate == false;
   }
+
   if (followersCond && subscribersCond && publicationsCond && privateCond ) {
+    
     if (task.stop_words_file != "") {
-      fs.readFile(task.stop_words_file, function(err, f) {
+      fs.readFile(task.stop_words_file, 'utf8', function(err, f) {
         if (err) throw err;
         var words = f.toString().split(EOL).filter(isEmpty);
-        words.forEach(function (word) {
+
+
+        async.each(words, function(word, callback) {
           word = word.toLowerCase();
           var fullName = json.fullName ? json.fullName.toLowerCase() : '';
           var biography = json.biography ? json.biography.toLowerCase() : '';
-          if (word != "" && fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) {
+          if (fullName.indexOf(word) == -1 && biography.indexOf(word) == -1 ) { // word not found 
+            callback() 
+          } else {
+            callback(new Error('Found')) 
+          }
+        }, function(err) {
+          if( err ) {
+            // console.log('A file failed to process', err);
+            cb();
+          } else {
+            // console.log('All files have been processed successfully');
             if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
-              mediaFilter(json, task, proxy, cb);
+              mediaFilter(json, task, proxy, genToken, cb);
             } else {
-              appendStringFile(task.outputfile, json.username);
-              cb(true);
+              cb(null, true);
             }
           }
-        })
+        });
+
+
       });
+
     } else {
-      appendStringFile(task.outputfile, json.username);
-      cb(true);
+      if (task.lastdate != "" && json.isPrivate == false && json.mediaCount > 0) {
+        mediaFilter(json, task, proxy, genToken, cb);
+      } else {
+        cb(null, true);
+      }
     }
+
   } else {
-    cb(false);
+    cb();
   }
 }
 
@@ -429,13 +468,28 @@ var filterAsync = function(task, genToken, users_array, iRender, filtername, pro
   var filterRequest = new Client.Web.Filter(genToken);
   filterRequest.getUser(filtername, returnProxyFunc(proxy))
   .then(function(res) { 
-    filterFunction(res, task, returnProxyFunc(proxy), function(bool) { 
-      if (bool) {
-        iRender.iSuccess += 1;
+
+    filterFunction(res, task, returnProxyFunc(proxy), genToken, function(err, bool) { 
+      if (err) {
+        if(err.message == "Cancelled") {
+          cb(err)
+        } else { 
+          if (err.statusCode != 404) {
+            console.log(err)
+          }
+          cb()
+        }
+      } else {
+        if (bool) {
+          iRender.iSuccess += 1;
+          appendStringFile(task.outputfile, filtername);
+        }
+
+        renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
+        cb()
       }
-      renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
-      cb()
-    });
+    })
+     
   })
   .catch(function(err) {   
     if(err.message == "Cancelled") {
@@ -473,14 +527,15 @@ function chunkedFilter(task, token, proxy_array, users_array) {
       var genToken = { proxy: proxy, filtername: filtername }
       token.push(genToken)
 
-      var wrappedFilter = async.timeout(myFunction, 10000);
+      var wrappedFilter = async.timeout(myFunction, 20000);
+      
       wrappedFilter(task, genToken, users_array, iRender, filtername, proxy, function(err) {
         // console.log(iRender.iIter, filtername, proxy)
         iRender.iIter++;
         if (err) {
           if (err.code === 'ETIMEDOUT') {
-            console.log('------<')
-            console.log(proxy, filtername)
+            // console.log('------<')
+            // console.log(proxy, filtername)
             genToken.cancel() 
             callback() 
           } else {
@@ -495,20 +550,20 @@ function chunkedFilter(task, token, proxy_array, users_array) {
     }, function(err, result) {
       renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
       if (err) {
-        console.log('callbackOut(err);')
+        // console.log('callbackOut(err);')
         callbackOut(err); 
       } else {
-        console.log('callbackOut()')
+        // console.log('callbackOut()')
         callbackOut()
       }
     })
   }, function(err) {
     renderUserCompletedView(task._id, users_array.length, iRender.iIter, iRender.iSuccess); 
     if( err ) {
-      console.log('A file failed to process');
+      // console.log('A file failed to process');
       setStateView(task._id, 'stopped');
     } else {
-      console.log('All files have been processed successfully');
+      // console.log('All files have been processed successfully');
       setStateView(task._id, 'stopped');
     }
   });

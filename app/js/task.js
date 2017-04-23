@@ -143,14 +143,25 @@ function editFiltration(task) {
   document.getElementById("inputfile").value = task.inputfile;
   document.getElementById("followers_from").value = task.followers.from;
   document.getElementById("followers_to").value = task.followers.to;
-  document.getElementById("publications_from").value = task.subscribers.from;
-  document.getElementById("publications_to").value = task.subscribers.to;
-  document.getElementById("subscribers_from").value = task.publications.from;
-  document.getElementById("subscribers_to").value = task.publications.to;
+
+  document.getElementById("publications_from").value = task.publications.from;
+  document.getElementById("publications_to").value = task.publications.to; 
+
+  document.getElementById("subscribers_from").value = task.subscribers.from; 
+  document.getElementById("subscribers_to").value = task.subscribers.to;
+
   document.getElementById("stop_words_file").value = task.stop_words_file;
   document.getElementById("avatar").checked = task.anonym_profile; 
-  document.getElementById("private").value =  task.private;
-  document.getElementById("lastdate").value = task.lastdate;
+  document.getElementById("private").value = task.private;
+
+  
+  if(task.lastdate != "") {
+    document.getElementById ('date_checker').checked = true
+    document.getElementById("lastdate").value = task.lastdate;
+    checkDatePicker()
+  }
+  
+  
   document.getElementById("filtered_accounts").value = task.outputfile;
   document.getElementById("proxy_file").value = task.proxy_file;
 }
@@ -163,8 +174,8 @@ function editParseConcurrents(task) {
   document.getElementById("subscribe").checked = !task.parse_type;
   document.getElementById("max_limit").value = task.max_limit;
   document.getElementById("parsed_accounts").value = task.outputfile;
-}
 
+}
 
 
 function filtrationUiData(taskName) {
@@ -185,11 +196,13 @@ function filtrationUiData(taskName) {
   this.stop_words_file = document.getElementById("stop_words_file").value;
   this.anonym_profile = document.getElementById("avatar").checked;
   this.private = document.getElementById("private").value;
-  if (document.getElementById ('date_checker').checked == true) {
+
+  if (document.getElementById('date_checker').checked == true) {
     var lastdate = document.getElementById("lastdate").value;
   } else {
     var lastdate = "";
   }
+
   this.lastdate = lastdate;
   this.outputfile = document.getElementById("filtered_accounts").value;
   this.proxy_file = document.getElementById("proxy_file").value;

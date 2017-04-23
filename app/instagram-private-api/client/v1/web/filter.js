@@ -48,8 +48,11 @@ Filter.prototype.media = function (_username, _proxy) {
             return new Promise((resolve, reject) => {
                 resolve(response);
             });
-        }).catch(function(err) {
-            console.log(err);
+        })
+        .catch(function(err) {
+            return new Promise((resolve, reject) => {
+                reject(err);
+            });
         });
 }
 
