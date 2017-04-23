@@ -50,6 +50,7 @@ function findLocationFb(task, token, proxy_array, iRender) {
   }
 
   var actionFunc = function() {
+
     return fb.get()
     .then(function(res) {
       var jsonRes = JSON.parse(res.body)
@@ -59,6 +60,8 @@ function findLocationFb(task, token, proxy_array, iRender) {
         locations_array.push(item.id)
       })
     });
+
+    
   };
   return promiseWhile(condFunc, actionFunc)
   .then(function() {
@@ -66,10 +69,12 @@ function findLocationFb(task, token, proxy_array, iRender) {
   })
 }
 
+
 function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
   var chunked = _.chunk(locations_array, proxy_array.length);
   var limit = 5; 
   var mediaCodes = [];
+
   async.eachLimit(chunked, limit, function( item, callbackOut) { 
     var chnk = _.zipObject(item, _.shuffle(proxy_array)) 
     async.mapValues(chnk, function(proxy, location, callback) {
@@ -78,6 +83,9 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
       token.push(genToken)
 
       // LOCATION FEED
+      ///////////// wrap all this
+
+
       var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit, genToken);
 
       var promiseWhile = Promise.method(function(condition, action) {
@@ -90,6 +98,7 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
         return getStateView(task._id) == 'stop' || getStateView(task._id) == 'stopped' || locationReq.getCursor() == null; // !res.location.media.page_info.end_cursor
       }
       var actionFunc = function() {
+
         return locationReq.get()
         .then(function(res) { 
 
@@ -100,6 +109,7 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
             mediaCodes.push(node.code)    
           })
         })
+
       };
 
       promiseWhile(condFunc, actionFunc)
@@ -115,6 +125,10 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
           callback()
         }
       })
+
+      ///////////////
+
+
     
     }, function(err, result) {
        
