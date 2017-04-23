@@ -76,9 +76,11 @@ Geolocation.prototype.get = function () {
                 resolve(response);
             });
         })
-        // .catch(function(err) {
-        //     console.log(that.proxy)
-        //     console.log(err);
-        // });
+        .catch(function(err) {
+            return new Promise((resolve, reject) => {
+                reject(err);
+            });
+        });
+        
 }
 

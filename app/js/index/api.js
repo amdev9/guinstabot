@@ -61,7 +61,7 @@ function findLocationFb(task, token, proxy_array, iRender) {
       })
     });
 
-    
+
   };
   return promiseWhile(condFunc, actionFunc)
   .then(function() {
@@ -84,8 +84,6 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
 
       // LOCATION FEED
       ///////////// wrap all this
-
-
       var locationReq = new Client.Web.Geolocation(returnProxyFunc(proxy), location, task.max_limit, genToken);
 
       var promiseWhile = Promise.method(function(condition, action) {
@@ -100,6 +98,7 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
       var actionFunc = function() {
 
         return locationReq.get()
+        .timeout(10000) // bluebird analog of async timeout wrapper
         .then(function(res) { 
 
           iRender.iCode += res.location.media.nodes.length;
@@ -108,41 +107,49 @@ function mediaFromLocation(task, token, proxy_array, locations_array, iRender) {
           res.location.media.nodes.forEach(function(node) {
             mediaCodes.push(node.code)    
           })
+         
         })
+        .catch(Promise.TimeoutError, function(e) {
+            return new Promise((resolve, reject) => {
+                reject(e);
+            });
+        });
 
       };
 
       promiseWhile(condFunc, actionFunc)
       .then(function() {
-        console.log('done1')
+        // console.log('done1')
         callback()
       })
       .catch(function(err) {
-        if(err.message == "Cancelled") {
+
+        if ( err.name == "TimeoutError" ) {
+          // console.log('------<')
+          // console.log(proxy, location)
+          genToken.cancel()
+          callback() 
+        } else if(err.message == "Cancelled") {
           callback(err)
         } else { 
-          console.log(err)
+          // console.log(err)
           callback()
         }
       })
 
-      ///////////////
-
-
-    
     }, function(err, result) {
        
       if (err) {
-        console.log('callbackOut(err);')
+        // console.log('callbackOut(err);')
         callbackOut(err);  
       } else {
-        console.log('callbackOut()')
+        // console.log('callbackOut()')
         callbackOut()
       }
     })
   }, function(err) {
     if( err ) {
-      console.log('A file failed to process');
+      // console.log('A file failed to process');
       setStateView(task._id, 'stopped');
     } else {
       mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, iRender)
@@ -164,7 +171,7 @@ var mediaAsync = function(genToken, task, iRender, code, proxy, cb) {
     if(err.message == "Cancelled") {
       cb(err)
     } else { 
-      console.log(err)
+      // console.log(err)
       cb()
     }
   })
@@ -177,8 +184,10 @@ function mediaFunction(genToken, task, iRender, code, proxy, callback) {
   });
 }
 
+
+
 function mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, iRender) {
-  console.log('Start media code parsing');
+  // console.log('Start media code parsing');
   var chunked = _.chunk(mediaCodes, proxy_array.length);
   var lim = 5;
   async.eachLimit(chunked, lim, function(item, callbackOut) { 
@@ -191,9 +200,9 @@ function mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, i
       var wrappedMedia = async.timeout(mediaFunction, 10000);
       wrappedMedia(genToken, task, iRender, code, proxy, function(err) {
         if (err) {
-          if (err.code === 'ETIMEDOUT') {
-            console.log('------<')
-            console.log(proxy, code)
+          if (err.code === 'ETIMEDOUT') { // err.name == "TimeoutError"
+            // console.log('------<')
+            // console.log(proxy, code)
             genToken.cancel()
             callback() 
           } else {
@@ -208,21 +217,21 @@ function mediaCodeParse(task, token, proxy_array, locations_array, mediaCodes, i
     }, function(err, result) {
       render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
       if (err) {
-        console.log('callbackOut(err);')
+        // console.log('callbackOut(err);')
         callbackOut(err); 
       } else {
-        console.log('callbackOut()')
+        // console.log('callbackOut()')
         callbackOut()
       }
     })
 
   }, function(err) {
     if( err ) {
-      console.log('A file failed to process');
+      // console.log('A file failed to process');
       setStateView(task._id, 'stopped');
     } else {
       render3View(task._id, iRender.iLoc, iRender.iCode, iRender.iUser);
-      console.log('All files have been processed successfully');
+      // console.log('All files have been processed successfully');
       setStateView(task._id, 'stopped');
     }
   });
@@ -247,7 +256,7 @@ function parseGeoApi(task, token) {
         if(err.message == "Cancelled") {
           setStateView(task._id, 'stopped');
         } else { 
-          console.log(err)
+          // console.log(err)
           setStateView(task._id, 'stopped');
         }
       })
@@ -255,7 +264,7 @@ function parseGeoApi(task, token) {
   
   })
   .catch(function(err) {
-    console.log(err)
+    // console.log(err)
   }) 
 }
 
@@ -279,7 +288,7 @@ function chunkedCreate(task, token, proxy_array) {
   }
 
   if(!proxy_array || email_array.length == 0) {
-    console.log("empty");
+    // console.log("empty");
     return;
   }
 
@@ -332,13 +341,13 @@ function chunkedCreate(task, token, proxy_array) {
 
       renderUserCompletedView(task._id, email_array.length, indicator, filterSuccess); 
       if (err) {
-        console.log('callbackOut(err);')
+        // console.log('callbackOut(err);')
         callbackOut(err); // if cancelled
       } else {
 
         var tim = (indicator == email_array.length) ? 0 : task.reg_timeout * 1000
         var timerId = setTimeout(function() {
-          console.log('callbackOut()')
+          // console.log('callbackOut()')
           callbackOut()
           timerArr.pop(timerId)
         }, tim)
@@ -347,10 +356,10 @@ function chunkedCreate(task, token, proxy_array) {
     })
   }, function(err) {
     if( err ) {
-      console.log('A file failed to process');
+      // console.log('A file failed to process');
       setStateView(task._id, 'stopped');
     } else {
-      console.log('All files have been processed successfully');
+      // console.log('All files have been processed successfully');
       setStateView(task._id, 'stopped');
     }
   });
@@ -377,7 +386,7 @@ function createApi(task, token) { //  add timeot between same proxy
     })
   })
   .catch(function(err) {
-    console.log(err);
+    // console.log(err);
     setStateView(task._id, 'stopped');
   })
 }
@@ -408,7 +417,7 @@ function mediaFilter(json, task, proxy, genToken, callback) {
       callback(err)
     } else { 
       if (err.statusCode != 404) {
-        console.log(err)
+        // console.log(err)
       }
       callback()
     }
@@ -489,7 +498,7 @@ var filterAsync = function(task, genToken, users_array, iRender, filtername, pro
           cb(err)
         } else { 
           if (err.statusCode != 404) {
-            console.log(err)
+            // console.log(err)
           }
           cb()
         }
@@ -510,7 +519,7 @@ var filterAsync = function(task, genToken, users_array, iRender, filtername, pro
       cb(err)
     } else { 
       if (err.statusCode != 404) {
-        console.log(err)
+        // console.log(err)
       }
       cb()
     }
@@ -541,7 +550,7 @@ function chunkedFilter(task, token, proxy_array, users_array) {
       var genToken = { proxy: proxy, filtername: filtername }
       token.push(genToken)
 
-      var wrappedFilter = async.timeout(myFunction, 20000);
+      var wrappedFilter = async.timeout(myFunction, 15000);
       
       wrappedFilter(task, genToken, users_array, iRender, filtername, proxy, function(err) {
         // console.log(iRender.iIter, filtername, proxy)
@@ -609,7 +618,7 @@ function filterApi(task, token) {
     })
   })
   .catch(function(err) {
-    console.log(err)
+    // console.log(err)
   })
 }
 
@@ -658,14 +667,14 @@ function parseSes(user, task, token, ses) {
       };
       promiseWhile(condFunc, actionFunc)
       .then(function() {
-        console.log(parsename + ' done!');
+        // console.log(parsename + ' done!');
         callback()         
       })
       .catch(function (err) {
         if (err.message == "Cancelled") {
           callback(err)
         } else {
-          console.log(err)
+          // console.log(err)
           callback()
         }
       })
@@ -674,7 +683,7 @@ function parseSes(user, task, token, ses) {
       if (err.message == "Cancelled") {
         callback(err)
       } else {
-        console.log(err)
+        // console.log(err)
         callback()
       }
     });
@@ -682,10 +691,10 @@ function parseSes(user, task, token, ses) {
 
   }, function(err) {
     if( err ) {
-      console.log('A file failed to process');
+      // console.log('A file failed to process');
       setStateView(user._id, 'stopped');
     } else {
-      console.log('All files have been processed successfully');
+      // console.log('All files have been processed successfully');
       setStateView(user._id, 'stopped');
     }
   });
@@ -727,7 +736,7 @@ function parseApi(user, task, token) {
 
   })
   .catch(function(err) {
-    console.log(err);
+    // console.log(err);
     setStateView(user._id, 'stopped');
   })
 }
@@ -768,23 +777,23 @@ function convertApi(user, task, token) {
         .then(function(account) {
           indicator++;
 
-          console.log(account.params.username, indicator);
+          // console.log(account.params.username, indicator);
           callback();
         })
 
       }, function(err) {
         if( err ) {
-          console.log('A file failed to process');
+          // console.log('A file failed to process');
           setStateView(user._id, 'stopped');
         } else {
-          console.log('All files have been processed successfully');
+          // console.log('All files have been processed successfully');
           setStateView(user._id, 'stopped');
         }
       });
     });
   })
   .catch(function(err) {
-    console.log(err);
+    // console.log(err);
     setStateView(user._id, 'stopped');
   })
 }
@@ -825,7 +834,7 @@ function checkApi(user_id, username, password, proxy, token) {
         }
       } else {
         updateUserStatusDb(user_id, 'Произошла ошибка');
-        console.log(err);
+        // console.log(err);
       }
     });
   })
