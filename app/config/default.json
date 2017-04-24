@@ -1,7 +1,7 @@
 {
   "App": {
     "softname": "InstaFilter",
-    "devTools": false,
+    "devTools": true,
     "hostname": "instafilter.mailglobals.co"
   }
 }
