@@ -54,8 +54,7 @@ Media.prototype.get = function (mediaId, _proxy) {
             return new Promise((resolve, reject) => {
                 reject(err);
             });
-            
-            
+         
         });
 }
  
