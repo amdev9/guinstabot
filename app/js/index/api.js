@@ -803,43 +803,47 @@ function convertApi(user, task, token) {
 * USER Upload photo (video)  *
 ******************************/
 
-function uploadSes(user, task, token, ses, description_array, indicator) {
-
+function uploadSes(user, task, token, ses, description_array) {
+  var indicator = 0;
   var timerArr = timers.get(user._id)
   async.eachSeries(task.upload_list, function(photopath, callback) { 
   
 
     var description_text = description_array[Math.floor(Math.random() * description_array.length)] 
-    console.log(photopath, description_text)
- 
+    // console.log(photopath, description_text)
  
     ses.then(function(session) {
-      console.log(session)
+      // console.log(session)
       new Client.Upload.photo(session, photopath)
       .then(function(upload) {
         // upload instanceof Client.Upload
         // nothing more than just keeping upload id
-        console.log(upload.params.uploadId);
+        // console.log(upload.params.uploadId);
         return Client.Media.configurePhoto(session, upload.params.uploadId, description_text);
       })
       .then(function(medium) {
         // we configure medium, it is now visible with caption
 
-        console.log(medium.params)
+        // console.log(medium.params)
         indicator++;
         renderTaskCompletedView(user._id);
         var tim = (indicator == task.upload_list.length) ? 0 : task.upload_timeout * 1000
+        // console.log(tim, indicator, task.upload_list.length)
         var timerId = setTimeout(function() {
           callback();
           timerArr.pop(timerId)
         }, tim)
         timerArr.push(timerId)
       })
-      .catch(function(err) {
-        console.log(err)
+      .catch(function (err) {
+        if (err.message == "Cancelled") {
+          callback(err)
+        } else {
+          // console.log(err)
+          callback()
+        }
       })
     })
-
 
   }, function(err) {
   if( err ) {
@@ -853,7 +857,7 @@ function uploadSes(user, task, token, ses, description_array, indicator) {
 }
 
 
-function uploadApi(user, task, token) {
+function uploadApi(user, task, token) { // add video upload
 
   mkdirFolder(cookieDir)
   .then(function() {
@@ -861,8 +865,6 @@ function uploadApi(user, task, token) {
     renderNewTaskCompletedView(user._id);
     loggerDb(user._id, 'Загрузка медиа началась');
 
-
-    var indicator = 0;
     const device = new Client.Device(user.username);
     var cookiePath = path.join(cookieDir, user._id + '.json');
     const storage = new Client.CookieFileStorage(cookiePath);
