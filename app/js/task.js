@@ -322,6 +322,7 @@ function upload(taskName) {
 
     var sizeOfChunk = _.ceil(mediaFound.length / users.length)
     task.upload_list = _.chunk(mediaFound, sizeOfChunk)[iter] ? _.chunk(mediaFound, sizeOfChunk)[iter] : []
+    task.upload_list = _.slice(task.upload_list, 0, task.upload_count)
     tasks.push(task)
 
   
