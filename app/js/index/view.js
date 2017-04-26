@@ -9,6 +9,21 @@ var config = require('./config/default');
 var softname = config.App.softname;
 const shell = require('electron').shell;
 
+// changes
+
+function taskRenderNames(taskDbName) {
+  switch(taskDbName) {
+    case 'filtration': return 'Фильтрация'
+    case 'parse_concurrents': return 'Парсинг по конкурентам'
+    case 'create_accounts': return 'Регистрация аккаунтов'
+    case 'parse_geo': return 'Парсинг по гео'
+    case 'convertation': return 'Конвертация'
+    case 'upload': return 'Загрузка медиа'
+    default: return '-'
+  }
+}
+
+
 $('.open-in-browser').click((event) => {
   event.preventDefault();
   shell.openExternal(event.target.href);
@@ -108,16 +123,6 @@ function setStateView(id, state) {
   }
 }
 
-function taskRenderNames(taskDbName) {
-  switch(taskDbName) {
-    case 'filtration': return 'Фильтрация'
-    case 'parse_concurrents': return 'Парсинг по конкурентам'
-    case 'create_accounts': return 'Регистрация аккаунтов'
-    case 'parse_geo': return 'Парсинг по гео'
-    case 'convertation': return 'Конвертация'
-    default: return '-'
-  }
-}
 
 function getStateView(id) {
   return $('#table1 tr[data-id="' + id +'"]').attr('state');

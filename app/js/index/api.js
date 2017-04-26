@@ -352,6 +352,7 @@ function chunkedCreate(task, token, proxy_array) {
           timerArr.pop(timerId)
         }, tim)
         timerArr.push(timerId)
+        
       }
     })
   }, function(err) {
@@ -797,6 +798,107 @@ function convertApi(user, task, token) {
     setStateView(user._id, 'stopped');
   })
 }
+
+/*****************************
+* USER Upload photo (video)  *
+******************************/
+
+function uploadSes(user, task, token, ses, description_array, indicator) {
+
+  var timerArr = timers.get(user._id)
+  async.eachSeries(task.upload_list, function(photopath, callback) { 
+  
+
+    var description_text = description_array[Math.floor(Math.random() * description_array.length)] 
+    console.log(photopath, description_text)
+ 
+ 
+    ses.then(function(session) {
+      console.log(session)
+      new Client.Upload.photo(session, photopath)
+      .then(function(upload) {
+        // upload instanceof Client.Upload
+        // nothing more than just keeping upload id
+        console.log(upload.params.uploadId);
+        return Client.Media.configurePhoto(session, upload.params.uploadId, description_text);
+      })
+      .then(function(medium) {
+        // we configure medium, it is now visible with caption
+
+        console.log(medium.params)
+        indicator++;
+        renderTaskCompletedView(user._id);
+        var tim = (indicator == task.upload_list.length) ? 0 : task.upload_timeout * 1000
+        var timerId = setTimeout(function() {
+          callback();
+          timerArr.pop(timerId)
+        }, tim)
+        timerArr.push(timerId)
+      })
+      .catch(function(err) {
+        console.log(err)
+      })
+    })
+
+
+  }, function(err) {
+  if( err ) {
+    // console.log('A file failed to process');
+    setStateView(user._id, 'stopped');
+  } else {
+    // console.log('All files have been processed successfully');
+    setStateView(user._id, 'stopped');
+  }
+  });
+}
+
+
+function uploadApi(user, task, token) {
+
+  mkdirFolder(cookieDir)
+  .then(function() {
+    setStateView(user._id, 'run');
+    renderNewTaskCompletedView(user._id);
+    loggerDb(user._id, 'Загрузка медиа началась');
+
+
+    var indicator = 0;
+    const device = new Client.Device(user.username);
+    var cookiePath = path.join(cookieDir, user._id + '.json');
+    const storage = new Client.CookieFileStorage(cookiePath);
+    
+    
+    fs.readFile(task.desc_file, 'utf8', function(err, description_array) {
+      if (err) throw err;
+      description_array = description_array.split(EOL).filter(isEmpty).filter(function(elem, index, self) {
+        return index == self.indexOf(elem);
+      });
+    
+      var ses = Client.Session.create(device, storage, user.username, user.password, returnProxyFunc(user.proxy))
+      .then(function(session) {
+        if(session) {
+          updateUserStatusDb(user._id, 'Активен');
+          session.token = token;
+          return session;
+        }
+      })
+
+      
+      uploadSes(user, task, token, ses, description_array);
+
+    })
+
+
+
+  })
+  .catch(function(err) {
+    // console.log(err);
+    setStateView(user._id, 'stopped');
+  })
+
+}
+
+
 
 /*****************************
  * USER Check accounts       *                          

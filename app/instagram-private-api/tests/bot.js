@@ -13,22 +13,68 @@ var session = new Client.Session(device, storage, proxy);
 
 
 
-var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&access_token=208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ' // &after=MjQZD
+
+new Client.Session.login(session, username, password)
+.then(function(session) {
+
+  console.log(session)
+
+  new Client.Upload.photo(session, '/Users/alex/Desktop/docs/other/7.jpg')
+  .then(function(upload) {
+    // upload instanceof Client.Upload
+    // nothing more than just keeping upload id
+    console.log(upload.params.uploadId);
+    return Client.Media.configurePhoto(session, upload.params.uploadId, 'akward2 caption');
+  })
+  .then(function(medium) {
+    // we configure medium, it is now visible with caption
+    console.log(medium.params)
+  })
 
 
 
-var locationReq = new Client.Web.Geolocation();   
-
-locationReq.get(proxy, 256622341134762)
-.then(function(res) {
-  var maxId = res.location.media.page_info.end_cursor
-  locationReq.get(proxy, 256622341134762, maxId)
-    .then(function(res) {
-      console.log(res)
-    })
-
-  // console.log(res.location.media.nodes)
 })
+
+
+
+  // console.log(session)
+  // Client.Location.searchGeo(session, 55.852750, 37.415950) // search
+  //   .then(function(locations) {
+  //     // console.log(locations.length)
+  //     // locations.forEach(function(loc, i) {
+  //     //   if (i == 80) {
+  //     //     console.log(loc)
+  //     //   }
+  //     //   console.log(loc._params.id)
+  //     // })
+  //       var locationFeed = new Client.Feed.LocationMedia(session, 107248442645764); //_.first(locations).id);
+  //       return locationFeed.get();
+  //   })
+  //   .then(function(media) {
+  //       var first = media[0];
+  //       console.log(media)
+  //   })
+
+  
+ 
+
+
+  // var locations = 'https://graph.facebook.com/search?type=place&center=' + lat + ',' + lng + '&distance=' + distance + '&access_token=208737209614557|nZI7t9ZvRjfVkjeBzAaP3juvAyQ' // &after=MjQZD
+
+
+
+// var locationReq = new Client.Web.Geolocation();   
+
+// locationReq.get(proxy, 256622341134762)
+// .then(function(res) {
+//   var maxId = res.location.media.page_info.end_cursor
+//   locationReq.get(proxy, 256622341134762, maxId)
+//     .then(function(res) {
+//       console.log(res)
+//     })
+
+//   // console.log(res.location.media.nodes)
+// })
 
 // new Client.Session.login(session, username, password)
 // .then(function(session) {

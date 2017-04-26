@@ -4,6 +4,35 @@
 
 $(function() {
 
+   $("#upload_form").validate({
+    rules: {
+      media_folder: "required",
+      desc_file: "required",
+      upload_count: "required",
+      upload_timeout: "required"
+    },
+    messages: {
+      upload_count: "Введите кол-во постов",
+      media_folder: "Укажите директорию с медиа",
+      desc_file: "Выберите файл",
+      upload_timeout: "Выберите задержку"
+    },
+    highlight: function(element) {
+      $(element).closest('.form-group').addClass('has-danger');
+    },
+    unhighlight: function(element) {
+      $(element).closest('.form-group').removeClass('has-danger');
+    },
+    errorElement: 'span',
+    errorClass: 'form-control-feedback form-control-sm',  // 'help-block',
+
+    submitHandler: function(form) {
+      completeTask('upload');
+    }
+  });
+
+
+
   $("#create_accounts_form").validate({
     rules: {
       proxy_file: "required",

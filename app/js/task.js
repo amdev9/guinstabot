@@ -4,7 +4,7 @@ var fs = require('fs')
 var os = require('os'), EOL = os.EOL
 var Promise = require('bluebird')
 var _ = require('lodash')
-
+var path = require('path')
 
 var turf = require('@turf/turf')
 var mapboxgl = require('mapbox-gl')
@@ -16,6 +16,25 @@ var readFilePromise = Promise.promisify(require("fs").readFile);
 const {dialog} = require('electron').remote
 var config = require('../config/default');
 var softname = config.App.softname;
+
+// changes
+
+function completeTask(taskName) {
+  if (taskName == 'parse_concurrents') {
+    parseConcurrents(taskName);
+  } else if (taskName == 'filtration') {
+    filtration(taskName);
+  } else if (taskName == 'create_accounts') {
+    createAccounts(taskName);
+  } else if (taskName == 'parse_geo') {
+    parseGeo(taskName);
+  } else if (taskName == 'convertation') {
+    convertation(taskName);
+  } else if (taskName == 'upload') {
+    upload(taskName);
+  }
+}
+
 
 ipc.on('closing', () => {});
 
@@ -34,9 +53,9 @@ ipc.on('edit', (event, item) => {
     var user = item;  
     if (user.task.name == 'parse_concurrents') {
       editParseConcurrents(user.task);
-    } else if (user.task.name == 'convertation') {
-      editConvertation(user.task);
-    }
+    } else if (user.task.name == 'upload') {
+      editUpload(user.task);
+    } 
 
   } else {
 
@@ -57,7 +76,7 @@ ipc.on('edit', (event, item) => {
 
 function updateElementsAccessibility(type) {
   if (type == 'user') {
-    updateElemView(['parse_concurrents', 'convertation']);
+    updateElemView(['parse_concurrents', 'convertation', 'upload']);
   } else {
     updateElemView(['parse_geo', 'filtration', 'create_accounts']);
   }
@@ -83,22 +102,43 @@ function clearTextArea (selector) {
 }
 
 function openFile(selector) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); 
-  if (path) {
-    document.getElementById(selector).value = path;
+  var p = dialog.showOpenDialog({properties: ['openFile']}); 
+  if (p) {
+    document.getElementById(selector).value = p;
   } 
 }
 
+
+function openFolderParse(selector) {
+  var p = dialog.showOpenDialog({properties: ['openDirectory']}); 
+  var medias = []
+  if(p) {
+    fs.readdir(p[0], (err, files) => {
+      if(err) throw err;
+      files.forEach( function(file, i, arr) { // filter only photo 
+        if (path.extname(file) == '.jpeg' || path.extname(file) == '.jpg') {
+          var resFile = path.join(p[0], file)
+          medias.push(resFile);
+        }
+        if (i == arr.length - 1 ) {
+          document.getElementById(selector).value = medias.join(EOL);
+        }
+      });
+    })
+  }
+}
+
+
 function openParse(selector) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); 
-  readFile(path[0], function(data) {
+  var p = dialog.showOpenDialog({properties: ['openFile']}); 
+  readFile(p[0], function(data) {
     document.getElementById(selector).value = data;
   });
 }
 
 function openParseRemoveDup(selector) {
-  var path = dialog.showOpenDialog({properties: ['openFile']}); 
-  readFile(path[0], function(data) {
+  var p = dialog.showOpenDialog({properties: ['openFile']}); 
+  readFile(p[0], function(data) {
     
     var unique = data.split(EOL).filter(isEmpty).filter(function(elem, index, self) {
       return index == self.indexOf(elem);
@@ -116,9 +156,9 @@ function readFile(filepath, cb) {
 }
 
 function saveFile(selector) {
-  var path = dialog.showSaveDialog();
-  if (path) {
-    document.getElementById(selector).value = path;
+  var p = dialog.showSaveDialog();
+  if (p) {
+    document.getElementById(selector).value = p;
   }
 }
 
@@ -254,6 +294,45 @@ function parseConcurrents(taskName) {
     }
   });
 }
+
+
+
+function editUpload(task) {
+  updateElemView(['upload']);
+  document.getElementById("media_folder").value = task.upload_list.join(EOL);
+  document.getElementById("desc_file").value = task.desc_file 
+  document.getElementById("upload_count").value = task.upload_count 
+  document.getElementById("upload_timeout").value = task.upload_timeout
+}
+
+function upload(taskName) {
+
+  var tasks = [];
+  var users = $("div.container").data('user');
+
+  users.forEach(function(user, iter, arr) {
+    var task = {}
+    task.name = taskName
+ 
+    task.desc_file = document.getElementById("desc_file").value
+    task.upload_count = document.getElementById("upload_count").value    
+    task.upload_timeout = document.getElementById("upload_timeout").value    
+
+    var mediaFound = document.getElementById("media_folder").value.split(EOL).filter(isEmpty)// read all files from folder and get only jpg files
+
+    var sizeOfChunk = _.ceil(mediaFound.length / users.length)
+    task.upload_list = _.chunk(mediaFound, sizeOfChunk)[iter] ? _.chunk(mediaFound, sizeOfChunk)[iter] : []
+    tasks.push(task)
+
+  
+    if(iter == arr.length - 1) {   
+      console.log(tasks, users)   
+      ipc.send('add_task_event', tasks, users);
+      window.close();
+    }
+  });
+}
+
 
 function editConvertation(task) {
   updateElemView(['convertation']);
@@ -444,19 +523,6 @@ function parseGeo(taskName) {
   }
 }
 
-function completeTask(taskName) {
-  if (taskName == 'parse_concurrents') {
-    parseConcurrents(taskName);
-  } else if (taskName == 'filtration') {
-    filtration(taskName);
-  } else if (taskName == 'create_accounts') {
-    createAccounts(taskName);
-  } else if (taskName == 'parse_geo') {
-    parseGeo(taskName);
-  } else if (taskName == 'convertation') {
-    convertation(taskName);
-  }
-}
 
 document.title = "Добавление задания | " + softname
 document.getElementById("own_emails").addEventListener("click",function(){

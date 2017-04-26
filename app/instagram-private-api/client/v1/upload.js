@@ -79,12 +79,16 @@ Upload.video = function(session,videoBufferOrPath,photoStreamOrPath){
                 upload_id: predictedUploadId,
                 media_type: 2,
                 upload_media_duration_ms: Math.floor(duration)
+                // , 
+                // upload_media_width: 568,
+                // upload_media_height: 296                                                    /// new params
+
             })
             .send()
             .then(function(json) {
                 return new Upload(session, json);
             })
-            .then(function(uploadData){
+            .then(function(uploadData) {
                 //Uploading video to url
                 var sessionId = _generateSessionId(uploadData.params.uploadId);
                 var chunkLength = 204800;

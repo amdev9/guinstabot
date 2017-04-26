@@ -22,6 +22,51 @@ var db;
 var tokens = new Map();
 var timers = new Map();
 
+// changes
+
+function runTasksDb(rows) {
+ 
+  rows.forEach(function (row_id) {
+    
+    db.get(row_id).then(function(row) {
+      if (row.type == 'user' && row.task.name == 'parse_concurrents') {
+        var token = { row: row._id }
+        tokens.set(row._id, token)
+        parseApi(row, row.task, token);
+      } else if (row.type == 'user' && row.task.name == 'upload') {
+        var token = { row: row._id }
+        tokens.set(row._id, token)
+        var timerIds = [];
+        timers.set(row._id, timerIds)
+        uploadApi(row, row.task, token);
+      } else if (row.type == 'user' && row.task.name == 'convertation') {
+        var token = { row: row._id }
+        tokens.set(row._id, token)
+        convertApi(row, row.task, token);
+      } else if (row.name && row.name == 'filtration') {
+        var token = []; 
+        tokens.set(row._id, token)
+        filterApi(row, token);
+      } else if (row.name && row.name == 'create_accounts') {
+        var token = []; 
+        var timerIds = [];
+        tokens.set(row._id, token)
+        timers.set(row._id, timerIds)
+        createApi(row, token);
+      } else if (row.name && row.name == 'parse_geo') {
+        var token = []; 
+        tokens.set(row._id, token)
+        parseGeoApi(row, token);
+      }
+
+    }).catch(function (err) {
+      console.log(err);
+    });
+  });
+}
+
+
+
 function initDb() {
   return mkdirFolder(levelPath)
     .then(function() {
@@ -115,40 +160,6 @@ function checkAccountsDb(user_ids) {
   });
 }
 
-function runTasksDb(rows) {
- 
-  rows.forEach(function (row_id) {
-
-    db.get(row_id).then(function(row) {
-      if (row.type == 'user' && row.task.name == 'parse_concurrents') {
-        var token = { row: row._id }
-        tokens.set(row._id, token)
-        parseApi(row, row.task, token);
-      } else if (row.type == 'user' && row.task.name == 'convertation') {
-        var token = { row: row._id }
-        tokens.set(row._id, token)
-        convertApi(row, row.task, token);
-      } else if (row.name && row.name == 'filtration') {
-        var token = []; 
-        tokens.set(row._id, token)
-        filterApi(row, token);
-      } else if (row.name && row.name == 'create_accounts') {
-        var token = []; 
-        var timerIds = [];
-        tokens.set(row._id, token)
-        timers.set(row._id, timerIds)
-        createApi(row, token);
-      } else if (row.name && row.name == 'parse_geo') {
-        var token = []; 
-        tokens.set(row._id, token)
-        parseGeoApi(row, token);
-      }
-
-    }).catch(function (err) {
-      console.log(err);
-    });
-  });
-}
 
 function getExistedUserRows(rows) {
  
