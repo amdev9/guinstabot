@@ -2,7 +2,7 @@
 
 for i in {30000..30500}
 do
-  echo "****:*****:45.76.34.156:$i"
+  echo "{cred_login}:{pass}:{ip}:$i"
 done
 
 
